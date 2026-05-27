@@ -1,4 +1,5 @@
 // === SEMUA API KEYS ===
+// Di Vercel, process.env otomatis terbaca tanpa perlu library 'dotenv'
 const GEMINI_KEYS = [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean);
 const GROQ_KEYS = [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean);
 const OPENROUTER_KEYS = [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean);
@@ -44,15 +45,14 @@ export default async function handler(req, res) {
   let history = conversations.get(sessionId);
   history.push({ role: "user", content: message });
 
-  // Batasi memori hanya mengingat 10 pesan terakhir
-  if (history.length > 10) {
-    history = history.slice(-10);
+  if (history.length > 20) {
+    history = history.slice(-20);
     conversations.set(sessionId, history);
   }
 
   let reply = "";
 
-  // 1. Coba Gemini dulu
+  // 1. Coba Gemini dulu (Paling bagus untuk Bahasa Indonesia)
   if (GEMINI_KEYS.length > 0) {
     try {
       const key = GEMINI_KEYS[geminiIndex % GEMINI_KEYS.length];
@@ -83,7 +83,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Fallback ke Groq
+  // 2. Fallback ke Groq (Super cepat)
   if (!reply && GROQ_KEYS.length > 0) {
     try {
       const key = GROQ_KEYS[groqIndex % GROQ_KEYS.length];
@@ -137,6 +137,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // Jika semua gagal
   if (!reply) {
     reply = "Maaf, semua provider sedang sibuk. Coba lagi sebentar ya.";
   }
