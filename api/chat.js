@@ -1,7 +1,3 @@
-// api/chat.js
-import dotenv from 'dotenv';
-dotenv.config();
-
 // === SEMUA API KEYS ===
 const GEMINI_KEYS = [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean);
 const GROQ_KEYS = [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean);
@@ -11,7 +7,7 @@ let geminiIndex = 0;
 let groqIndex = 0;
 let openrouterIndex = 0;
 
-// Memory Chat (maksimal 10 chat terakhir)
+// Memory Chat Lokal
 const conversations = new Map();
 
 function getSystemPrompt() {
@@ -48,14 +44,15 @@ export default async function handler(req, res) {
   let history = conversations.get(sessionId);
   history.push({ role: "user", content: message });
 
-  if (history.length > 20) {
-    history = history.slice(-20);
+  // Batasi memori hanya mengingat 10 pesan terakhir
+  if (history.length > 10) {
+    history = history.slice(-10);
     conversations.set(sessionId, history);
   }
 
   let reply = "";
 
-  // 1. Coba Gemini dulu (Paling bagus untuk Bahasa Indonesia)
+  // 1. Coba Gemini dulu
   if (GEMINI_KEYS.length > 0) {
     try {
       const key = GEMINI_KEYS[geminiIndex % GEMINI_KEYS.length];
@@ -86,7 +83,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Fallback ke Groq (Super cepat)
+  // 2. Fallback ke Groq
   if (!reply && GROQ_KEYS.length > 0) {
     try {
       const key = GROQ_KEYS[groqIndex % GROQ_KEYS.length];
@@ -140,7 +137,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // Jika semua gagal
   if (!reply) {
     reply = "Maaf, semua provider sedang sibuk. Coba lagi sebentar ya.";
   }
@@ -150,4 +146,4 @@ export default async function handler(req, res) {
   conversations.set(sessionId, history);
 
   res.status(200).json({ reply });
-            }
+}
