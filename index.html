@@ -180,7 +180,6 @@
       <div class="error" id="errorMsg">Pesan tidak boleh kosong!</div>
     </div>
   </div>
-
   <script>
     const md = window.markdownit();
 
@@ -206,7 +205,8 @@
       input.value = "";
       updateCharCount();
 
-      const loadingId = addMessage("XREZZ lagi mikir...", "bot");
+      // Sekarang loadingElement menangkap elemen div aslinya secara langsung
+      const loadingElement = addMessage("XREZZ lagi mikir...", "bot");
 
       try {
         const res = await fetch('/api/chat', {
@@ -219,14 +219,24 @@
         });
 
         const data = await res.json();
-        document.getElementById(loadingId).remove();
-        addMessage(data.reply, "bot", true);
+        
+        // Hapus elemen loading dari layar
+        if (loadingElement) loadingElement.remove();
+        
+        // Tampilkan balasan asli dari AI
+        addMessage(data.reply || "Maaf, tidak ada respon.", "bot", true);
 
       } catch (err) {
-        document.getElementById(loadingId).innerHTML = "Maaf, koneksi bermasalah. Coba lagi ya.";
+        if (loadingElement) {
+          loadingElement.innerHTML = `
+            Maaf, koneksi bermasalah. Coba lagi ya.
+            <span class="timestamp">${getCurrentTime()}</span>
+          `;
+        }
       }
     }
 
+    // Fungsi addMessage sekarang mengembalikan elemen div yang dibuat
     function addMessage(text, sender, isBot = false) {
       const chatBox = document.getElementById("chatBox");
       const div = document.createElement("div");
@@ -249,6 +259,8 @@
 
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
+      
+      return div; // Mengembalikan elemen agar bisa dimanipulasi/dihapus nantinya
     }
 
     function copyMessage(btn) {
