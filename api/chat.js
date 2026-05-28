@@ -68,7 +68,43 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
     return data.choices[0].message.content;
 }
 
-async function callOpenRouter(apiKey, systemPrompt, userMessage) {
+async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage, useVision) {
+    let messages;
+
+    if (useVision && userImage && userImage.includes(",")) {
+        // Kirim gambar via OpenRouter pakai model vision
+        try {
+            const split = userImage.split(",");
+            const mimeType = split[0].match(/:(.*?);/)[1] || "image/jpeg";
+            const base64 = split[1];
+            messages = [
+                { role: "system", content: systemPrompt },
+                {
+                    role: "user",
+                    content: [
+                        { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64}` } },
+                        { type: "text", text: userMessage || "Lihat gambar ini" }
+                    ]
+                }
+            ];
+        } catch (e) {
+            messages = [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userMessage || "Halo" }
+            ];
+        }
+    } else {
+        messages = [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage || "Halo" }
+        ];
+    }
+
+    // Pilih model: vision pakai google/gemini-2.0-flash, teks pakai llama gratis
+    const model = useVision
+        ? "google/gemini-2.0-flash-001"
+        : "meta-llama/llama-3.1-8b-instruct:free";
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -77,14 +113,7 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
             "HTTP-Referer": "https://xrezzky-assistant.vercel.app",
             "X-Title": "XREZZKY OFFICIAL STORE"
         },
-        body: JSON.stringify({
-            model: "meta-llama/llama-3.1-8b-instruct:free",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userMessage || "Halo" }
-            ],
-            max_tokens: 1024
-        })
+        body: JSON.stringify({ model, messages, max_tokens: 1024 })
     });
     if (!response.ok) {
         const err = await response.text();
@@ -113,10 +142,19 @@ export default async function handler(req, res) {
             SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada ✓' : 'KOSONG ✗',
             GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
             GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
+            GEMINI_API_KEY_3: process.env.GEMINI_API_KEY_3 ? 'ada ✓' : 'KOSONG ✗',
+            GEMINI_API_KEY_4: process.env.GEMINI_API_KEY_4 ? 'ada ✓' : 'KOSONG ✗',
+            GEMINI_API_KEY_5: process.env.GEMINI_API_KEY_5 ? 'ada ✓' : 'KOSONG ✗',
             GROQ_API_KEY_1: process.env.GROQ_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
             GROQ_API_KEY_2: process.env.GROQ_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
+            GROQ_API_KEY_3: process.env.GROQ_API_KEY_3 ? 'ada ✓' : 'KOSONG ✗',
+            GROQ_API_KEY_4: process.env.GROQ_API_KEY_4 ? 'ada ✓' : 'KOSONG ✗',
+            GROQ_API_KEY_5: process.env.GROQ_API_KEY_5 ? 'ada ✓' : 'KOSONG ✗',
             OPENROUTER_API_KEY_1: process.env.OPENROUTER_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
             OPENROUTER_API_KEY_2: process.env.OPENROUTER_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
+            OPENROUTER_API_KEY_3: process.env.OPENROUTER_API_KEY_3 ? 'ada ✓' : 'KOSONG ✗',
+            OPENROUTER_API_KEY_4: process.env.OPENROUTER_API_KEY_4 ? 'ada ✓' : 'KOSONG ✗',
+            OPENROUTER_API_KEY_5: process.env.OPENROUTER_API_KEY_5 ? 'ada ✓' : 'KOSONG ✗',
         };
 
         const providers = {};
@@ -177,6 +215,38 @@ export default async function handler(req, res) {
             }
         }
 
+        if (action === 'save_prompt') {
+            const supabase = await getSupabase();
+            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
+            try {
+                const { prompt } = req.body;
+                if (!prompt) return res.status(400).json({ error: "Prompt kosong." });
+                // Upsert ke tabel ai_config
+                const { error } = await supabase.from('ai_config').upsert(
+                    { key: 'system_prompt', value: prompt },
+                    { onConflict: 'key' }
+                );
+                if (error) throw error;
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                return res.status(500).json({ error: err.message });
+            }
+        }
+
+        if (action === 'delete_context') {
+            const supabase = await getSupabase();
+            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
+            try {
+                const { id } = req.body;
+                if (!id) return res.status(400).json({ error: "ID wajib diisi." });
+                const { error } = await supabase.from('info_toko').delete().eq('id', id);
+                if (error) throw error;
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                return res.status(500).json({ error: err.message });
+            }
+        }
+
         // Chat utama
         try {
             const { user_message, user_image } = req.body;
@@ -195,20 +265,33 @@ export default async function handler(req, res) {
                 console.error("Supabase knowledge fetch gagal:", e.message);
             }
 
-            const systemPrompt = `Kamu adalah XREZZ AI, asisten resmi XREZZKY OFFICIAL STORE.
+            // Ambil system prompt custom dari Supabase (tabel: ai_config, key: system_prompt)
+            let customPrompt = null;
+            try {
+                const sb = await getSupabase();
+                if (sb) {
+                    const { data: cfg } = await sb.from('ai_config').select('value').eq('key', 'system_prompt').single();
+                    if (cfg && cfg.value) customPrompt = cfg.value;
+                }
+            } catch (e) {}
+
+            const defaultPrompt = `Kamu adalah XREZZ AI, asisten resmi XREZZKY OFFICIAL STORE.
 Gunakan data resmi toko di bawah ini untuk menjawab pelanggan:
-${knowledgeContext || "Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game dan kebutuhan gamers terpercaya."}
+{knowledge}
 Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
+
+            const promptTemplate = customPrompt || defaultPrompt;
+            const systemPrompt = promptTemplate.replace('{knowledge}', knowledgeContext || 'Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game dan kebutuhan gamers terpercaya.');
 
             const hasImage = !!(user_image && user_image.includes(','));
 
             // Kalau ada gambar: paksa Gemini (vision). Kalau tidak: fallback Gemini → Groq → OpenRouter
             const providers = hasImage
-                ? [{ name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) }]
+                ? [{ name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5].filter(Boolean) }]
                 : [
-                    { name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) },
-                    { name: 'groq', keys: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean) },
-                    { name: 'openrouter', keys: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean) },
+                    { name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5].filter(Boolean) },
+                    { name: 'groq', keys: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4, process.env.GROQ_API_KEY_5].filter(Boolean) },
+                    { name: 'openrouter', keys: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2, process.env.OPENROUTER_API_KEY_3, process.env.OPENROUTER_API_KEY_4, process.env.OPENROUTER_API_KEY_5].filter(Boolean) },
                   ];
 
             let aiResponse = null;
