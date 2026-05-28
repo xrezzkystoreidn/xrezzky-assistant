@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>XREZZKY ASSISTANT - Official Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -16,6 +16,7 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
+            --sidebar-width: 280px;
         }
 
         * {
@@ -33,79 +34,99 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
         /* --- HEADER CHAT --- */
         .chat-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
             background-color: var(--bg-chat);
-            padding: 16px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
+            z-index: 10;
         }
 
         .brand-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background-color: #2563eb;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .brand-name h1 {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
         }
 
         .brand-name p {
-            font-size: 11px;
+            font-size: 10px;
             color: #22c55e;
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .clear-chat-btn {
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
             background: none;
             border: none;
             color: var(--text-muted);
             font-size: 18px;
             cursor: pointer;
             padding: 8px;
+            border-radius: 50%;
+        }
+        .header-btn:active {
+            background-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* --- AREA TIMELINE CHAT --- */
+        /* --- AREA LAYAR CHAT UTAMA --- */
         .chat-container {
-            flex: 1;
+            position: absolute;
+            top: 60px;
+            bottom: 80px; /* Jarak aman biar gak ketutupan input bar */
+            left: 0;
+            right: 0;
             padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            scroll-behavior: smooth;
         }
 
         .message-row {
             display: flex;
             width: 100%;
         }
-
         .message-row.user-row { justify-content: flex-end; }
         .message-row.bot-row { justify-content: flex-start; }
 
         .bubble {
-            max-width: 80%;
-            padding: 12px 16px;
+            max-width: 85%;
+            padding: 12px 14px;
             border-radius: 16px;
             font-size: 14px;
             line-height: 1.5;
@@ -125,22 +146,30 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Preview Gambar di Dalam Chat */
         .chat-img {
             max-width: 100%;
+            max-height: 200px;
             border-radius: 8px;
             margin-bottom: 6px;
             display: block;
+            object-fit: cover;
         }
 
-        /* --- PREVIEW BAR SEBELUM DIKIRIM --- */
+        /* --- PREVIEW GAMBAR (MELAYANG DI ATAS INPUT) --- */
         .preview-bar {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
             background-color: #1e293b;
-            padding: 8px 16px;
+            padding: 8px 12px;
             display: none;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            z-index: 9;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
         }
 
         .preview-container {
@@ -150,11 +179,10 @@
         }
 
         .preview-img {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             object-fit: cover;
             border-radius: 6px;
-            border: 1px solid var(--border-color);
         }
 
         .preview-text {
@@ -162,32 +190,29 @@
             color: var(--text-muted);
         }
 
-        .remove-preview {
-            color: #ef4444;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        /* --- FORM INPUT ALA GEMINI & GROK --- */
+        /* --- BAR INPUT FIXED DI BAWAH (ANTI-GESER HP) --- */
         .chat-form {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
             background-color: var(--bg-chat);
-            padding: 12px 16px;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); /* Support iOS & Android Bar */
             border-top: 1px solid var(--border-color);
+            z-index: 10;
         }
 
-        /* Pembungkus utama biar input, foto, & kirim menyatu */
         .modern-input-bar {
             display: flex;
             align-items: center;
             background-color: var(--bg-main);
             border: 1px solid var(--border-color);
-            border-radius: 28px;
-            padding: 4px 8px 4px 16px;
-            gap: 8px;
-        }
-
-        .modern-input-bar:focus-within {
-            border-color: var(--bg-bubble-user);
+            border-radius: 24px;
+            padding: 2px 6px 2px 12px;
+            gap: 6px;
+            width: 100%;
+            height: 44px;
         }
 
         .modern-input-bar input {
@@ -197,10 +222,9 @@
             color: var(--text-main);
             font-size: 14px;
             outline: none;
-            padding: 10px 0;
+            height: 100%;
         }
 
-        /* Tombol ikon di dalam bar */
         .bar-btn {
             background: none;
             border: none;
@@ -213,23 +237,105 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            transition: background-color 0.2s;
         }
 
-        .bar-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        /* Tombol kirim pesannya */
         .send-btn-active {
             color: var(--text-main);
             background-color: var(--bg-bubble-user);
         }
-        .send-btn-active:hover {
-            background-color: #1d4ed8;
+
+        /* --- SIDEBAR RIWAYAT KANAN (ALA DOKUMEN MODAL) --- */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 20;
+            display: none;
         }
 
-        /* Indikator Mengetik */
+        .history-sidebar {
+            position: fixed;
+            top: 0;
+            right: calc(-1 * var(--sidebar-width));
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: var(--bg-chat);
+            border-left: 1px solid var(--border-color);
+            z-index: 21;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .new-chat-btn {
+            background-color: var(--bg-bubble-user);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            width: calc(100% - 32px);
+            margin: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .history-item.active-session {
+            border-color: var(--bg-bubble-user);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .history-item .title {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .history-item .time {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
         .loading-bubble {
             color: var(--text-muted);
             font-style: italic;
@@ -246,10 +352,13 @@
             <div class="avatar">X</div>
             <div class="brand-name">
                 <h1>XREZZKY OFFICIAL STORE</h1>
-                <p><i class="fas fa-circle" style="font-size: 8px;"></i> XREZZ AI Aktif</p>
+                <p><i class="fas fa-circle" style="font-size: 7px;"></i> XREZZ AI Aktif</p>
             </div>
         </div>
-        <button class="clear-chat-btn" id="clearChatBtn" title="Hapus Riwayat Chat"><i class="fas fa-trash-can"></i></button>
+        <div class="header-actions">
+            <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
+            <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
+        </div>
     </div>
 
     <div class="chat-container" id="chatContainer"></div>
@@ -257,30 +366,39 @@
     <div class="preview-bar" id="previewBar">
         <div class="preview-container">
             <img src="" id="imgElementPreview" class="preview-img">
-            <span class="preview-text">Siap dikirim...</span>
+            <span class="preview-text">Gambar siap dikirim...</span>
         </div>
-        <i class="fas fa-times remove-preview" id="cancelImgBtn"></i>
+        <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
     </div>
 
     <form class="chat-form" id="chatForm">
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        
         <div class="modern-input-bar">
-            <button type="button" class="bar-btn" id="uploadBtn" title="Tambah Gambar">
+            <button type="button" class="bar-btn" id="uploadBtn">
                 <i class="fa-regular fa-image"></i>
             </button>
-            
             <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
-            
-            <button type="submit" class="bar-btn send-btn-active" id="sendBtn" title="Kirim">
+            <button type="submit" class="bar-btn send-btn-active" id="sendBtn">
                 <i class="fas fa-arrow-up"></i>
             </button>
         </div>
     </form>
 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="history-sidebar" id="historySidebar">
+        <div class="sidebar-header">
+            <h2>Riwayat Percakapan</h2>
+            <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
+        <div class="history-list" id="historyList">
+            </div>
+    </div>
+
     <script>
         const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
-        const LOCAL_STORAGE_KEY = "xrezzky_chat_history";
+        const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
+        const CURRENT_SESSION_KEY = "xrezzky_current_id";
 
         const chatContainer = document.getElementById("chatContainer");
         const chatForm = document.getElementById("chatForm");
@@ -292,14 +410,115 @@
         const cancelImgBtn = document.getElementById("cancelImgBtn");
         const clearChatBtn = document.getElementById("clearChatBtn");
 
-        let selectedBase64Image = null;
+        // Elemen Sidebar Riwayat
+        const openHistoryBtn = document.getElementById("openHistoryBtn");
+        const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+        const sidebarOverlay = document.getElementById("sidebarOverlay");
+        const historySidebar = document.getElementById("historySidebar");
+        const historyList = document.getElementById("historyList");
+        const newChatBtn = document.getElementById("newChatBtn");
 
+        let selectedBase64Image = null;
+        let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+
+        // --- MANAJEMEN SESI & SIDEBAR ---
         window.addEventListener("DOMContentLoaded", () => {
-            loadChatHistory();
+            if (!currentSessionId) {
+                createNewSession();
+            }
+            loadCurrentSessionChat();
+            renderSidebarList();
         });
 
-        uploadBtn.addEventListener("click", () => fileInput.click());
+        function createNewSession() {
+            currentSessionId = "session_" + Date.now();
+            localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+            
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            sessions[currentSessionId] = {
+                title: "Obrolan Baru",
+                timestamp: Date.now(),
+                chats: []
+            };
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+        }
 
+        function loadCurrentSessionChat() {
+            chatContainer.innerHTML = "";
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            let currentData = sessions[currentSessionId];
+
+            if (!currentData || currentData.chats.length === 0) {
+                appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
+            } else {
+                currentData.chats.forEach(item => {
+                    appendMessage(item.text, item.image, item.sender);
+                });
+            }
+            setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
+        }
+
+        function renderSidebarList() {
+            historyList.innerHTML = "";
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            
+            // Urutkan berdasarkan waktu terbaru
+            let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
+
+            if(sortedKeys.length === 0) {
+                historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
+                return;
+            }
+
+            sortedKeys.forEach(key => {
+                const session = sessions[key];
+                const item = document.createElement("div");
+                item.classList.add("history-item");
+                if (key === currentSessionId) item.classList.add("active-session");
+
+                const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour: '2-digit', minute:'2-digit'});
+
+                item.innerHTML = `
+                    <div class="title">${session.title}</div>
+                    <div class="time">${dateStr}</div>
+                `;
+
+                item.addEventListener("click", () => {
+                    currentSessionId = key;
+                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+                    loadCurrentSessionChat();
+                    renderSidebarList();
+                    closeSidebar();
+                });
+
+                historyList.appendChild(item);
+            });
+        }
+
+        // Buka - Tutup Sidebar Animasi Kanan
+        openHistoryBtn.addEventListener("click", () => {
+            renderSidebarList();
+            sidebarOverlay.style.display = "block";
+            setTimeout(() => { historySidebar.style.right = "0"; }, 10);
+        });
+
+        function closeSidebar() {
+            historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
+            setTimeout(() => { sidebarOverlay.style.display = "none"; }, 300);
+        }
+
+        closeHistoryBtn.addEventListener("click", closeSidebar);
+        sidebarOverlay.addEventListener("click", closeSidebar);
+
+        newChatBtn.addEventListener("click", () => {
+            createNewSession();
+            loadCurrentSessionChat();
+            renderSidebarList();
+            closeSidebar();
+        });
+
+        // --- SISTEM INPUT FOTO ---
+        uploadBtn.addEventListener("click", () => fileInput.click());
         fileInput.addEventListener("change", function() {
             const file = this.files[0];
             if (!file) return;
@@ -319,30 +538,42 @@
             previewBar.style.display = "none";
         });
 
+        // Hapus Sesi Berjalan saat ini
         clearChatBtn.addEventListener("click", () => {
-            if(confirm("Hapus semua riwayat chat lama dengan XREZZ AI di HP ini?")) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                chatContainer.innerHTML = "";
-                showWelcomeMessage();
+            if(confirm("Hapus obrolan aktif saat ini?")) {
+                let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+                delete sessions[currentSessionId];
+                localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+                
+                const remainingKeys = Object.keys(sessions);
+                if(remainingKeys.length > 0) {
+                    currentSessionId = remainingKeys[0];
+                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+                } else {
+                    createNewSession();
+                }
+                loadCurrentSessionChat();
+                renderSidebarList();
             }
         });
 
+        // --- PROSES SUBMIT CHAT ---
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-
             const textMessage = userInput.value.trim();
             if (!textMessage && !selectedBase64Image) return;
 
             const currentText = textMessage;
             const currentImage = selectedBase64Image;
 
+            // Reset Form Instant
             userInput.value = "";
             selectedBase64Image = null;
             fileInput.value = "";
             previewBar.style.display = "none";
 
             appendMessage(currentText, currentImage, "user");
-            saveToLocalStorage(currentText, currentImage, "user");
+            saveChatToSession(currentText, currentImage, "user");
 
             const loadingId = appendLoadingIndicator();
 
@@ -353,22 +584,20 @@
                     body: JSON.stringify({
                         user_message: currentText,
                         user_image: currentImage,
-                        user_id: getOrCreateUserId()
+                        user_id: currentSessionId
                     })
                 });
 
                 if (!response.ok) throw new Error();
-
                 const data = await response.json();
                 removeLoadingIndicator(loadingId);
 
                 if (data.response) {
                     appendMessage(data.response, null, "bot");
-                    saveToLocalStorage(data.response, null, "bot");
+                    saveChatToSession(data.response, null, "bot");
                 } else {
                     appendMessage("Maaf, sistem XREZZ AI sedang dikonfigurasi.", null, "bot");
                 }
-
             } catch (error) {
                 removeLoadingIndicator(loadingId);
                 appendMessage("Gagal terhubung ke server XREZZKY. Periksa jaringan Anda.", null, "bot");
@@ -388,13 +617,11 @@
                 img.classList.add("chat-img");
                 bubble.appendChild(img);
             }
-
             if (text) {
                 const textNode = document.createElement("span");
                 textNode.textContent = text;
                 bubble.appendChild(textNode);
             }
-
             row.appendChild(bubble);
             chatContainer.appendChild(row);
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -405,11 +632,9 @@
             const row = document.createElement("div");
             row.id = id;
             row.classList.add("message-row", "bot-row");
-
             const bubble = document.createElement("div");
             bubble.classList.add("bubble", "loading-bubble");
             bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
-
             row.appendChild(bubble);
             chatContainer.appendChild(row);
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -421,36 +646,20 @@
             if (element) element.remove();
         }
 
-        function saveToLocalStorage(text, image, sender) {
-            let history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-            history.push({ text, image, sender, timestamp: Date.now() });
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
-        }
+        // --- SIMPAN CHAT KE ARRAY SESI LOCAL STORAGE ---
+        function saveChatToSession(text, image, sender) {
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            if (!sessions[currentSessionId]) return;
 
-        function loadChatHistory() {
-            chatContainer.innerHTML = "";
-            let history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            // Jika ini chat pertama dari user, ganti judul sesi di sidebar agar tidak melulu bernama "Obrolan Baru"
+            if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
+                sessions[currentSessionId].title = text; 
+            }
+
+            sessions[currentSessionId].chats.push({ text, image, sender });
+            sessions[currentSessionId].timestamp = Date.now();
             
-            if (history.length === 0) {
-                showWelcomeMessage();
-            } else {
-                history.forEach(item => {
-                    appendMessage(item.text, item.image, item.sender);
-                });
-            }
-        }
-
-        function showWelcomeMessage() {
-            appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
-        }
-
-        function getOrCreateUserId() {
-            let id = localStorage.getItem("xrezz_uid");
-            if (!id) {
-                id = "id_" + Math.random().toString(36).substring(2, 11);
-                localStorage.setItem("xrezz_uid", id);
-            }
-            return id;
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
         }
     </script>
 </body>
