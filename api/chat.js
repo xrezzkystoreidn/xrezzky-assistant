@@ -200,12 +200,16 @@ Gunakan data resmi toko di bawah ini untuk menjawab pelanggan:
 ${knowledgeContext || "Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game dan kebutuhan gamers terpercaya."}
 Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
 
-            // Fallback otomatis: Gemini → Groq → OpenRouter
-            const providers = [
-                { name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) },
-                { name: 'groq', keys: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean) },
-                { name: 'openrouter', keys: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean) },
-            ];
+            const hasImage = !!(user_image && user_image.includes(','));
+
+            // Kalau ada gambar: paksa Gemini (vision). Kalau tidak: fallback Gemini → Groq → OpenRouter
+            const providers = hasImage
+                ? [{ name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) }]
+                : [
+                    { name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) },
+                    { name: 'groq', keys: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean) },
+                    { name: 'openrouter', keys: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean) },
+                  ];
 
             let aiResponse = null;
             let usedProvider = null;
