@@ -1,25 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
+// Supabase di-lazy import biar tidak crash saat init
+let supabaseModule = null;
 
-// ==========================================
-// SUPABASE — tidak crash walau env salah
-// ==========================================
-function getSupabase() {
+async function getSupabase() {
     try {
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!url || !key) return null;
-        // Validasi format URL
-        new URL(url);
-        return createClient(url, key);
+        if (!supabaseModule) {
+            supabaseModule = await import('@supabase/supabase-js');
+        }
+        return supabaseModule.createClient(url, key);
     } catch (e) {
-        console.error("Supabase init error:", e.message);
+        console.error("Supabase error:", e.message);
         return null;
     }
 }
 
-// ==========================================
-// GEMINI — fetch langsung tanpa SDK
-// ==========================================
 async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     const parts = [];
     if (userImage && userImage.includes(",")) {
@@ -31,7 +27,7 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     }
     parts.push({ text: userMessage || "Halo" });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,9 +44,6 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     return data.candidates[0].content.parts[0].text;
 }
 
-// ==========================================
-// GROQ
-// ==========================================
 async function callGroq(apiKey, systemPrompt, userMessage) {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -59,7 +52,7 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
             "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userMessage || "Halo" }
@@ -75,9 +68,6 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
     return data.choices[0].message.content;
 }
 
-// ==========================================
-// OPENROUTER
-// ==========================================
 async function callOpenRouter(apiKey, systemPrompt, userMessage) {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -88,7 +78,7 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
             "X-Title": "XREZZKY OFFICIAL STORE"
         },
         body: JSON.stringify({
-            model: "mistralai/mistral-7b-instruct:free",
+            model: "meta-llama/llama-3.1-8b-instruct:free",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userMessage || "Halo" }
@@ -104,9 +94,6 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
     return data.choices[0].message.content;
 }
 
-// ==========================================
-// MAIN HANDLER
-// ==========================================
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -117,44 +104,40 @@ export default async function handler(req, res) {
 
     const { action } = req.query;
 
-    // Inisialisasi supabase — kalau gagal tetap lanjut, tidak crash
-    let supabase = null;
-    try { supabase = getSupabase(); } catch (e) {}
-
     // ==========================================
-    // DEBUG — buka di browser: /api/chat?action=debug
+    // DEBUG
     // ==========================================
     if (req.method === 'GET' && action === 'debug') {
         const env = {
-            SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0, 30) + '...' : 'KOSONG',
-            SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada' : 'KOSONG',
-            GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1 ? 'ada' : 'KOSONG',
-            GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2 ? 'ada' : 'KOSONG',
-            GROQ_API_KEY_1: process.env.GROQ_API_KEY_1 ? 'ada' : 'KOSONG',
-            GROQ_API_KEY_2: process.env.GROQ_API_KEY_2 ? 'ada' : 'KOSONG',
-            OPENROUTER_API_KEY_1: process.env.OPENROUTER_API_KEY_1 ? 'ada' : 'KOSONG',
-            OPENROUTER_API_KEY_2: process.env.OPENROUTER_API_KEY_2 ? 'ada' : 'KOSONG',
+            SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0, 40) : 'KOSONG',
+            SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada ✓' : 'KOSONG ✗',
+            GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
+            GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
+            GROQ_API_KEY_1: process.env.GROQ_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
+            GROQ_API_KEY_2: process.env.GROQ_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
+            OPENROUTER_API_KEY_1: process.env.OPENROUTER_API_KEY_1 ? 'ada ✓' : 'KOSONG ✗',
+            OPENROUTER_API_KEY_2: process.env.OPENROUTER_API_KEY_2 ? 'ada ✓' : 'KOSONG ✗',
         };
 
         const providers = {};
 
         try {
             const key = process.env.GEMINI_API_KEY_1;
-            if (key) { await callGemini(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.gemini = 'OK'; }
-            else providers.gemini = 'no_key';
-        } catch (e) { providers.gemini = e.message.slice(0, 300); }
+            if (key) { await callGemini(key, "Kamu asisten.", "Balas: OK"); providers.gemini = '✓ OK'; }
+            else providers.gemini = '✗ no_key';
+        } catch (e) { providers.gemini = '✗ ' + e.message.slice(0, 250); }
 
         try {
             const key = process.env.GROQ_API_KEY_1;
-            if (key) { await callGroq(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.groq = 'OK'; }
-            else providers.groq = 'no_key';
-        } catch (e) { providers.groq = e.message.slice(0, 300); }
+            if (key) { await callGroq(key, "Kamu asisten.", "Balas: OK"); providers.groq = '✓ OK'; }
+            else providers.groq = '✗ no_key';
+        } catch (e) { providers.groq = '✗ ' + e.message.slice(0, 250); }
 
         try {
             const key = process.env.OPENROUTER_API_KEY_1;
-            if (key) { await callOpenRouter(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.openrouter = 'OK'; }
-            else providers.openrouter = 'no_key';
-        } catch (e) { providers.openrouter = e.message.slice(0, 300); }
+            if (key) { await callOpenRouter(key, "Kamu asisten.", "Balas: OK"); providers.openrouter = '✓ OK'; }
+            else providers.openrouter = '✗ no_key';
+        } catch (e) { providers.openrouter = '✗ ' + e.message.slice(0, 250); }
 
         return res.status(200).json({ env, providers });
     }
@@ -163,6 +146,7 @@ export default async function handler(req, res) {
     // GET — Ambil data info_toko
     // ==========================================
     if (req.method === 'GET') {
+        const supabase = await getSupabase();
         if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia. Cek env SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY." });
         try {
             const { data, error } = await supabase
@@ -180,6 +164,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
 
         if (action === 'save_context') {
+            const supabase = await getSupabase();
             if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
             try {
                 const { kategori, judul, content } = req.body;
@@ -196,17 +181,18 @@ export default async function handler(req, res) {
         try {
             const { user_message, user_image } = req.body;
 
-            // Ambil knowledge dari Supabase — kalau gagal, tetap lanjut pakai fallback text
+            // Ambil knowledge — kalau Supabase gagal, tetap lanjut
             let knowledgeContext = "";
-            if (supabase) {
-                try {
+            try {
+                const supabase = await getSupabase();
+                if (supabase) {
                     const { data: infoToko } = await supabase.from('info_toko').select('content').limit(10);
                     if (infoToko && infoToko.length > 0) {
                         knowledgeContext = infoToko.map(i => i.content).join("\n");
                     }
-                } catch (e) {
-                    console.error("Gagal baca Supabase:", e.message);
                 }
+            } catch (e) {
+                console.error("Supabase knowledge fetch gagal:", e.message);
             }
 
             const systemPrompt = `Kamu adalah XREZZ AI, asisten resmi XREZZKY OFFICIAL STORE.
