@@ -1,21 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ==========================================
-// SUPABASE
+// SUPABASE — tidak crash walau env salah
 // ==========================================
 function getSupabase() {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) return null;
-    return createClient(url, key);
+    try {
+        const url = process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!url || !key) return null;
+        // Validasi format URL
+        new URL(url);
+        return createClient(url, key);
+    } catch (e) {
+        console.error("Supabase init error:", e.message);
+        return null;
+    }
 }
 
 // ==========================================
-// GEMINI — pakai fetch langsung (no SDK)
+// GEMINI — fetch langsung tanpa SDK
 // ==========================================
 async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     const parts = [];
-
     if (userImage && userImage.includes(",")) {
         try {
             const split = userImage.split(",");
@@ -34,10 +40,9 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
             contents: [{ role: "user", parts }]
         })
     });
-
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`Gemini error ${response.status}: ${err}`);
+        throw new Error(`Gemini ${response.status}: ${err}`);
     }
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
@@ -64,7 +69,7 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
     });
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`Groq error ${response.status}: ${err}`);
+        throw new Error(`Groq ${response.status}: ${err}`);
     }
     const data = await response.json();
     return data.choices[0].message.content;
@@ -93,7 +98,7 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
     });
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`OpenRouter error ${response.status}: ${err}`);
+        throw new Error(`OpenRouter ${response.status}: ${err}`);
     }
     const data = await response.json();
     return data.choices[0].message.content;
@@ -111,51 +116,54 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     const { action } = req.query;
-    const supabase = getSupabase();
+
+    // Inisialisasi supabase — kalau gagal tetap lanjut, tidak crash
+    let supabase = null;
+    try { supabase = getSupabase(); } catch (e) {}
 
     // ==========================================
-    // DEBUG — GET /api/chat?action=debug
+    // DEBUG — buka di browser: /api/chat?action=debug
     // ==========================================
     if (req.method === 'GET' && action === 'debug') {
-        const envCheck = {
-            supabase_url: !!process.env.SUPABASE_URL,
-            supabase_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-            gemini_key_1: !!process.env.GEMINI_API_KEY_1,
-            gemini_key_2: !!process.env.GEMINI_API_KEY_2,
-            groq_key_1: !!process.env.GROQ_API_KEY_1,
-            groq_key_2: !!process.env.GROQ_API_KEY_2,
-            openrouter_key_1: !!process.env.OPENROUTER_API_KEY_1,
-            openrouter_key_2: !!process.env.OPENROUTER_API_KEY_2,
+        const env = {
+            SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0, 30) + '...' : 'KOSONG',
+            SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada' : 'KOSONG',
+            GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1 ? 'ada' : 'KOSONG',
+            GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2 ? 'ada' : 'KOSONG',
+            GROQ_API_KEY_1: process.env.GROQ_API_KEY_1 ? 'ada' : 'KOSONG',
+            GROQ_API_KEY_2: process.env.GROQ_API_KEY_2 ? 'ada' : 'KOSONG',
+            OPENROUTER_API_KEY_1: process.env.OPENROUTER_API_KEY_1 ? 'ada' : 'KOSONG',
+            OPENROUTER_API_KEY_2: process.env.OPENROUTER_API_KEY_2 ? 'ada' : 'KOSONG',
         };
 
-        const results = {};
+        const providers = {};
 
         try {
             const key = process.env.GEMINI_API_KEY_1;
-            if (key) { await callGemini(key, "Kamu asisten.", "Tes. Balas: OK"); results.gemini = 'ok'; }
-            else results.gemini = 'no_key';
-        } catch (e) { results.gemini = `error: ${e.message.slice(0, 200)}`; }
+            if (key) { await callGemini(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.gemini = 'OK'; }
+            else providers.gemini = 'no_key';
+        } catch (e) { providers.gemini = e.message.slice(0, 300); }
 
         try {
             const key = process.env.GROQ_API_KEY_1;
-            if (key) { await callGroq(key, "Kamu asisten.", "Tes. Balas: OK"); results.groq = 'ok'; }
-            else results.groq = 'no_key';
-        } catch (e) { results.groq = `error: ${e.message.slice(0, 200)}`; }
+            if (key) { await callGroq(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.groq = 'OK'; }
+            else providers.groq = 'no_key';
+        } catch (e) { providers.groq = e.message.slice(0, 300); }
 
         try {
             const key = process.env.OPENROUTER_API_KEY_1;
-            if (key) { await callOpenRouter(key, "Kamu asisten.", "Tes. Balas: OK"); results.openrouter = 'ok'; }
-            else results.openrouter = 'no_key';
-        } catch (e) { results.openrouter = `error: ${e.message.slice(0, 200)}`; }
+            if (key) { await callOpenRouter(key, "Kamu asisten.", "Tes. Jawab: OK saja"); providers.openrouter = 'OK'; }
+            else providers.openrouter = 'no_key';
+        } catch (e) { providers.openrouter = e.message.slice(0, 300); }
 
-        return res.status(200).json({ env: envCheck, providers: results });
+        return res.status(200).json({ env, providers });
     }
 
     // ==========================================
     // GET — Ambil data info_toko
     // ==========================================
     if (req.method === 'GET') {
-        if (!supabase) return res.status(500).json({ error: "Koneksi Supabase gagal." });
+        if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia. Cek env SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY." });
         try {
             const { data, error } = await supabase
                 .from('info_toko').select('*').order('created_at', { ascending: false });
@@ -172,7 +180,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
 
         if (action === 'save_context') {
-            if (!supabase) return res.status(500).json({ error: "Supabase belum siap." });
+            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
             try {
                 const { kategori, judul, content } = req.body;
                 const { data, error } = await supabase
@@ -184,16 +192,21 @@ export default async function handler(req, res) {
             }
         }
 
-        // Chat utama — fallback otomatis
+        // Chat utama
         try {
             const { user_message, user_image } = req.body;
 
+            // Ambil knowledge dari Supabase — kalau gagal, tetap lanjut pakai fallback text
             let knowledgeContext = "";
             if (supabase) {
                 try {
                     const { data: infoToko } = await supabase.from('info_toko').select('content').limit(10);
-                    if (infoToko) knowledgeContext = infoToko.map(i => i.content).join("\n");
-                } catch (e) {}
+                    if (infoToko && infoToko.length > 0) {
+                        knowledgeContext = infoToko.map(i => i.content).join("\n");
+                    }
+                } catch (e) {
+                    console.error("Gagal baca Supabase:", e.message);
+                }
             }
 
             const systemPrompt = `Kamu adalah XREZZ AI, asisten resmi XREZZKY OFFICIAL STORE.
@@ -201,7 +214,8 @@ Gunakan data resmi toko di bawah ini untuk menjawab pelanggan:
 ${knowledgeContext || "Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game dan kebutuhan gamers terpercaya."}
 Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
 
-            const providerOrder = [
+            // Fallback otomatis: Gemini → Groq → OpenRouter
+            const providers = [
                 { name: 'gemini', keys: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) },
                 { name: 'groq', keys: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean) },
                 { name: 'openrouter', keys: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean) },
@@ -211,7 +225,7 @@ Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
             let usedProvider = null;
             let lastError = null;
 
-            for (const p of providerOrder) {
+            for (const p of providers) {
                 if (p.keys.length === 0) continue;
                 const key = p.keys[Math.floor(Math.random() * p.keys.length)];
                 try {
@@ -221,7 +235,7 @@ Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
                     usedProvider = p.name;
                     break;
                 } catch (e) {
-                    console.error(`[${p.name}] gagal:`, e.message);
+                    console.error(`[${p.name}] error:`, e.message);
                     lastError = e.message;
                 }
             }
@@ -236,6 +250,7 @@ Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
             return res.status(200).json({ response: aiResponse, provider: usedProvider });
 
         } catch (error) {
+            console.error("Handler error:", error.message);
             return res.status(500).json({ response: "Server error bro.", error: error.message });
         }
     }
