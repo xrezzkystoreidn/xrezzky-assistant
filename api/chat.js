@@ -1,150 +1,117 @@
-// === SEMUA API KEYS ===
-// Di Vercel, process.env otomatis terbaca tanpa perlu library 'dotenv'
-const GEMINI_KEYS = [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean);
-const GROQ_KEYS = [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean);
-const OPENROUTER_KEYS = [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean);
+import { createClient } from '@supabase/supabase-js';
 
-let geminiIndex = 0;
-let groqIndex = 0;
-let openrouterIndex = 0;
+// 1. Inisialisasi Kredensial (Wajib diisi di Environment Variables Vercel)
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Memory Chat Lokal
-const conversations = new Map();
-
-function getSystemPrompt() {
-  return `Kamu adalah XREZZKY AI, asisten santai dan temen belanja di xrezzky official store ini.
-
-Personality: Ramah, asik, helpful, natural seperti ngobrol sama temen.
-Bahasa Indonesia sehari-hari, santai tapi sopan.
-
-Tugas Utama:
-- Bantu produk, stok, harga, rekomendasi.
-- Cek status pesanan.
-- Jelaskan kebijakan toko.
-
-Aturan:
-1. Fokus hanya ke bisnis toko ini.
-2. Kalau ditanya hal di luar xrezzky official store, jawab santai: "Hehe, aku cuma ngerti soal xrezzky official store nih."
-
-Jawab dengan natural dan langsung.`;
-}
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export default async function handler(req, res) {
+  // Atur Header CORS agar bisa diakses oleh frontend dari domain/repository mana pun
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle Preflight Request Browser
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Tolak jika bukan method POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method tidak diizinkan. Gunakan POST.' });
   }
 
-  const { message, sessionId = 'default' } = req.body;
+  try {
+    const { user_message, user_id } = req.body;
 
-  if (!message) {
-    return res.status(400).json({ error: 'Message is required' });
-  }
+    if (!user_message) {
+      return res.status(400).json({ error: 'Pesan user tidak boleh kosong.' });
+    }
 
-  // Memory Management
-  if (!conversations.has(sessionId)) conversations.set(sessionId, []);
-  let history = conversations.get(sessionId);
-  history.push({ role: "user", content: message });
+    // 2. AMBIL DATA SUNTIKAN PEMKIRAN SECARA OTOMATIS DARI SUPABASE MIKMU
+    const { data: knowledgeData, error: dbError } = await supabase
+      .from('knowledge_base')
+      .select('category, title, content');
 
-  if (history.length > 20) {
-    history = history.slice(-20);
-    conversations.set(sessionId, history);
-  }
+    if (dbError) throw dbError;
 
-  let reply = "";
+    // 3. RAMU CONTEXT SYSTEM INSTRUCTION (PENGUNCIAN BRANDING XREZZKY OFFICIAL STORE)
+    let systemInstruction = "Karakter & Identitas Utama Anda:\n";
+    systemInstruction += "Kamu adalah XREZZ AI, kecerdasan buatan resmi dan representasi eksklusif dari XREZZKY OFFICIAL STORE.\n";
+    systemInstruction += "Tugas utamamu adalah mengedukasi, melayani, mengarahkan, dan menjawab segala pertanyaan dengan berpusat pada ekosistem bisnis XREZZKY OFFICIAL STORE.\n\n";
+    
+    systemInstruction += "Aturan Komunikasi & Gaya Bahasa:\n";
+    systemInstruction += "- Loyal pada brand XREZZKY OFFICIAL STORE. Pastikan esensi atau nama brand ini disebut secara elegan dalam interaksi.\n";
+    systemInstruction += "- Gunakan bahasa Indonesia yang profesional, tegas, percaya diri, namun ramah dan solutif.\n";
+    systemInstruction += "- Jika ada pertanyaan di luar konteks platform, belokkan percakapan secara halus kembali ke layanan atau keunggulan XREZZKY OFFICIAL STORE.\n\n";
 
-  // 1. Coba Gemini dulu (Paling bagus untuk Bahasa Indonesia)
-  if (GEMINI_KEYS.length > 0) {
-    try {
-      const key = GEMINI_KEYS[geminiIndex % GEMINI_KEYS.length];
-      geminiIndex++;
+    systemInstruction += "Berikut adalah data valid dan aturan operasional aktual dari XREZZKY OFFICIAL STORE yang WAJIB kamu jadikan acuan utama:\n\n";
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ 
-              text: getSystemPrompt() + "\n\nRiwayat:\n" + 
-                    history.map(m => `${m.role === "user" ? "User" : "XREZZ"}: ${m.content}`).join("\n") +
-                    "\n\nXREZZ:" 
-            }] }],
-            generationConfig: { temperature: 0.75, maxOutputTokens: 700 }
-          })
+    // Gabungkan data dari database ke dalam ingatan AI
+    if (knowledgeData && knowledgeData.length > 0) {
+      knowledgeData.forEach((item) => {
+        systemInstruction += `[Konteks: ${item.category}] - ${item.title}\n`;
+        systemInstruction += `Detail Aturan: ${item.content}\n`;
+        systemInstruction += `--------------------------------------------------\n`;
+      });
+    } else {
+      systemInstruction += "(Belum ada data eksternal spesifik yang disuntikkan. Jawablah secara bijak menggunakan persona utama XREZZKY OFFICIAL STORE).\n";
+    }
+
+    systemInstruction += "\nPERINTAH TEGAS: Jawab pertanyaan user dengan padat, jelas, akurat berdasarkan data di atas, dan hindari memberikan jawaban asumsi di luar informasi resmi tersebut.";
+
+    // 4. KIRIM PAYLOAD KE API GEMINI PROVIDER
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const geminiResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: user_message }]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        generationConfig: {
+          temperature: 0.3, // Rendah agar AI disiplin mengikuti aturan suntikan di database
+          maxOutputTokens: 1000
         }
-      );
+      })
+    });
 
-      const data = await response.json();
-      if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        reply = data.candidates[0].content.parts[0].text;
-      }
-    } catch (e) {
-      console.log("Gemini gagal, mencoba Groq...");
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      throw new Error(`Gemini API Error: ${errText}`);
     }
+
+    const geminiResult = await geminiResponse.json();
+    
+    // Parsing jawaban teks dari JSON response Gemini
+    const aiReply = geminiResult.candidates[0].content.parts[0].text;
+
+    // 5. SIMPAN LOG HISTORY CHAT KE SUPABASE SEBAGAI RIWAYAT
+    await supabase
+      .from('ai_chat_history')
+      .insert([
+        { 
+          user_id: user_id || 'guest_user', 
+          message: user_message, 
+          response: aiReply 
+        }
+      ]);
+
+    // 6. LEMPAR RESPON AKHIR KE FRONTEND CHAT WEB
+    return res.status(200).json({ response: aiReply });
+
+  } catch (error) {
+    console.error("Backend Error:", error);
+    return res.status(500).json({ error: error.message });
   }
-
-  // 2. Fallback ke Groq (Super cepat)
-  if (!reply && GROQ_KEYS.length > 0) {
-    try {
-      const key = GROQ_KEYS[groqIndex % GROQ_KEYS.length];
-      groqIndex++;
-
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${key}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [{ role: "system", content: getSystemPrompt() }, ...history],
-          temperature: 0.75,
-          max_tokens: 700
-        })
-      });
-
-      const data = await response.json();
-      reply = data.choices?.[0]?.message?.content;
-    } catch (e) {
-      console.log("Groq gagal, mencoba OpenRouter...");
-    }
-  }
-
-  // 3. Last fallback ke OpenRouter
-  if (!reply && OPENROUTER_KEYS.length > 0) {
-    try {
-      const key = OPENROUTER_KEYS[openrouterIndex % OPENROUTER_KEYS.length];
-      openrouterIndex++;
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${key}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://xrezzky.com",
-          "X-Title": "XREZZ AI"
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [{ role: "system", content: getSystemPrompt() }, ...history]
-        })
-      });
-
-      const data = await response.json();
-      reply = data.choices?.[0]?.message?.content;
-    } catch (e) {
-      console.log("OpenRouter juga gagal");
-    }
-  }
-
-  // Jika semua gagal
-  if (!reply) {
-    reply = "Maaf, semua provider sedang sibuk. Coba lagi sebentar ya.";
-  }
-
-  // Simpan jawaban ke memory
-  history.push({ role: "assistant", content: reply });
-  conversations.set(sessionId, history);
-
-  res.status(200).json({ reply });
 }
