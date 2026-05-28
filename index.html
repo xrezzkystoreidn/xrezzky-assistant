@@ -168,60 +168,65 @@
             padding: 4px;
         }
 
-        /* --- FORM INPUT UTAMA --- */
+        /* --- FORM INPUT ALA GEMINI & GROK --- */
         .chat-form {
             background-color: var(--bg-chat);
             padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
             border-top: 1px solid var(--border-color);
         }
 
-        .icon-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px;
+        /* Pembungkus utama biar input, foto, & kirim menyatu */
+        .modern-input-bar {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .input-wrapper input {
-            width: 100%;
             background-color: var(--bg-main);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 12px 20px;
-            color: var(--text-main);
-            font-size: 14px;
-            outline: none;
+            border-radius: 28px;
+            padding: 4px 8px 4px 16px;
+            gap: 8px;
         }
 
-        .input-wrapper input:focus {
+        .modern-input-bar:focus-within {
             border-color: var(--bg-bubble-user);
         }
 
-        .send-btn {
-            background-color: var(--bg-bubble-user);
+        .modern-input-bar input {
+            flex: 1;
+            background: none;
             border: none;
-            color: white;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            padding: 10px 0;
+        }
+
+        /* Tombol ikon di dalam bar */
+        .bar-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .bar-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Tombol kirim pesannya */
+        .send-btn-active {
+            color: var(--text-main);
+            background-color: var(--bg-bubble-user);
+        }
+        .send-btn-active:hover {
+            background-color: #1d4ed8;
         }
 
         /* Indikator Mengetik */
@@ -247,8 +252,7 @@
         <button class="clear-chat-btn" id="clearChatBtn" title="Hapus Riwayat Chat"><i class="fas fa-trash-can"></i></button>
     </div>
 
-    <div class="chat-container" id="chatContainer">
-        </div>
+    <div class="chat-container" id="chatContainer"></div>
 
     <div class="preview-bar" id="previewBar">
         <div class="preview-container">
@@ -261,21 +265,20 @@
     <form class="chat-form" id="chatForm">
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
         
-        <button type="button" class="icon-btn" id="uploadBtn" title="Kirim Foto">
-            <i class="far fa-image"></i>
-        </button>
-        
-        <div class="input-wrapper">
+        <div class="modern-input-bar">
+            <button type="button" class="bar-btn" id="uploadBtn" title="Tambah Gambar">
+                <i class="fa-regular fa-image"></i>
+            </button>
+            
             <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
+            
+            <button type="submit" class="bar-btn send-btn-active" id="sendBtn" title="Kirim">
+                <i class="fas fa-arrow-up"></i>
+            </button>
         </div>
-        
-        <button type="submit" class="send-btn" id="sendBtn">
-            <i class="fas fa-paper-plane"></i>
-        </button>
     </form>
 
     <script>
-        // CONFIGURATION: URL API Vercel milikmu
         const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
         const LOCAL_STORAGE_KEY = "xrezzky_chat_history";
 
@@ -291,12 +294,10 @@
 
         let selectedBase64Image = null;
 
-        // 1. KETIKA HALAMAN DIBUKA: Load history chat lama dari Local Storage HP
         window.addEventListener("DOMContentLoaded", () => {
             loadChatHistory();
         });
 
-        // 2. LOGIKA PILIH FOTO DARI HP
         uploadBtn.addEventListener("click", () => fileInput.click());
 
         fileInput.addEventListener("change", function() {
@@ -305,21 +306,19 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                selectedBase64Image = e.target.result; // Dapatkan string base64 gambar
+                selectedBase64Image = e.target.result;
                 imgElementPreview.src = selectedBase64Image;
-                previewBar.style.display = "flex"; // Tampilkan bar preview di HP
+                previewBar.style.display = "flex";
             };
             reader.readAsDataURL(file);
         });
 
-        // Batalkan pilihan gambar
         cancelImgBtn.addEventListener("click", () => {
             selectedBase64Image = null;
             fileInput.value = "";
             previewBar.style.display = "none";
         });
 
-        // 3. LOGIKA TOMBOL HAPUS SEJARAH CHAT LOKAL
         clearChatBtn.addEventListener("click", () => {
             if(confirm("Hapus semua riwayat chat lama dengan XREZZ AI di HP ini?")) {
                 localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -328,39 +327,32 @@
             }
         });
 
-        // 4. PROSES PENGIRIMAN CHAT (TEKS & FOTO)
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const textMessage = userInput.value.trim();
-            // Jika teks kosong DAN gambar kosong, batalkan kirim
             if (!textMessage && !selectedBase64Image) return;
 
-            // Simpan salinan gambar & teks saat ini untuk proses render dan reset form langsung
             const currentText = textMessage;
             const currentImage = selectedBase64Image;
 
-            // Reset Input Form Biar Instant Responsif di HP
             userInput.value = "";
             selectedBase64Image = null;
             fileInput.value = "";
             previewBar.style.display = "none";
 
-            // Tampilkan pesan user ke layar (Kanan) dan simpan ke Local Storage
             appendMessage(currentText, currentImage, "user");
             saveToLocalStorage(currentText, currentImage, "user");
 
-            // Tampilkan status bot sedang meracik jawaban
             const loadingId = appendLoadingIndicator();
 
             try {
-                // Tembak langsung ke API Vercel kamu
                 const response = await fetch(BACKEND_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         user_message: currentText,
-                        user_image: currentImage, // Dikirim dalam format Base64 string
+                        user_image: currentImage,
                         user_id: getOrCreateUserId()
                     })
                 });
@@ -370,7 +362,6 @@
                 const data = await response.json();
                 removeLoadingIndicator(loadingId);
 
-                // Tampilkan jawaban XREZZ AI ke layar (Kiri) dan simpan ke Local Storage
                 if (data.response) {
                     appendMessage(data.response, null, "bot");
                     saveToLocalStorage(data.response, null, "bot");
@@ -384,8 +375,6 @@
             }
         });
 
-        // --- FUNGSI-FUNGSI HELPER MANAJEMEN RIWAYAT & ELEMENT ---
-
         function appendMessage(text, imageBase64, sender) {
             const row = document.createElement("div");
             row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
@@ -393,7 +382,6 @@
             const bubble = document.createElement("div");
             bubble.classList.add("bubble");
 
-            // Jika ada kiriman gambar, pasang tag IMG di dalam bubble
             if (imageBase64) {
                 const img = document.createElement("img");
                 img.src = imageBase64;
@@ -433,7 +421,6 @@
             if (element) element.remove();
         }
 
-        // --- SISTEM LOCAL STORAGE HP ---
         function saveToLocalStorage(text, image, sender) {
             let history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
             history.push({ text, image, sender, timestamp: Date.now() });
