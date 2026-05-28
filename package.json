@@ -1,11 +1,12 @@
 {
   "name": "xrezzky-assistant-backend",
   "version": "1.0.0",
-  "description": "Backend API untuk XREZZKY OFFICIAL STORE menggunakan Gemini dan Supabase",
+  "description": "Backend API untuk XREZZKY OFFICIAL STORE menggunakan Gemini, Groq, dan OpenRouter",
   "type": "module",
   "main": "api/chat.js",
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.0"
+    "@supabase/supabase-js": "^2.43.0",
+    "@google/generative-ai": "^0.21.0"
   },
   "engines": {
     "node": ">=18.0.0"
