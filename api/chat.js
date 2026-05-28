@@ -1,117 +1,120 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-io'; // atau '@supabase/supabase-js' sesuai package.json kamu
+import { GoogleGenAI } from '@google/generative-ai';
 
-// 1. Inisialisasi Kredensial (Wajib diisi di Environment Variables Vercel)
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Fungsi untuk inisialisasi Supabase secara aman di dalam runtime Vercel
+function getSupabaseClient() {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    if (!url || !key) {
+        throw new Error(`Konfigurasi Supabase tidak lengkap. URL: ${url ? 'Ada' : 'Kosong'}, KEY: ${key ? 'Ada' : 'Kosong'}`);
+    }
+    return createClient(url, key);
+}
+
+// Fungsi Load Balancer untuk memilih API Key yang aktif/tersedia
+function getApiKey(provider) {
+    const keys = [];
+    if (provider === 'gemini') {
+        if (process.env.GEMINI_API_KEY_1) keys.push(process.env.GEMINI_API_KEY_1);
+        if (process.env.GEMINI_API_KEY_2) keys.push(process.env.GEMINI_API_KEY_2);
+    } else if (provider === 'groq') {
+        if (process.env.GROQ_API_KEY_1) keys.push(process.env.GROQ_API_KEY_1);
+        if (process.env.GROQ_API_KEY_2) keys.push(process.env.GROQ_API_KEY_2);
+    } else if (provider === 'openrouter') {
+        if (process.env.OPENROUTER_API_KEY_1) keys.push(process.env.OPENROUTER_API_KEY_1);
+        if (process.env.OPENROUTER_API_KEY_2) keys.push(process.env.OPENROUTER_API_KEY_2);
+    }
+
+    if (keys.length === 0) return null;
+    // Acak atau pilih key pertama yang tersedia (bisa dikembangkan sesuai kebutuhan load balance)
+    return keys[Math.floor(Math.random() * keys.length)];
+}
 
 export default async function handler(req, res) {
-  // Atur Header CORS agar bisa diakses oleh frontend dari domain/repository mana pun
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    // Atur CORS Header agar Frontend bisa mengakses API ini
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  // Handle Preflight Request Browser
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // Tolak jika bukan method POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method tidak diizinkan. Gunakan POST.' });
-  }
-
-  try {
-    const { user_message, user_id } = req.body;
-
-    if (!user_message) {
-      return res.status(400).json({ error: 'Pesan user tidak boleh kosong.' });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    // 2. AMBIL DATA SUNTIKAN PEMKIRAN SECARA OTOMATIS DARI SUPABASE MIKMU
-    const { data: knowledgeData, error: dbError } = await supabase
-      .from('knowledge_base')
-      .select('category, title, content');
-
-    if (dbError) throw dbError;
-
-    // 3. RAMU CONTEXT SYSTEM INSTRUCTION (PENGUNCIAN BRANDING XREZZKY OFFICIAL STORE)
-    let systemInstruction = "Karakter & Identitas Utama Anda:\n";
-    systemInstruction += "Kamu adalah XREZZ AI, kecerdasan buatan resmi dan representasi eksklusif dari XREZZKY OFFICIAL STORE.\n";
-    systemInstruction += "Tugas utamamu adalah mengedukasi, melayani, mengarahkan, dan menjawab segala pertanyaan dengan berpusat pada ekosistem bisnis XREZZKY OFFICIAL STORE.\n\n";
-    
-    systemInstruction += "Aturan Komunikasi & Gaya Bahasa:\n";
-    systemInstruction += "- Loyal pada brand XREZZKY OFFICIAL STORE. Pastikan esensi atau nama brand ini disebut secara elegan dalam interaksi.\n";
-    systemInstruction += "- Gunakan bahasa Indonesia yang profesional, tegas, percaya diri, namun ramah dan solutif.\n";
-    systemInstruction += "- Jika ada pertanyaan di luar konteks platform, belokkan percakapan secara halus kembali ke layanan atau keunggulan XREZZKY OFFICIAL STORE.\n\n";
-
-    systemInstruction += "Berikut adalah data valid dan aturan operasional aktual dari XREZZKY OFFICIAL STORE yang WAJIB kamu jadikan acuan utama:\n\n";
-
-    // Gabungkan data dari database ke dalam ingatan AI
-    if (knowledgeData && knowledgeData.length > 0) {
-      knowledgeData.forEach((item) => {
-        systemInstruction += `[Konteks: ${item.category}] - ${item.title}\n`;
-        systemInstruction += `Detail Aturan: ${item.content}\n`;
-        systemInstruction += `--------------------------------------------------\n`;
-      });
-    } else {
-      systemInstruction += "(Belum ada data eksternal spesifik yang disuntikkan. Jawablah secara bijak menggunakan persona utama XREZZKY OFFICIAL STORE).\n";
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Metode tidak diizinkan' });
     }
 
-    systemInstruction += "\nPERINTAH TEGAS: Jawab pertanyaan user dengan padat, jelas, akurat berdasarkan data di atas, dan hindari memberikan jawaban asumsi di luar informasi resmi tersebut.";
+    try {
+        const { user_message, user_image, user_id } = req.body;
 
-    // 4. KIRIM PAYLOAD KE API GEMINI PROVIDER
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    
-    const geminiResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: user_message }]
-          }
-        ],
-        systemInstruction: {
-          parts: [{ text: systemInstruction }]
-        },
-        generationConfig: {
-          temperature: 0.3, // Rendah agar AI disiplin mengikuti aturan suntikan di database
-          maxOutputTokens: 1000
+        // 1. Ambil Klien Supabase (Dipanggil di dalam handler agar process.env terbaca sempurna)
+        const supabase = getSupabaseClient();
+
+        // 2. Cari Knowledge Base / Info Produk dari Supabase info_toko
+        let knowledgeContext = "";
+        try {
+            const { data: infoToko, error: dbError } = await supabase
+                .from('info_toko')
+                .select('content');
+            
+            if (!dbError && infoToko) {
+                knowledgeContext = infoToko.map(item => item.content).join("\n");
+            }
+        } catch (dbErr) {
+            console.error("Gagal mengambil data Supabase:", dbErr.message);
+            // Tetap lanjut meskipun supabase kosong agar AI tidak macet total
         }
-      })
-    });
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      throw new Error(`Gemini API Error: ${errText}`);
-    }
-
-    const geminiResult = await geminiResponse.json();
-    
-    // Parsing jawaban teks dari JSON response Gemini
-    const aiReply = geminiResult.candidates[0].content.parts[0].text;
-
-    // 5. SIMPAN LOG HISTORY CHAT KE SUPABASE SEBAGAI RIWAYAT
-    await supabase
-      .from('ai_chat_history')
-      .insert([
-        { 
-          user_id: user_id || 'guest_user', 
-          message: user_message, 
-          response: aiReply 
+        // 3. Ambil API Key Gemini lewat Load Balancer
+        const activeGeminiKey = getApiKey('gemini');
+        if (!activeGeminiKey) {
+            return res.status(500).json({ error: 'API Key Gemini tidak ditemukan di Environment Variables' });
         }
-      ]);
 
-    // 6. LEMPAR RESPON AKHIR KE FRONTEND CHAT WEB
-    return res.status(200).json({ response: aiReply });
+        // 4. Inisialisasi Google Gen AI (Gemini)
+        const ai = new GoogleGenAI(activeGeminiKey);
+        
+        // Atur instruksi sistem agar AI bertindak sebagai asisten tokomu
+        const systemInstruction = `Kamu adalah XREZZ AI, asisten resmi dari XREZZKY OFFICIAL STORE. 
+Tugasmu adalah membantu pelanggan menjawab pertanyaan mengenai produk, harga, aturan toko, dan layanan berdasarkan data resmi toko berikut ini:
+${knowledgeContext}
 
-  } catch (error) {
-    console.error("Backend Error:", error);
-    return res.status(500).json({ error: error.message });
-  }
+Jawablah dengan bahasa yang ramah, santai (gunakan panggilan 'bro' atau 'kak' jika cocok), informatif, dan profesional. Jika data tidak ada di context, jawablah dengan pengetahuan umum toko game yang relevan.`;
+
+        // Pilih model Gemini Vision jika ada input gambar, atau Gemini Pro jika hanya teks
+        let modelName = "gemini-pro";
+        let promptContent = [];
+
+        if (user_image) {
+            modelName = "gemini-pro-vision";
+            // Ubah Base64 Image menjadi format yang diterima Gemini API
+            const base64Data = user_image.split(",")[1] || user_image;
+            promptContent.push({
+                inlineData: {
+                    data: base64Data,
+                    mimeType: "image/jpeg"
+                }
+            });
+        }
+
+        // Gabungkan instruksi sistem dan pesan user ke dalam prompt
+        const finalPrompt = `${systemInstruction}\n\nUser bertanya: ${user_message || "Minta analisis gambar ini"}`;
+        promptContent.push(finalPrompt);
+
+        const model = ai.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(promptContent);
+        const responseText = result.response.text();
+
+        // 5. Kembalikan respon sukses ke frontend
+        return res.status(200).json({ response: responseText });
+
+    } catch (error) {
+        console.error("Sistem Error pada Backend:", error);
+        return res.status(500).json({ 
+            error: 'Terjadi kesalahan internal pada server.',
+            message: error.message 
+        });
+    }
 }
