@@ -13,7 +13,6 @@ function getSupabase() {
 
 // ==========================================
 // LOAD BALANCER - 3 Provider, masing-masing 2 key
-// Urutan fallback: Gemini → Groq → OpenRouter
 // ==========================================
 function getProviderConfig() {
     const providers = [
@@ -31,15 +30,11 @@ function getProviderConfig() {
         }
     ];
 
-    // Filter provider yang punya key
     const available = providers.filter(p => p.keys.length > 0);
     if (available.length === 0) return null;
 
-    // Pilih provider secara random (load balance antar provider)
     const provider = available[Math.floor(Math.random() * available.length)];
-    // Pilih key secara random dari provider tersebut
     const key = provider.keys[Math.floor(Math.random() * provider.keys.length)];
-
     return { provider: provider.name, key };
 }
 
@@ -59,9 +54,7 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
             const split = userImage.split(",");
             const mimeType = split[0].match(/:(.*?);/)[1] || "image/jpeg";
             parts.push({ inlineData: { data: split[1], mimeType } });
-        } catch (e) {
-            console.error("Gagal parse gambar Gemini:", e);
-        }
+        } catch (e) {}
     }
     parts.push({ text: userMessage || "Halo" });
 
@@ -89,7 +82,7 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
     });
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`Groq error: ${err}`);
+        throw new Error(`Groq error ${response.status}: ${err}`);
     }
     const data = await response.json();
     return data.choices[0].message.content;
@@ -115,7 +108,7 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
     });
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`OpenRouter error: ${err}`);
+        throw new Error(`OpenRouter error ${response.status}: ${err}`);
     }
     const data = await response.json();
     return data.choices[0].message.content;
@@ -134,6 +127,70 @@ export default async function handler(req, res) {
 
     const { action } = req.query;
     const supabase = getSupabase();
+
+    // ==========================================
+    // DEBUG ENDPOINT - GET /api/chat?action=debug
+    // Akses dari browser buat cek semua env & provider
+    // ==========================================
+    if (req.method === 'GET' && action === 'debug') {
+        const envCheck = {
+            supabase_url: !!process.env.SUPABASE_URL,
+            supabase_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            gemini_key_1: !!process.env.GEMINI_API_KEY_1,
+            gemini_key_2: !!process.env.GEMINI_API_KEY_2,
+            groq_key_1: !!process.env.GROQ_API_KEY_1,
+            groq_key_2: !!process.env.GROQ_API_KEY_2,
+            openrouter_key_1: !!process.env.OPENROUTER_API_KEY_1,
+            openrouter_key_2: !!process.env.OPENROUTER_API_KEY_2,
+        };
+
+        // Test Gemini
+        let geminiStatus = 'skipped';
+        try {
+            const key = process.env.GEMINI_API_KEY_1;
+            if (key) {
+                await callGemini(key, "Kamu asisten toko.", "Halo, tes koneksi. Balas singkat saja.");
+                geminiStatus = 'ok';
+            } else {
+                geminiStatus = 'no_key';
+            }
+        } catch (e) {
+            geminiStatus = `error: ${e.message}`;
+        }
+
+        // Test Groq
+        let groqStatus = 'skipped';
+        try {
+            const key = process.env.GROQ_API_KEY_1;
+            if (key) {
+                await callGroq(key, "Kamu asisten toko.", "Halo, tes koneksi. Balas singkat saja.");
+                groqStatus = 'ok';
+            } else {
+                groqStatus = 'no_key';
+            }
+        } catch (e) {
+            groqStatus = `error: ${e.message}`;
+        }
+
+        // Test OpenRouter
+        let openrouterStatus = 'skipped';
+        try {
+            const key = process.env.OPENROUTER_API_KEY_1;
+            if (key) {
+                await callOpenRouter(key, "Kamu asisten toko.", "Halo, tes koneksi. Balas singkat saja.");
+                openrouterStatus = 'ok';
+            } else {
+                openrouterStatus = 'no_key';
+            }
+        } catch (e) {
+            openrouterStatus = `error: ${e.message}`;
+        }
+
+        return res.status(200).json({
+            env: envCheck,
+            providers: { gemini: geminiStatus, groq: groqStatus, openrouter: openrouterStatus }
+        });
+    }
 
     // ==========================================
     // GET — Ambil data info_toko
@@ -172,7 +229,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // Chat utama
+        // Chat utama — fallback otomatis antar provider
         try {
             const { user_message, user_image } = req.body;
 
@@ -193,30 +250,55 @@ ${knowledgeContext || "Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game d
 
 Aturan: Jawab santai ala anak muda/gamers, gunakan sebutan 'bro' atau 'kak'.`;
 
-            // Pilih provider & key
-            const config = getProviderConfig();
-            if (!config) {
-                return res.status(500).json({ response: "Error: Tidak ada API Key yang tersedia di environment." });
+            // Coba semua provider secara berurutan sampai ada yang berhasil
+            const providerOrder = ['gemini', 'groq', 'openrouter'];
+            const providerKeys = {
+                gemini: [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean),
+                groq: [process.env.GROQ_API_KEY_1, process.env.GROQ_API_KEY_2].filter(Boolean),
+                openrouter: [process.env.OPENROUTER_API_KEY_1, process.env.OPENROUTER_API_KEY_2].filter(Boolean),
+            };
+
+            let aiResponse = null;
+            let usedProvider = null;
+            let lastError = null;
+
+            for (const providerName of providerOrder) {
+                const keys = providerKeys[providerName];
+                if (keys.length === 0) continue;
+
+                // Acak key dalam provider ini
+                const key = keys[Math.floor(Math.random() * keys.length)];
+
+                try {
+                    if (providerName === 'gemini') {
+                        aiResponse = await callGemini(key, systemPrompt, user_message, user_image);
+                    } else if (providerName === 'groq') {
+                        aiResponse = await callGroq(key, systemPrompt, user_message);
+                    } else if (providerName === 'openrouter') {
+                        aiResponse = await callOpenRouter(key, systemPrompt, user_message);
+                    }
+                    usedProvider = providerName;
+                    break; // Berhasil, stop loop
+                } catch (e) {
+                    console.error(`[${providerName}] gagal:`, e.message);
+                    lastError = e.message;
+                    // Lanjut ke provider berikutnya
+                }
             }
 
-            console.log(`[AI] Menggunakan provider: ${config.provider}`);
-
-            let aiResponse = "";
-
-            if (config.provider === 'gemini') {
-                aiResponse = await callGemini(config.key, systemPrompt, user_message, user_image);
-            } else if (config.provider === 'groq') {
-                aiResponse = await callGroq(config.key, systemPrompt, user_message);
-            } else if (config.provider === 'openrouter') {
-                aiResponse = await callOpenRouter(config.key, systemPrompt, user_message);
+            if (!aiResponse) {
+                return res.status(500).json({
+                    response: "Semua provider AI sedang down bro, coba lagi bentar lagi ya.",
+                    error: lastError
+                });
             }
 
-            return res.status(200).json({ response: aiResponse, provider: config.provider });
+            return res.status(200).json({ response: aiResponse, provider: usedProvider });
 
         } catch (error) {
             console.error("Chat error:", error.message);
             return res.status(500).json({
-                response: "Server sedang sibuk, coba kirim chat lagi bro.",
+                response: "Server error bro, coba lagi.",
                 error: error.message
             });
         }
