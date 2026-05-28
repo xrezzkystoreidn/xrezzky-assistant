@@ -106,7 +106,7 @@
         .chat-container {
             position: absolute;
             top: 60px;
-            bottom: 80px; /* Jarak aman biar gak ketutupan input bar */
+            bottom: 80px; 
             left: 0;
             right: 0;
             padding: 16px;
@@ -153,6 +153,11 @@
             margin-bottom: 6px;
             display: block;
             object-fit: cover;
+            cursor: pointer; /* Menandakan gambar bisa diklik */
+            transition: opacity 0.2s;
+        }
+        .chat-img:active {
+            opacity: 0.8;
         }
 
         /* --- PREVIEW GAMBAR (MELAYANG DI ATAS INPUT) --- */
@@ -190,7 +195,7 @@
             color: var(--text-muted);
         }
 
-        /* --- BAR INPUT FIXED DI BAWAH (ANTI-GESER HP) --- */
+        /* --- BAR INPUT FIXED DI BAWAH --- */
         .chat-form {
             position: fixed;
             bottom: 0;
@@ -198,7 +203,7 @@
             right: 0;
             height: 80px;
             background-color: var(--bg-chat);
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); /* Support iOS & Android Bar */
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); 
             border-top: 1px solid var(--border-color);
             z-index: 10;
         }
@@ -244,7 +249,7 @@
             background-color: var(--bg-bubble-user);
         }
 
-        /* --- SIDEBAR RIWAYAT KANAN (ALA DOKUMEN MODAL) --- */
+        /* --- SIDEBAR RIWAYAT KANAN --- */
         .sidebar-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -343,6 +348,45 @@
             align-items: center;
             gap: 6px;
         }
+
+        /* --- MODAL ZOOM FOTO (NEW) --- */
+        .image-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: calc(16px + env(safe-area-inset-top));
+            right: 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .modal-img-content {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -391,8 +435,12 @@
             <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
         </div>
         <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
-        <div class="history-list" id="historyList">
-            </div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+
+    <div class="image-modal" id="imageModal">
+        <button class="modal-close-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+        <img src="" id="modalImgTarget" class="modal-img-content">
     </div>
 
     <script>
@@ -418,8 +466,38 @@
         const historyList = document.getElementById("historyList");
         const newChatBtn = document.getElementById("newChatBtn");
 
+        // Elemen Modal Gambar (NEW)
+        const imageModal = document.getElementById("imageModal");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const modalImgTarget = document.getElementById("modalImgTarget");
+
         let selectedBase64Image = null;
         let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+
+        // --- SISTEM MODAL BUKA FOTO (NEW) ---
+        function openImageModal(src) {
+            modalImgTarget.src = src;
+            imageModal.style.display = "flex";
+            setTimeout(() => {
+                modalImgTarget.style.transform = "scale(1)";
+            }, 50);
+        }
+
+        function closeImageModal() {
+            modalImgTarget.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                imageModal.style.display = "none";
+                modalImgTarget.src = "";
+            }, 200);
+        }
+
+        closeModalBtn.addEventListener("click", closeImageModal);
+        imageModal.addEventListener("click", (e) => {
+            // Jika yang diklik adalah background hitamnya (bukan gambarnya), maka tutup modal
+            if(e.target !== modalImgTarget && e.target !== closeModalBtn) {
+                closeImageModal();
+            }
+        });
 
         // --- MANAJEMEN SESI & SIDEBAR ---
         window.addEventListener("DOMContentLoaded", () => {
@@ -461,8 +539,6 @@
         function renderSidebarList() {
             historyList.innerHTML = "";
             let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            
-            // Urutkan berdasarkan waktu terbaru
             let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
 
             if(sortedKeys.length === 0) {
@@ -495,7 +571,6 @@
             });
         }
 
-        // Buka - Tutup Sidebar Animasi Kanan
         openHistoryBtn.addEventListener("click", () => {
             renderSidebarList();
             sidebarOverlay.style.display = "block";
@@ -538,7 +613,6 @@
             previewBar.style.display = "none";
         });
 
-        // Hapus Sesi Berjalan saat ini
         clearChatBtn.addEventListener("click", () => {
             if(confirm("Hapus obrolan aktif saat ini?")) {
                 let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
@@ -566,7 +640,6 @@
             const currentText = textMessage;
             const currentImage = selectedBase64Image;
 
-            // Reset Form Instant
             userInput.value = "";
             selectedBase64Image = null;
             fileInput.value = "";
@@ -615,6 +688,12 @@
                 const img = document.createElement("img");
                 img.src = imageBase64;
                 img.classList.add("chat-img");
+                
+                // PASANG EVENT KLIK AGAR BISA ZOOM FOTO (NEW)
+                img.addEventListener("click", () => {
+                    openImageModal(imageBase64);
+                });
+                
                 bubble.appendChild(img);
             }
             if (text) {
@@ -646,12 +725,10 @@
             if (element) element.remove();
         }
 
-        // --- SIMPAN CHAT KE ARRAY SESI LOCAL STORAGE ---
         function saveChatToSession(text, image, sender) {
             let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
             if (!sessions[currentSessionId]) return;
 
-            // Jika ini chat pertama dari user, ganti judul sesi di sidebar agar tidak melulu bernama "Obrolan Baru"
             if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
                 sessions[currentSessionId].title = text; 
             }
