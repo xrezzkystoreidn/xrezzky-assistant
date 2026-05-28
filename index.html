@@ -1,311 +1,470 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>XREZZKY AI - XREZZKY OFFICIALSTORE</title>
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  
-  <style>
-    :root {
-      --purple: #a855f7;
-      --blue: #3b82f6;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XREZZKY ASSISTANT - Official Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #e2e8f0;
-      /* Menggunakan min-height dinamis agar pas di browser mobile */
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+    <style>
+        :root {
+            --bg-main: #0b0f17;
+            --bg-chat: #131a26;
+            --bg-bubble-user: #2563eb;
+            --bg-bubble-bot: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
 
-    html {
-      height: -webkit-fill-available;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    .chat-wrapper {
-      width: 100%;
-      max-width: 920px;
-      /* Tinggi responsif: penuh di HP, berjarak sedikit di PC */
-      height: 100vh; 
-      height: -webkit-fill-available;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    /* Tampilan khusus untuk PC / Tablet (Layar Lebar) */
-    @media (min-width: 768px) {
-      .chat-wrapper {
-        height: 90vh;
-        border-radius: 24px;
-        border: 1px solid rgba(168, 85, 247, 0.25);
-      }
-    }
+        /* --- HEADER CHAT --- */
+        .chat-header {
+            background-color: var(--bg-chat);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-    .header {
-      padding: 16px 20px;
-      background: #0f172a;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0; /* Mencegah header gepeng */
-    }
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      background: #0a0a0a;
-      /* Scrollbar halus untuk mobile */
-      -webkit-overflow-scrolling: touch; 
-    }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
 
-    .message {
-      max-width: 85%;
-      padding: 12px 18px;
-      border-radius: 20px;
-      line-height: 1.5;
-      font-size: 15px;
-      position: relative;
-      word-break: break-word;
-    }
+        .brand-name h1 {
+            font-size: 15px;
+            font-weight: 600;
+        }
 
-    .user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, #6366f1, #a855f7);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
+        .brand-name p {
+            font-size: 11px;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-    .bot {
-      align-self: flex-start;
-      background: #1e2937;
-      color: #e2e8f0;
-      border-bottom-left-radius: 4px;
-    }
+        .clear-chat-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+        }
 
-    .timestamp {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 4px;
-      display: block;
-    }
+        /* --- AREA TIMELINE CHAT --- */
+        .chat-container {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-    .input-area {
-      padding: 14px 20px;
-      background: #0f172a;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      flex-shrink: 0; /* Mencegah input area tertekan hilang */
-      /* Mengatasi ketukan keyboard virtual di iOS */
-      padding-bottom: calc(14px + env(safe-area-inset-bottom)); 
-    }
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
 
-    .input-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #1e2937;
-      border-radius: 9999px;
-      padding: 6px 10px;
-      border: 1px solid #475569;
-    }
+        .message-row.user-row { justify-content: flex-end; }
+        .message-row.bot-row { justify-content: flex-start; }
 
-    input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: white;
-      font-size: 16px; /* 16px mencegah auto-zoom mengganggu di safari iOS */
-      padding: 10px 6px;
-    }
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
 
-    button {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(90deg, #a855f7, #6366f1);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: transform 0.2s;
-    }
+        .user-row .bubble {
+            background-color: var(--bg-bubble-user);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
 
-    button:hover { transform: scale(1.05); }
+        .bot-row .bubble {
+            background-color: var(--bg-bubble-bot);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
 
-    .copy-btn {
-      margin-top: 8px;
-      font-size: 12px;
-      padding: 4px 10px;
-      background: #334155;
-      color: #cbd5e1;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-    }
+        /* Preview Gambar di Dalam Chat */
+        .chat-img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            display: block;
+        }
 
-    .error {
-      color: #ef4444;
-      font-size: 13px;
-      text-align: center;
-      margin-top: 6px;
-      display: none;
-    }
+        /* --- PREVIEW BAR SEBELUM DIKIRIM --- */
+        .preview-bar {
+            background-color: #1e293b;
+            padding: 8px 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+        }
 
-    .char-count {
-      text-align: right;
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 4px;
-    }
-  </style>
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .remove-preview {
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* --- FORM INPUT UTAMA --- */
+        .chat-form {
+            background-color: var(--bg-chat);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 12px 20px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--bg-bubble-user);
+        }
+
+        .send-btn {
+            background-color: var(--bg-bubble-user);
+            border: none;
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Indikator Mengetik */
+        .loading-bubble {
+            color: var(--text-muted);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="chat-wrapper">
-    <div class="header">
-      <i class="fas fa-robot" style="font-size:24px; color:var(--purple);"></i>
-      <div>
-        <strong>XREZZKY AI</strong><br>
-        <small style="color:#64748b;">XREZZKY Official AI</small>
-      </div>
+    <div class="chat-header">
+        <div class="brand-info">
+            <div class="avatar">X</div>
+            <div class="brand-name">
+                <h1>XREZZKY OFFICIAL STORE</h1>
+                <p><i class="fas fa-circle" style="font-size: 8px;"></i> XREZZ AI Aktif</p>
+            </div>
+        </div>
+        <button class="clear-chat-btn" id="clearChatBtn" title="Hapus Riwayat Chat"><i class="fas fa-trash-can"></i></button>
     </div>
 
-    <div class="chat-box" id="chatBox"></div>
+    <div class="chat-container" id="chatContainer">
+        </div>
 
-    <div class="input-area">
-      <div class="input-wrapper">
-        <input type="text" id="userInput" placeholder="Ketik pesanmu di sini..." maxlength="1000" autocomplete="off">
-        <button onclick="sendMessage()">
-          <i class="fas fa-paper-plane"></i>
+    <div class="preview-bar" id="previewBar">
+        <div class="preview-container">
+            <img src="" id="imgElementPreview" class="preview-img">
+            <span class="preview-text">Siap dikirim...</span>
+        </div>
+        <i class="fas fa-times remove-preview" id="cancelImgBtn"></i>
+    </div>
+
+    <form class="chat-form" id="chatForm">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        
+        <button type="button" class="icon-btn" id="uploadBtn" title="Kirim Foto">
+            <i class="far fa-image"></i>
         </button>
-      </div>
-      <div class="char-count" id="charCount">0 / 1000</div>
-      <div class="error" id="errorMsg">Pesan tidak boleh kosong!</div>
-    </div>
-  </div>
+        
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
+        </div>
+        
+        <button type="submit" class="send-btn" id="sendBtn">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </form>
 
-  <script>
-    const md = window.markdownit();
+    <script>
+        // CONFIGURATION: URL API Vercel milikmu
+        const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
+        const LOCAL_STORAGE_KEY = "xrezzky_chat_history";
 
-    function getCurrentTime() {
-      const now = new Date();
-      return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
+        const chatContainer = document.getElementById("chatContainer");
+        const chatForm = document.getElementById("chatForm");
+        const userInput = document.getElementById("userInput");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const previewBar = document.getElementById("previewBar");
+        const imgElementPreview = document.getElementById("imgElementPreview");
+        const cancelImgBtn = document.getElementById("cancelImgBtn");
+        const clearChatBtn = document.getElementById("clearChatBtn");
 
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const message = input.value.trim();
-      const errorMsg = document.getElementById("errorMsg");
+        let selectedBase64Image = null;
 
-      if (!message) {
-        errorMsg.style.display = "block";
-        setTimeout(() => errorMsg.style.display = "none", 2000);
-        return;
-      }
-
-      errorMsg.style.display = "none";
-
-      addMessage(message, "user");
-      input.value = "";
-      updateCharCount();
-
-      const loadingElement = addMessage("XREZZ lagi mikir...", "bot");
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            message,
-            sessionId: "xrezz-session-1" 
-          })
+        // 1. KETIKA HALAMAN DIBUKA: Load history chat lama dari Local Storage HP
+        window.addEventListener("DOMContentLoaded", () => {
+            loadChatHistory();
         });
 
-        const data = await res.json();
-        
-        if (loadingElement) loadingElement.remove();
-        addMessage(data.reply || "Maaf, tidak ada respon.", "bot", true);
+        // 2. LOGIKA PILIH FOTO DARI HP
+        uploadBtn.addEventListener("click", () => fileInput.click());
 
-      } catch (err) {
-        if (loadingElement) {
-          loadingElement.innerHTML = `
-            Maaf, koneksi bermasalah. Coba lagi ya.
-            <span class="timestamp">${getCurrentTime()}</span>
-          `;
+        fileInput.addEventListener("change", function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedBase64Image = e.target.result; // Dapatkan string base64 gambar
+                imgElementPreview.src = selectedBase64Image;
+                previewBar.style.display = "flex"; // Tampilkan bar preview di HP
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Batalkan pilihan gambar
+        cancelImgBtn.addEventListener("click", () => {
+            selectedBase64Image = null;
+            fileInput.value = "";
+            previewBar.style.display = "none";
+        });
+
+        // 3. LOGIKA TOMBOL HAPUS SEJARAH CHAT LOKAL
+        clearChatBtn.addEventListener("click", () => {
+            if(confirm("Hapus semua riwayat chat lama dengan XREZZ AI di HP ini?")) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                chatContainer.innerHTML = "";
+                showWelcomeMessage();
+            }
+        });
+
+        // 4. PROSES PENGIRIMAN CHAT (TEKS & FOTO)
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const textMessage = userInput.value.trim();
+            // Jika teks kosong DAN gambar kosong, batalkan kirim
+            if (!textMessage && !selectedBase64Image) return;
+
+            // Simpan salinan gambar & teks saat ini untuk proses render dan reset form langsung
+            const currentText = textMessage;
+            const currentImage = selectedBase64Image;
+
+            // Reset Input Form Biar Instant Responsif di HP
+            userInput.value = "";
+            selectedBase64Image = null;
+            fileInput.value = "";
+            previewBar.style.display = "none";
+
+            // Tampilkan pesan user ke layar (Kanan) dan simpan ke Local Storage
+            appendMessage(currentText, currentImage, "user");
+            saveToLocalStorage(currentText, currentImage, "user");
+
+            // Tampilkan status bot sedang meracik jawaban
+            const loadingId = appendLoadingIndicator();
+
+            try {
+                // Tembak langsung ke API Vercel kamu
+                const response = await fetch(BACKEND_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_message: currentText,
+                        user_image: currentImage, // Dikirim dalam format Base64 string
+                        user_id: getOrCreateUserId()
+                    })
+                });
+
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+                removeLoadingIndicator(loadingId);
+
+                // Tampilkan jawaban XREZZ AI ke layar (Kiri) dan simpan ke Local Storage
+                if (data.response) {
+                    appendMessage(data.response, null, "bot");
+                    saveToLocalStorage(data.response, null, "bot");
+                } else {
+                    appendMessage("Maaf, sistem XREZZ AI sedang dikonfigurasi.", null, "bot");
+                }
+
+            } catch (error) {
+                removeLoadingIndicator(loadingId);
+                appendMessage("Gagal terhubung ke server XREZZKY. Periksa jaringan Anda.", null, "bot");
+            }
+        });
+
+        // --- FUNGSI-FUNGSI HELPER MANAJEMEN RIWAYAT & ELEMENT ---
+
+        function appendMessage(text, imageBase64, sender) {
+            const row = document.createElement("div");
+            row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
+
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble");
+
+            // Jika ada kiriman gambar, pasang tag IMG di dalam bubble
+            if (imageBase64) {
+                const img = document.createElement("img");
+                img.src = imageBase64;
+                img.classList.add("chat-img");
+                bubble.appendChild(img);
+            }
+
+            if (text) {
+                const textNode = document.createElement("span");
+                textNode.textContent = text;
+                bubble.appendChild(textNode);
+            }
+
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-      }
-    }
 
-    function addMessage(text, sender, isBot = false) {
-      const chatBox = document.getElementById("chatBox");
-      const div = document.createElement("div");
-      div.className = `message ${sender}`;
+        function appendLoadingIndicator() {
+            const id = "load-" + Date.now();
+            const row = document.createElement("div");
+            row.id = id;
+            row.classList.add("message-row", "bot-row");
 
-      const time = getCurrentTime();
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble", "loading-bubble");
+            bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
 
-      if (isBot) {
-        div.innerHTML = `
-          ${md.render(text)}
-          <span class="timestamp">${time}</span>
-          <button class="copy-btn" onclick="copyMessage(this)">Copy</button>
-        `;
-      } else {
-        div.innerHTML = `
-          ${text}
-          <span class="timestamp">${time}</span>
-        `;
-      }
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return id;
+        }
 
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      
-      return div;
-    }
+        function removeLoadingIndicator(id) {
+            const element = document.getElementById(id);
+            if (element) element.remove();
+        }
 
-    function copyMessage(btn) {
-      const messageText = btn.parentElement.innerText.replace("Copy", "").replace(/\d{2}:\d{2}/, "").trim();
-      navigator.clipboard.writeText(messageText);
-      btn.textContent = "✓ Copied";
-      setTimeout(() => btn.textContent = "Copy", 2000);
-    }
+        // --- SISTEM LOCAL STORAGE HP ---
+        function saveToLocalStorage(text, image, sender) {
+            let history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            history.push({ text, image, sender, timestamp: Date.now() });
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
+        }
 
-    function updateCharCount() {
-      const input = document.getElementById("userInput");
-      const count = document.getElementById("charCount");
-      count.textContent = `${input.value.length} / 1000`;
-    }
+        function loadChatHistory() {
+            chatContainer.innerHTML = "";
+            let history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            
+            if (history.length === 0) {
+                showWelcomeMessage();
+            } else {
+                history.forEach(item => {
+                    appendMessage(item.text, item.image, item.sender);
+                });
+            }
+        }
 
-    document.getElementById("userInput").addEventListener("input", updateCharCount);
-    document.getElementById("userInput").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+        function showWelcomeMessage() {
+            appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
+        }
 
-    window.onload = () => {
-      setTimeout(() => {
-        addMessage("Halo! 👋 Aku XREZZKY AI. Ada yang bisa aku bantu hari ini?", "bot");
-      }, 600);
-    };
-  </script>
+        function getOrCreateUserId() {
+            let id = localStorage.getItem("xrezz_uid");
+            if (!id) {
+                id = "id_" + Math.random().toString(36).substring(2, 11);
+                localStorage.setItem("xrezz_uid", id);
+            }
+            return id;
+        }
+    </script>
 </body>
 </html>
