@@ -1,24 +1,74 @@
-import { createClient } from '@supabase/supabase-js';
+// Supabase via REST API langsung - hindari DEP0169 dari SDK
 
 // ==========================================
 // SUPABASE
 // ==========================================
-async function getSupabase() {
-    try {
-        const url = process.env.SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!url || !key) return null;
-        // Validasi manual tanpa new URL() untuk hindari DEP0169
-        if (!url.startsWith("https://")) {
-            console.error("SUPABASE_URL harus diawali https://");
-            return null;
-        }
-        return createClient(url, key);
-    } catch (e) {
-        console.error("Supabase init error:", e.message);
-        return null;
-    }
+// Supabase REST helper - tidak pakai SDK sama sekali, hindari DEP0169
+function sbHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+        "Authorization": "Bearer " + (process.env.SUPABASE_SERVICE_ROLE_KEY || ""),
+        "Prefer": "return=representation"
+    };
 }
+
+function sbUrl(table, query) {
+    const base = process.env.SUPABASE_URL;
+    if (!base) return null;
+    return base + "/rest/v1/" + table + (query ? "?" + query : "");
+}
+
+async function sbSelect(table, query) {
+    const url = sbUrl(table, query);
+    if (!url) return { data: null, error: "No SUPABASE_URL" };
+    try {
+        const res = await fetch(url, { headers: { ...sbHeaders(), "Prefer": "return=representation" } });
+        if (!res.ok) throw new Error(await res.text());
+        return { data: await res.json(), error: null };
+    } catch(e) { return { data: null, error: e.message }; }
+}
+
+async function sbInsert(table, body) {
+    const url = sbUrl(table);
+    if (!url) return { data: null, error: "No SUPABASE_URL" };
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: sbHeaders(),
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return { data: await res.json(), error: null };
+    } catch(e) { return { data: null, error: e.message }; }
+}
+
+async function sbDelete(table, id) {
+    const url = sbUrl(table, "id=eq." + id);
+    if (!url) return { error: "No SUPABASE_URL" };
+    try {
+        const res = await fetch(url, { method: "DELETE", headers: sbHeaders() });
+        if (!res.ok) throw new Error(await res.text());
+        return { error: null };
+    } catch(e) { return { error: e.message }; }
+}
+
+async function sbUpsert(table, body, onConflict) {
+    const url = sbUrl(table) + "?on_conflict=" + onConflict;
+    if (!url) return { error: "No SUPABASE_URL" };
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { ...sbHeaders(), "Prefer": "resolution=merge-duplicates,return=representation" },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return { error: null };
+    } catch(e) { return { error: e.message }; }
+}
+
+// getSupabase tidak dipakai lagi tapi keep untuk kompatibilitas
+async function getSupabase() { return true; }
 
 // ==========================================
 // REALTIME CONTEXT — waktu, tanggal, info terkini
@@ -304,27 +354,15 @@ export default async function handler(req, res) {
         }
 
         if (action === 'get_prompt') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(200).json({ prompt: null });
-            try {
-                const { data } = await supabase.from('ai_config').select('value').eq('key','system_prompt').single();
-                return res.status(200).json({ prompt: data ? data.value : null });
-            } catch(e) {
-                return res.status(200).json({ prompt: null });
-            }
+            const { data } = await sbSelect('ai_config', 'key=eq.system_prompt&select=value');
+            const prompt = (data && data[0]) ? data[0].value : null;
+            return res.status(200).json({ prompt });
         }
 
         // Ambil knowledge
-        const supabase = await getSupabase();
-        if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-        try {
-            const { data, error } = await supabase
-                .from('knowledge_base').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            return res.status(200).json({ data });
-        } catch(err) {
-            return res.status(500).json({ error: err.message });
-        }
+        const { data, error } = await sbSelect('knowledge_base', 'order=created_at.desc');
+        if (error) return res.status(500).json({ error });
+        return res.status(200).json({ data });
     }
 
     // ==========================================
@@ -333,43 +371,24 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
 
         if (action === 'save_context') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-            try {
-                const { kategori, judul, content } = req.body;
-                const { data, error } = await supabase.from('knowledge_base').insert([{ kategori, judul, content }]);
-                if (error) throw error;
-                return res.status(200).json({ success: true, data });
-            } catch(err) {
-                return res.status(500).json({ error: err.message });
-            }
+            const { kategori, judul, content: kContent } = req.body;
+            const { error: insErr } = await sbInsert('knowledge_base', { kategori, judul, content: kContent });
+            if (insErr) return res.status(500).json({ error: insErr });
+            return res.status(200).json({ success: true });
         }
 
         if (action === 'delete_context') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-            try {
-                const { id } = req.body;
-                const { error } = await supabase.from('knowledge_base').delete().eq('id', id);
-                if (error) throw error;
-                return res.status(200).json({ success: true });
-            } catch(err) {
-                return res.status(500).json({ error: err.message });
-            }
+            const { id } = req.body;
+            const { error: delErr } = await sbDelete('knowledge_base', id);
+            if (delErr) return res.status(500).json({ error: delErr });
+            return res.status(200).json({ success: true });
         }
 
         if (action === 'save_prompt') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-            try {
-                const { prompt } = req.body;
-                const { error } = await supabase.from('ai_config')
-                    .upsert({ key: 'system_prompt', value: prompt }, { onConflict: 'key' });
-                if (error) throw error;
-                return res.status(200).json({ success: true });
-            } catch(err) {
-                return res.status(500).json({ error: err.message });
-            }
+            const { prompt } = req.body;
+            const { error: upsErr } = await sbUpsert('ai_config', { key: 'system_prompt', value: prompt }, 'key');
+            if (upsErr) return res.status(500).json({ error: upsErr });
+            return res.status(200).json({ success: true });
         }
 
         // ==========================================
@@ -383,20 +402,17 @@ export default async function handler(req, res) {
             let knowledgeContext = "";
             let customPrompt = null;
             try {
-                const supabase = await getSupabase();
-                if (supabase) {
-                    const [knowledgeRes, promptRes] = await Promise.all([
-                        supabase.from('knowledge_base').select('judul,content').limit(20),
-                        supabase.from('ai_config').select('value').eq('key','system_prompt').single()
-                    ]);
-                    if (knowledgeRes.data && knowledgeRes.data.length > 0) {
-                        knowledgeContext = knowledgeRes.data
-                            .map(i => `[${i.judul}]: ${i.content}`)
-                            .join("\n");
-                    }
-                    if (promptRes.data && promptRes.data.value) {
-                        customPrompt = promptRes.data.value;
-                    }
+                const [knowledgeRes, promptRes] = await Promise.all([
+                    sbSelect('knowledge_base', 'select=judul,content&limit=20'),
+                    sbSelect('ai_config', 'key=eq.system_prompt&select=value')
+                ]);
+                if (knowledgeRes.data && knowledgeRes.data.length > 0) {
+                    knowledgeContext = knowledgeRes.data
+                        .map(i => "[" + i.judul + "]: " + i.content)
+                        .join("\n");
+                }
+                if (promptRes.data && promptRes.data[0] && promptRes.data[0].value) {
+                    customPrompt = promptRes.data[0].value;
                 }
             } catch(e) {
                 console.error("Supabase fetch:", e.message);
