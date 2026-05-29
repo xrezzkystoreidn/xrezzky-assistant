@@ -111,6 +111,33 @@ Jangan pernah bilang tidak tahu waktu atau tanggal.
 }
 
 // ==========================================
+// PROVIDER HEALTH TRACKER — auto cooldown kalau 429
+// ==========================================
+const providerHealth = {
+    gemini:     { failCount: 0, coolUntil: 0 },
+    groq:       { failCount: 0, coolUntil: 0 },
+    openrouter: { failCount: 0, coolUntil: 0 },
+};
+
+function markFail(name) {
+    const h = providerHealth[name];
+    h.failCount++;
+    // Cooldown: 2 menit per fail, max 10 menit
+    const coolMs = Math.min(h.failCount * 2 * 60 * 1000, 10 * 60 * 1000);
+    h.coolUntil = Date.now() + coolMs;
+    console.error(`[${name}] fail #${h.failCount}, cooldown ${coolMs/1000}s`);
+}
+
+function markSuccess(name) {
+    providerHealth[name].failCount = 0;
+    providerHealth[name].coolUntil = 0;
+}
+
+function isCooling(name) {
+    return Date.now() < providerHealth[name].coolUntil;
+}
+
+// ==========================================
 // GEMINI 2.0 FLASH (LATEST) — fetch langsung
 // ==========================================
 async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
@@ -153,10 +180,11 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
 async function callGroq(apiKey, systemPrompt, userMessage) {
     // Daftar model Groq - dicoba berurutan kalau 429
     const groqModels = [
-        "llama-3.1-8b-instant",       // paling cepat, limit tinggi
-        "llama3-8b-8192",             // classic, stabil
-        "gemma2-9b-it",               // Google model di Groq
-        "llama-3.3-70b-versatile",    // terkuat tapi paling sering 429
+        "gemma2-9b-it",               // Google model, jarang restricted
+        "gemma-7b-it",                // Google model alternatif
+        "mixtral-8x7b-32768",         // Mistral, stabil
+        "llama-3.1-8b-instant",       // llama cepat
+        "llama3-8b-8192",             // llama classic
     ];
 
     let lastErr = null;
@@ -219,10 +247,11 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
 
     // Model list untuk teks (dicoba berurutan kalau 429)
     const textModels = [
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "google/gemma-3-12b-it:free",
+        "google/gemma-2-9b-it:free",
         "mistralai/mistral-7b-instruct:free",
-        "qwen/qwen3-8b:free",
+        "qwen/qwen2.5-7b-instruct:free",
+        "microsoft/phi-3-mini-128k-instruct:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
     ];
     const visionModel = "google/gemini-2.0-flash-001";
     const model = (userImage && userImage.includes(",")) ? visionModel : textModels[0];
@@ -443,29 +472,29 @@ KARAKTER: Santai, gaul, pakai 'bro' atau 'kak'. Helpful dan to the point.`;
             // Kalau ada gambar: coba SEMUA gemini key satu per satu → semua OR key
             // Kalau teks: random 1 dari tiap provider, fallback berurutan
             let providerQueue;
+            const pick = arr => arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;
 
             if (hasImage) {
+                // Gambar: coba semua Gemini key → OpenRouter vision
                 providerQueue = [
                     ...geminiKeys.map(k => ({ name:'gemini', key:k })),
                     ...orKeys.map(k => ({ name:'openrouter', key:k }))
                 ];
             } else {
-                const pick = arr => arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;
-                // Shuffle provider order untuk load balance
-                const order = ['gemini','groq','openrouter'].sort(() => Math.random()-0.5);
-                const keyMap = { gemini: geminiKeys, groq: groqKeys, openrouter: orKeys };
-                providerQueue = order
-                    .map(name => ({ name, key: pick(keyMap[name]) }))
-                    .filter(p => p.key);
-
-                // Tambah fallback key ke-2 dari masing-masing provider
-                order.forEach(name => {
-                    const keys = keyMap[name];
-                    if (keys.length > 1) {
-                        const fallbackKey = keys.filter(k => k !== providerQueue.find(p=>p.name===name)?.key);
-                        if (fallbackKey.length) providerQueue.push({ name, key: fallbackKey[0] });
-                    }
-                });
+                // Teks: prioritaskan provider yang sehat
+                // Provider yang cooling (banyak error) diletakkan di belakang
+                const allProviders = [
+                    ...geminiKeys.map(k => ({ name:'gemini', key:k, cooling: isCooling('gemini') })),
+                    ...groqKeys.map(k => ({ name:'groq', key:k, cooling: isCooling('groq') })),
+                    ...orKeys.map(k => ({ name:'openrouter', key:k, cooling: isCooling('openrouter') })),
+                ];
+                // Sehat dulu, cooling belakang
+                const healthy = allProviders.filter(p => !p.cooling);
+                const cooling = allProviders.filter(p => p.cooling);
+                // Shuffle masing-masing grup
+                healthy.sort(() => Math.random()-0.5);
+                cooling.sort(() => Math.random()-0.5);
+                providerQueue = [...healthy, ...cooling];
             }
 
             let aiResponse = null;
@@ -482,11 +511,16 @@ KARAKTER: Santai, gaul, pakai 'bro' atau 'kak'. Helpful dan to the point.`;
                     } else if (p.name === 'openrouter') {
                         aiResponse = await callOpenRouter(p.key, systemPrompt, user_message, user_image);
                     }
+                    markSuccess(p.name);
                     usedProvider = p.name;
                     break;
                 } catch(e) {
                     console.error(`[${p.name}] error:`, e.message);
                     lastError = e.message;
+                    // Mark fail kalau 429 atau restricted
+                    if (e.message.includes('429') || e.message.includes('restrict') || e.message.includes('quota')) {
+                        markFail(p.name);
+                    }
                 }
             }
 
