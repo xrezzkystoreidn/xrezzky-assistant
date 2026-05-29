@@ -97,29 +97,49 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
 // GROQ — llama-3.3-70b (model terbaru & terkuat)
 // ==========================================
 async function callGroq(apiKey, systemPrompt, userMessage) {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            // llama-3.3-70b — model Groq terbaru dan terkuat per 2025
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userMessage || "Halo" }
-            ],
-            max_tokens: 2048,
-            temperature: 0.7
-        })
-    });
-    if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Groq ${response.status}: ${err}`);
+    // Daftar model Groq - dicoba berurutan kalau 429
+    const groqModels = [
+        "llama-3.1-8b-instant",       // paling cepat, limit tinggi
+        "llama3-8b-8192",             // classic, stabil
+        "gemma2-9b-it",               // Google model di Groq
+        "llama-3.3-70b-versatile",    // terkuat tapi paling sering 429
+    ];
+
+    let lastErr = null;
+    for (const model of groqModels) {
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userMessage || "Halo" }
+                    ],
+                    max_tokens: 2048,
+                    temperature: 0.7
+                })
+            });
+            if (response.status === 429) {
+                lastErr = new Error(`Groq ${model} 429`);
+                continue; // coba model berikutnya
+            }
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(`Groq ${model} ${response.status}: ${err}`);
+            }
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch(e) {
+            if (e.message.includes('429')) { lastErr = e; continue; }
+            throw e;
+        }
     }
-    const data = await response.json();
-    return data.choices[0].message.content;
+    throw lastErr || new Error('Semua model Groq 429');
 }
 
 // ==========================================
@@ -143,35 +163,57 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
         userContent = userMessage || "Halo";
     }
 
-    // Vision: gemini-2.0-flash via OpenRouter | Teks: llama-3.3-70b gratis
-    const model = (userImage && userImage.includes(","))
-        ? "google/gemini-2.0-flash-001"
-        : "meta-llama/llama-3.3-70b-instruct:free";
+    // Model list untuk teks (dicoba berurutan kalau 429)
+    const textModels = [
+        "meta-llama/llama-3.1-8b-instruct:free",
+        "google/gemma-3-12b-it:free",
+        "mistralai/mistral-7b-instruct:free",
+        "qwen/qwen3-8b:free",
+    ];
+    const visionModel = "google/gemini-2.0-flash-001";
+    const model = (userImage && userImage.includes(",")) ? visionModel : textModels[0];
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`,
-            "HTTP-Referer": "https://xrezzky-assistant.vercel.app",
-            "X-Title": "XREZZKY OFFICIAL STORE"
-        },
-        body: JSON.stringify({
-            model,
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userContent }
-            ],
-            max_tokens: 2048,
-            temperature: 0.7
-        })
-    });
-    if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`OpenRouter ${response.status}: ${err}`);
+    // Kalau vision, langsung pakai model vision
+    // Kalau teks, coba semua textModels sampai ada yang berhasil
+    const modelsToTry = (userImage && userImage.includes(",")) ? [visionModel] : textModels;
+
+    let lastErr2 = null;
+    for (const m of modelsToTry) {
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": "https://xrezzky-assistant.vercel.app",
+                    "X-Title": "XREZZKY OFFICIAL STORE"
+                },
+                body: JSON.stringify({
+                    model: m,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userContent }
+                    ],
+                    max_tokens: 2048,
+                    temperature: 0.7
+                })
+            });
+            if (response.status === 429) {
+                lastErr2 = new Error(`OpenRouter ${m} 429`);
+                continue;
+            }
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(`OpenRouter ${m} ${response.status}: ${err}`);
+            }
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch(e) {
+            if (e.message.includes('429')) { lastErr2 = e; continue; }
+            throw e;
+        }
     }
-    const data = await response.json();
-    return data.choices[0].message.content;
+    throw lastErr2 || new Error('Semua model OpenRouter 429');
 }
 
 // ==========================================
