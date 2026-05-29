@@ -17,7 +17,47 @@ async function getSupabase() {
 }
 
 // ==========================================
-// GEMINI
+// REALTIME CONTEXT — waktu, tanggal, info terkini
+// ==========================================
+function getRealtimeContext() {
+    const now = new Date();
+
+    const wibOffset = 7 * 60;
+    const wibNow = new Date(now.getTime() + (wibOffset - now.getTimezoneOffset()) * 60000);
+
+    const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    const hari = days[wibNow.getDay()];
+    const tgl = wibNow.getDate();
+    const bln = months[wibNow.getMonth()];
+    const thn = wibNow.getFullYear();
+    const jam = String(wibNow.getHours()).padStart(2,'0');
+    const mnt = String(wibNow.getMinutes()).padStart(2,'0');
+    const dtk = String(wibNow.getSeconds()).padStart(2,'0');
+
+    let waktuHari = '';
+    const h = wibNow.getHours();
+    if (h >= 4 && h < 11) waktuHari = 'pagi';
+    else if (h >= 11 && h < 15) waktuHari = 'siang';
+    else if (h >= 15 && h < 18) waktuHari = 'sore';
+    else waktuHari = 'malam';
+
+    return `
+=== INFORMASI REALTIME (DIPERBARUI SETIAP REQUEST) ===
+Waktu sekarang  : ${jam}:${mnt}:${dtk} WIB
+Hari ini        : ${hari}, ${tgl} ${bln} ${thn}
+Waktu hari      : ${waktuHari}
+Timestamp UTC   : ${now.toISOString()}
+=======================================================
+PENTING: Kamu TAHU waktu dan tanggal di atas secara REAL-TIME.
+Kalau ditanya "jam berapa?", "hari apa?", "tanggal berapa?" — jawab berdasarkan data di atas.
+Jangan pernah bilang tidak tahu waktu atau tanggal.
+=======================================================`;
+}
+
+// ==========================================
+// GEMINI 2.0 FLASH (LATEST) — fetch langsung
 // ==========================================
 async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     const parts = [];
@@ -30,13 +70,19 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
     }
     parts.push({ text: userMessage || "Halo" });
 
+    // Pakai gemini-2.0-flash — model terbaru & paling cepat
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: "user", parts }]
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.9,
+                maxOutputTokens: 2048
+            }
         })
     });
     if (!response.ok) {
@@ -48,7 +94,7 @@ async function callGemini(apiKey, systemPrompt, userMessage, userImage) {
 }
 
 // ==========================================
-// GROQ
+// GROQ — llama-3.3-70b (model terbaru & terkuat)
 // ==========================================
 async function callGroq(apiKey, systemPrompt, userMessage) {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -58,12 +104,14 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
             "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
+            // llama-3.3-70b — model Groq terbaru dan terkuat per 2025
+            model: "llama-3.3-70b-versatile",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userMessage || "Halo" }
             ],
-            max_tokens: 1024
+            max_tokens: 2048,
+            temperature: 0.7
         })
     });
     if (!response.ok) {
@@ -75,10 +123,11 @@ async function callGroq(apiKey, systemPrompt, userMessage) {
 }
 
 // ==========================================
-// OPENROUTER
+// OPENROUTER — support teks & vision
 // ==========================================
 async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
     let userContent;
+
     if (userImage && userImage.includes(",")) {
         try {
             const split = userImage.split(",");
@@ -94,9 +143,10 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
         userContent = userMessage || "Halo";
     }
 
+    // Vision: gemini-2.0-flash via OpenRouter | Teks: llama-3.3-70b gratis
     const model = (userImage && userImage.includes(","))
         ? "google/gemini-2.0-flash-001"
-        : "meta-llama/llama-3.1-8b-instruct:free";
+        : "meta-llama/llama-3.3-70b-instruct:free";
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -112,7 +162,8 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userContent }
             ],
-            max_tokens: 1024
+            max_tokens: 2048,
+            temperature: 0.7
         })
     });
     if (!response.ok) {
@@ -121,93 +172,6 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
     }
     const data = await response.json();
     return data.choices[0].message.content;
-}
-
-// ==========================================
-// SYNTHESIS — gabungkan semua jawaban dari 3 provider
-// Gunakan Gemini (atau fallback teks) untuk merangkum
-// ==========================================
-async function synthesizeResponses(geminiKey, userQuestion, responses) {
-    // responses = [{ provider, text }, ...]
-    if (responses.length === 1) return responses[0].text; // Kalau cuma 1, langsung return
-
-    const combined = responses
-        .map((r, i) => `[Sumber ${i + 1} - ${r.provider.toUpperCase()}]\n${r.text}`)
-        .join("\n\n---\n\n");
-
-    const synthesisPrompt = `Kamu adalah AI synthesizer. Tugasmu adalah menggabungkan beberapa jawaban dari AI yang berbeda menjadi SATU jawaban yang paling akurat, lengkap, dan informatif.
-
-ATURAN:
-- Gabungkan informasi terbaik dari semua sumber
-- Hilangkan duplikat dan info yang saling bertentangan (pilih yang paling logis/akurat)
-- Jika ada informasi tambahan dari sumber berbeda, sertakan semua yang relevan
-- Jawab dengan bahasa yang natural, santai, tapi informatif
-- Jangan sebut "Sumber 1", "Sumber 2" — langsung sajikan sebagai jawaban tunggal
-- Gunakan sapaan bro/kak ke user
-- Format jawaban rapi, gunakan bullet/nomor kalau perlu`;
-
-    const userMsg = `Pertanyaan user: "${userQuestion}"\n\nJawaban dari berbagai AI:\n\n${combined}\n\nSintesiskan menjadi 1 jawaban terbaik dan paling akurat:`;
-
-    if (!geminiKey) {
-        // Fallback: pilih jawaban terpanjang (biasanya paling lengkap)
-        return responses.reduce((a, b) => a.text.length >= b.text.length ? a : b).text;
-    }
-
-    try {
-        return await callGemini(geminiKey, synthesisPrompt, userMsg, null);
-    } catch (e) {
-        console.error("Synthesis error:", e.message);
-        // Fallback: pilih jawaban terpanjang
-        return responses.reduce((a, b) => a.text.length >= b.text.length ? a : b).text;
-    }
-}
-
-// ==========================================
-// PARALLEL FETCH — query semua provider sekaligus
-// ==========================================
-async function fetchAllProviders(systemPrompt, userMessage, userImage, { geminiKeys, groqKeys, orKeys }) {
-    const hasImage = !!(userImage && userImage.includes(","));
-
-    // Pilih 1 key acak per provider untuk query paralel
-    const pick = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
-
-    const tasks = [];
-
-    // Gemini
-    const gemKey = pick(geminiKeys);
-    if (gemKey) {
-        tasks.push(
-            callGemini(gemKey, systemPrompt, userMessage, userImage)
-                .then(text => ({ provider: 'gemini', text, ok: true }))
-                .catch(e => ({ provider: 'gemini', error: e.message, ok: false }))
-        );
-    }
-
-    // Groq (teks saja, skip kalau ada gambar)
-    if (!hasImage) {
-        const groqKey = pick(groqKeys);
-        if (groqKey) {
-            tasks.push(
-                callGroq(groqKey, systemPrompt, userMessage)
-                    .then(text => ({ provider: 'groq', text, ok: true }))
-                    .catch(e => ({ provider: 'groq', error: e.message, ok: false }))
-            );
-        }
-    }
-
-    // OpenRouter
-    const orKey = pick(orKeys);
-    if (orKey) {
-        tasks.push(
-            callOpenRouter(orKey, systemPrompt, userMessage, userImage)
-                .then(text => ({ provider: 'openrouter', text, ok: true }))
-                .catch(e => ({ provider: 'openrouter', error: e.message, ok: false }))
-        );
-    }
-
-    // Jalankan semua paralel, tunggu semua selesai (Promise.allSettled supaya tidak stop kalau 1 gagal)
-    const results = await Promise.allSettled(tasks);
-    return results.map(r => r.status === 'fulfilled' ? r.value : { provider: 'unknown', ok: false, error: r.reason?.message });
 }
 
 // ==========================================
@@ -227,41 +191,32 @@ export default async function handler(req, res) {
     // GET
     // ==========================================
     if (req.method === 'GET') {
+
         if (action === 'debug') {
             const env = {
-                SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0, 40) : 'KOSONG',
-                SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada ✓' : 'KOSONG ✗',
-                GEMINI: [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`] ? `key${i}:ada` : `key${i}:kosong`),
-                GROQ:   [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]   ? `key${i}:ada` : `key${i}:kosong`),
-                OPENROUTER: [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`] ? `key${i}:ada` : `key${i}:kosong`),
+                SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0,40) : 'KOSONG',
+                SUPABASE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada ✓' : 'KOSONG ✗',
+                GEMINI: [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`] ? `key${i}:✓` : `key${i}:✗`),
+                GROQ: [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`] ? `key${i}:✓` : `key${i}:✗`),
+                OPENROUTER: [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`] ? `key${i}:✓` : `key${i}:✗`),
+                REALTIME: getRealtimeContext().trim().split('\n').slice(1,5).join(' | ')
             };
             const providers = {};
-            const testMsg = "Balas: OK";
-            const testSys = "Kamu asisten.";
-
-            await Promise.allSettled([
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.gemini = 'no_key'; return; }
-                    await callGemini(key, testSys, testMsg, null);
-                    providers.gemini = 'OK ✓';
-                })().catch(e => { providers.gemini = '✗ ' + e.message.slice(0,150); }),
-
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.groq = 'no_key'; return; }
-                    await callGroq(key, testSys, testMsg);
-                    providers.groq = 'OK ✓';
-                })().catch(e => { providers.groq = '✗ ' + e.message.slice(0,150); }),
-
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.openrouter = 'no_key'; return; }
-                    await callOpenRouter(key, testSys, testMsg, null);
-                    providers.openrouter = 'OK ✓';
-                })().catch(e => { providers.openrouter = '✗ ' + e.message.slice(0,150); }),
-            ]);
-
+            try {
+                const key = [1,2,3,4,5].map(i=>process.env[`GEMINI_API_KEY_${i}`]).find(Boolean);
+                if (key) { await callGemini(key, "Asisten.", "Balas OK saja"); providers.gemini = 'OK ✓'; }
+                else providers.gemini = 'no_key';
+            } catch(e) { providers.gemini = '✗ '+e.message.slice(0,150); }
+            try {
+                const key = [1,2,3,4,5].map(i=>process.env[`GROQ_API_KEY_${i}`]).find(Boolean);
+                if (key) { await callGroq(key, "Asisten.", "Balas OK saja"); providers.groq = 'OK ✓'; }
+                else providers.groq = 'no_key';
+            } catch(e) { providers.groq = '✗ '+e.message.slice(0,150); }
+            try {
+                const key = [1,2,3,4,5].map(i=>process.env[`OPENROUTER_API_KEY_${i}`]).find(Boolean);
+                if (key) { await callOpenRouter(key, "Asisten.", "Balas OK saja", null); providers.openrouter = 'OK ✓'; }
+                else providers.openrouter = 'no_key';
+            } catch(e) { providers.openrouter = '✗ '+e.message.slice(0,150); }
             return res.status(200).json({ env, providers });
         }
 
@@ -269,13 +224,14 @@ export default async function handler(req, res) {
             const supabase = await getSupabase();
             if (!supabase) return res.status(200).json({ prompt: null });
             try {
-                const { data } = await supabase.from('ai_config').select('value').eq('key', 'system_prompt').single();
+                const { data } = await supabase.from('ai_config').select('value').eq('key','system_prompt').single();
                 return res.status(200).json({ prompt: data ? data.value : null });
             } catch(e) {
                 return res.status(200).json({ prompt: null });
             }
         }
 
+        // Ambil knowledge
         const supabase = await getSupabase();
         if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
         try {
@@ -283,7 +239,7 @@ export default async function handler(req, res) {
                 .from('info_toko').select('*').order('created_at', { ascending: false });
             if (error) throw error;
             return res.status(200).json({ data });
-        } catch (err) {
+        } catch(err) {
             return res.status(500).json({ error: err.message });
         }
     }
@@ -301,7 +257,7 @@ export default async function handler(req, res) {
                 const { data, error } = await supabase.from('info_toko').insert([{ kategori, judul, content }]);
                 if (error) throw error;
                 return res.status(200).json({ success: true, data });
-            } catch (err) {
+            } catch(err) {
                 return res.status(500).json({ error: err.message });
             }
         }
@@ -314,7 +270,7 @@ export default async function handler(req, res) {
                 const { error } = await supabase.from('info_toko').delete().eq('id', id);
                 if (error) throw error;
                 return res.status(200).json({ success: true });
-            } catch (err) {
+            } catch(err) {
                 return res.status(500).json({ error: err.message });
             }
         }
@@ -328,80 +284,126 @@ export default async function handler(req, res) {
                     .upsert({ key: 'system_prompt', value: prompt }, { onConflict: 'key' });
                 if (error) throw error;
                 return res.status(200).json({ success: true });
-            } catch (err) {
+            } catch(err) {
                 return res.status(500).json({ error: err.message });
             }
         }
 
         // ==========================================
-        // CHAT UTAMA — REALTIME MULTI-PROVIDER
+        // CHAT UTAMA
         // ==========================================
         try {
             const { user_message, user_image } = req.body;
+            const hasImage = !!(user_image && user_image.includes(","));
 
-            // Ambil knowledge + system prompt dari Supabase
+            // Ambil knowledge + system prompt dari Supabase secara paralel
             let knowledgeContext = "";
             let customPrompt = null;
             try {
                 const supabase = await getSupabase();
                 if (supabase) {
                     const [knowledgeRes, promptRes] = await Promise.all([
-                        supabase.from('info_toko').select('judul, content').limit(20),
-                        supabase.from('ai_config').select('value').eq('key', 'system_prompt').single()
+                        supabase.from('info_toko').select('judul,content').limit(20),
+                        supabase.from('ai_config').select('value').eq('key','system_prompt').single()
                     ]);
-                    if (knowledgeRes.data?.length > 0) {
-                        knowledgeContext = knowledgeRes.data.map(i => `${i.judul}: ${i.content}`).join("\n");
+                    if (knowledgeRes.data && knowledgeRes.data.length > 0) {
+                        knowledgeContext = knowledgeRes.data
+                            .map(i => `[${i.judul}]: ${i.content}`)
+                            .join("\n");
                     }
-                    if (promptRes.data?.value) {
+                    if (promptRes.data && promptRes.data.value) {
                         customPrompt = promptRes.data.value;
                     }
                 }
-            } catch (e) {
-                console.error("Supabase fetch error:", e.message);
+            } catch(e) {
+                console.error("Supabase fetch:", e.message);
             }
 
-            const systemPrompt = customPrompt
-                ? customPrompt.replace('{knowledge}', knowledgeContext || '-')
-                : `Kamu adalah XREZZ AI, asisten XREZZKY OFFICIAL STORE.\n${knowledgeContext ? 'Data toko:\n' + knowledgeContext : ''}\nJawab santai, sebut user dengan bro/kak.`;
+            // Realtime context — waktu & tanggal aktual
+            const realtimeCtx = getRealtimeContext();
 
-            const geminiKeys = [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`]).filter(Boolean);
-            const groqKeys   = [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]).filter(Boolean);
-            const orKeys     = [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`]).filter(Boolean);
+            // Build system prompt final
+            const defaultPrompt = `Kamu adalah XREZZ AI, asisten cerdas XREZZKY OFFICIAL STORE.
 
-            // ── STEP 1: Query semua provider paralel ──────────────────────────
-            const allResults = await fetchAllProviders(
-                systemPrompt, user_message, user_image,
-                { geminiKeys, groqKeys, orKeys }
-            );
+DATA TOKO:
+{knowledge}
 
-            // Pisahkan yang sukses dan gagal
-            const successful = allResults.filter(r => r.ok && r.text);
-            const failed     = allResults.filter(r => !r.ok);
+KARAKTER: Santai, gaul, pakai 'bro' atau 'kak'. Helpful dan to the point.`;
 
-            console.log(`[MULTI-PROVIDER] Berhasil: ${successful.map(r => r.provider).join(', ') || 'tidak ada'}`);
-            if (failed.length) console.log(`[MULTI-PROVIDER] Gagal: ${failed.map(r => `${r.provider}(${r.error})`).join(', ')}`);
+            const promptTemplate = customPrompt || defaultPrompt;
+            const knowledgePart = knowledgeContext || "Nama Toko: XREZZKY OFFICIAL STORE. Melayani top up game dan kebutuhan gamers terpercaya.";
 
-            if (successful.length === 0) {
-                return res.status(500).json({
-                    response: "Semua AI provider lagi down bro, coba lagi bentar ya 🙏",
-                    error: failed.map(r => `${r.provider}: ${r.error}`).join(' | ')
+            // Gabungkan: system prompt + knowledge + realtime context
+            const systemPrompt = promptTemplate.replace('{knowledge}', knowledgePart) + "\n\n" + realtimeCtx;
+
+            // Keys per provider
+            const geminiKeys = [1,2,3,4,5].map(i=>process.env[`GEMINI_API_KEY_${i}`]).filter(Boolean);
+            const groqKeys   = [1,2,3,4,5].map(i=>process.env[`GROQ_API_KEY_${i}`]).filter(Boolean);
+            const orKeys     = [1,2,3,4,5].map(i=>process.env[`OPENROUTER_API_KEY_${i}`]).filter(Boolean);
+
+            // Kalau ada gambar: coba SEMUA gemini key satu per satu → semua OR key
+            // Kalau teks: random 1 dari tiap provider, fallback berurutan
+            let providerQueue;
+
+            if (hasImage) {
+                providerQueue = [
+                    ...geminiKeys.map(k => ({ name:'gemini', key:k })),
+                    ...orKeys.map(k => ({ name:'openrouter', key:k }))
+                ];
+            } else {
+                const pick = arr => arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;
+                // Shuffle provider order untuk load balance
+                const order = ['gemini','groq','openrouter'].sort(() => Math.random()-0.5);
+                const keyMap = { gemini: geminiKeys, groq: groqKeys, openrouter: orKeys };
+                providerQueue = order
+                    .map(name => ({ name, key: pick(keyMap[name]) }))
+                    .filter(p => p.key);
+
+                // Tambah fallback key ke-2 dari masing-masing provider
+                order.forEach(name => {
+                    const keys = keyMap[name];
+                    if (keys.length > 1) {
+                        const fallbackKey = keys.filter(k => k !== providerQueue.find(p=>p.name===name)?.key);
+                        if (fallbackKey.length) providerQueue.push({ name, key: fallbackKey[0] });
+                    }
                 });
             }
 
-            // ── STEP 2: Synthesis ─────────────────────────────────────────────
-            // Kalau cuma 1 provider yang berhasil, langsung return (tidak perlu synthesis)
-            // Kalau >1, synthesis pakai Gemini untuk jawaban terbaik
-            const synthesisKey = geminiKeys[0] || null;
-            const finalResponse = await synthesizeResponses(synthesisKey, user_message, successful);
+            let aiResponse = null;
+            let usedProvider = null;
+            let lastError = null;
+
+            for (const p of providerQueue) {
+                if (!p.key) continue;
+                try {
+                    if (p.name === 'gemini') {
+                        aiResponse = await callGemini(p.key, systemPrompt, user_message, user_image);
+                    } else if (p.name === 'groq') {
+                        aiResponse = await callGroq(p.key, systemPrompt, user_message);
+                    } else if (p.name === 'openrouter') {
+                        aiResponse = await callOpenRouter(p.key, systemPrompt, user_message, user_image);
+                    }
+                    usedProvider = p.name;
+                    break;
+                } catch(e) {
+                    console.error(`[${p.name}] error:`, e.message);
+                    lastError = e.message;
+                }
+            }
+
+            if (!aiResponse) {
+                return res.status(500).json({
+                    response: "Semua AI provider lagi down bro, coba lagi bentar.",
+                    error: lastError
+                });
+            }
 
             return res.status(200).json({
-                response: finalResponse,
-                providers_used: successful.map(r => r.provider),
-                providers_failed: failed.map(r => r.provider),
-                synthesized: successful.length > 1
+                response: aiResponse,
+                provider: usedProvider
             });
 
-        } catch (error) {
+        } catch(error) {
             console.error("Handler error:", error.message);
             return res.status(500).json({ response: "Server error bro.", error: error.message });
         }
