@@ -8,7 +8,11 @@ async function getSupabase() {
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!url || !key) return null;
-        new URL(url);
+        // Validasi manual tanpa new URL() untuk hindari DEP0169
+        if (!url.startsWith("https://")) {
+            console.error("SUPABASE_URL harus diawali https://");
+            return null;
+        }
         return createClient(url, key);
     } catch (e) {
         console.error("Supabase init error:", e.message);
@@ -214,6 +218,45 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, userImage) {
         }
     }
     throw lastErr2 || new Error('Semua model OpenRouter 429');
+}
+
+// ==========================================
+// HUGGINGFACE — emergency fallback gratis, tidak butuh key khusus
+// ==========================================
+async function callHuggingFace(userMessage, systemPrompt) {
+    // Pakai model gratis HuggingFace Inference API
+    const models = [
+        "mistralai/Mistral-7B-Instruct-v0.3",
+        "HuggingFaceH4/zephyr-7b-beta",
+    ];
+
+    const hfKey = process.env.HF_API_KEY; // opsional, kalau kosong tetap coba
+
+    for (const model of models) {
+        try {
+            const prompt = ;
+            const headers = { "Content-Type": "application/json" };
+            if (hfKey) headers["Authorization"] = ;
+
+            const response = await fetch(
+                ,
+                {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({
+                        inputs: prompt,
+                        parameters: { max_new_tokens: 512, temperature: 0.7, return_full_text: false }
+                    })
+                }
+            );
+            if (!response.ok) continue;
+            const data = await response.json();
+            if (Array.isArray(data) && data[0]?.generated_text) {
+                return data[0].generated_text.trim();
+            }
+        } catch(e) { continue; }
+    }
+    throw new Error("HuggingFace semua model gagal");
 }
 
 // ==========================================
@@ -429,6 +472,17 @@ KARAKTER: Santai, gaul, pakai 'bro' atau 'kak'. Helpful dan to the point.`;
                     break;
                 } catch(e) {
                     console.error(`[${p.name}] error:`, e.message);
+                    lastError = e.message;
+                }
+            }
+
+            // Last resort: HuggingFace gratis
+            if (!aiResponse) {
+                try {
+                    aiResponse = await callHuggingFace(user_message || "Halo", systemPrompt);
+                    usedProvider = "huggingface";
+                } catch(e) {
+                    console.error("[huggingface] error:", e.message);
                     lastError = e.message;
                 }
             }
