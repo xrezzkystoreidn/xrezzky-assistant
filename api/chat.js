@@ -234,24 +234,22 @@ async function callHuggingFace(userMessage, systemPrompt) {
 
     for (const model of models) {
         try {
-            const prompt = ;
+            const prompt = "<s>[INST] " + systemPrompt + "\n\n" + userMessage + " [/INST]";
             const headers = { "Content-Type": "application/json" };
-            if (hfKey) headers["Authorization"] = ;
+            if (hfKey) headers["Authorization"] = "Bearer " + hfKey;
 
-            const response = await fetch(
-                ,
-                {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify({
-                        inputs: prompt,
-                        parameters: { max_new_tokens: 512, temperature: 0.7, return_full_text: false }
-                    })
-                }
-            );
+            const apiUrl = "https://api-inference.huggingface.co/models/" + model;
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    inputs: prompt,
+                    parameters: { max_new_tokens: 512, temperature: 0.7, return_full_text: false }
+                })
+            });
             if (!response.ok) continue;
             const data = await response.json();
-            if (Array.isArray(data) && data[0]?.generated_text) {
+            if (Array.isArray(data) && data[0] && data[0].generated_text) {
                 return data[0].generated_text.trim();
             }
         } catch(e) { continue; }
