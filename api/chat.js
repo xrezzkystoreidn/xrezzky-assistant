@@ -319,7 +319,7 @@ export default async function handler(req, res) {
         if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
         try {
             const { data, error } = await supabase
-                .from('info_toko').select('*').order('created_at', { ascending: false });
+                .from('knowledge_base').select('*').order('created_at', { ascending: false });
             if (error) throw error;
             return res.status(200).json({ data });
         } catch(err) {
@@ -337,7 +337,7 @@ export default async function handler(req, res) {
             if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
             try {
                 const { kategori, judul, content } = req.body;
-                const { data, error } = await supabase.from('info_toko').insert([{ kategori, judul, content }]);
+                const { data, error } = await supabase.from('knowledge_base').insert([{ kategori, judul, content }]);
                 if (error) throw error;
                 return res.status(200).json({ success: true, data });
             } catch(err) {
@@ -350,7 +350,7 @@ export default async function handler(req, res) {
             if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
             try {
                 const { id } = req.body;
-                const { error } = await supabase.from('info_toko').delete().eq('id', id);
+                const { error } = await supabase.from('knowledge_base').delete().eq('id', id);
                 if (error) throw error;
                 return res.status(200).json({ success: true });
             } catch(err) {
@@ -386,7 +386,7 @@ export default async function handler(req, res) {
                 const supabase = await getSupabase();
                 if (supabase) {
                     const [knowledgeRes, promptRes] = await Promise.all([
-                        supabase.from('info_toko').select('judul,content').limit(20),
+                        supabase.from('knowledge_base').select('judul,content').limit(20),
                         supabase.from('ai_config').select('value').eq('key','system_prompt').single()
                     ]);
                     if (knowledgeRes.data && knowledgeRes.data.length > 0) {
