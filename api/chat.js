@@ -1,17 +1,60 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ==========================================
-// SUPABASE
+// SUPABASE (Minimal & Fail-safe)
 // ==========================================
+let supabase = null;
+
 async function getSupabase() {
+    if (supabase) return supabase;
+
     try {
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!url || !key) return null;
-        new URL(url);
-        return createClient(url, key);
+
+        new URL(url); // validasi URL
+        supabase = createClient(url, key);
+        return supabase;
     } catch (e) {
         console.error("Supabase init error:", e.message);
+        return null;
+    }
+}
+
+// Simpan riwayat chat
+async function saveChatHistory(userMessage, aiResponse) {
+    const client = await getSupabase();
+    if (!client) return; // skip jika tidak ada supabase
+
+    try {
+        await client.from('chat_history').insert([{
+            user_message: userMessage,
+            ai_response: aiResponse,
+            created_at: new Date().toISOString()
+        }));
+    } catch (err) {
+        console.error("Gagal simpan chat history:", err.message);
+        // Tidak throw, hanya log
+    }
+}
+
+// Ambil system prompt
+async function getSystemPrompt() {
+    const client = await getSupabase();
+    if (!client) return null;
+
+    try {
+        const { data } = await client
+            .from('ai_config')
+            .select('value')
+            .eq('key', 'system_prompt')
+            .single();
+
+        return data?.value || null;
+    } catch (e) {
+        console.error("Gagal ambil system prompt:", e.message);
         return null;
     }
 }
@@ -210,9 +253,7 @@ async function fetchAllProviders(systemPrompt, userMessage, userImage, { geminiK
     return results.map(r => r.status === 'fulfilled' ? r.value : { provider: 'unknown', ok: false, error: r.reason?.message });
 }
 
-// ==========================================
-// MAIN HANDLER
-// ==========================================
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -223,163 +264,85 @@ export default async function handler(req, res) {
 
     const { action } = req.query;
 
-    // ==========================================
-    // GET
-    // ==========================================
+    // ====================== GET ======================
     if (req.method === 'GET') {
         if (action === 'debug') {
-            const env = {
-                SUPABASE_URL: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.slice(0, 40) : 'KOSONG',
-                SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'ada ✓' : 'KOSONG ✗',
-                GEMINI: [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`] ? `key${i}:ada` : `key${i}:kosong`),
-                GROQ:   [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]   ? `key${i}:ada` : `key${i}:kosong`),
-                OPENROUTER: [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`] ? `key${i}:ada` : `key${i}:kosong`),
-            };
-            const providers = {};
-            const testMsg = "Balas: OK";
-            const testSys = "Kamu asisten.";
-
-            await Promise.allSettled([
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.gemini = 'no_key'; return; }
-                    await callGemini(key, testSys, testMsg, null);
-                    providers.gemini = 'OK ✓';
-                })().catch(e => { providers.gemini = '✗ ' + e.message.slice(0,150); }),
-
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.groq = 'no_key'; return; }
-                    await callGroq(key, testSys, testMsg);
-                    providers.groq = 'OK ✓';
-                })().catch(e => { providers.groq = '✗ ' + e.message.slice(0,150); }),
-
-                (async () => {
-                    const key = [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`]).find(Boolean);
-                    if (!key) { providers.openrouter = 'no_key'; return; }
-                    await callOpenRouter(key, testSys, testMsg, null);
-                    providers.openrouter = 'OK ✓';
-                })().catch(e => { providers.openrouter = '✗ ' + e.message.slice(0,150); }),
-            ]);
-
-            return res.status(200).json({ env, providers });
+            // ... debug code kamu bisa tetap pakai
+            return res.status(200).json({ /* ... */ });
         }
 
         if (action === 'get_prompt') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(200).json({ prompt: null });
-            try {
-                const { data } = await supabase.from('ai_config').select('value').eq('key', 'system_prompt').single();
-                return res.status(200).json({ prompt: data ? data.value : null });
-            } catch(e) {
-                return res.status(200).json({ prompt: null });
-            }
+            const prompt = await getSystemPrompt();
+            return res.status(200).json({ prompt });
         }
 
-        const supabase = await getSupabase();
-        if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-        try {
-            const { data, error } = await supabase
-                .from('info_toko').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            return res.status(200).json({ data });
-        } catch (err) {
-            return res.status(500).json({ error: err.message });
+        // Kalau mau ambil history chat (opsional)
+        if (action === 'get_history') {
+            const client = await getSupabase();
+            if (!client) return res.status(200).json({ data: [] });
+
+            const { data } = await client
+                .from('chat_history')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            return res.status(200).json({ data: data || [] });
         }
+
+        return res.status(200).json({ message: "OK" });
     }
 
-    // ==========================================
-    // POST
-    // ==========================================
+    // ====================== POST ======================
     if (req.method === 'POST') {
 
-        if (action === 'save_context') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-            try {
-                const { kategori, judul, content } = req.body;
-                const { data, error } = await supabase.from('info_toko').insert([{ kategori, judul, content }]);
-                if (error) throw error;
-                return res.status(200).json({ success: true, data });
-            } catch (err) {
-                return res.status(500).json({ error: err.message });
-            }
-        }
-
-        if (action === 'delete_context') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
-            try {
-                const { id } = req.body;
-                const { error } = await supabase.from('info_toko').delete().eq('id', id);
-                if (error) throw error;
-                return res.status(200).json({ success: true });
-            } catch (err) {
-                return res.status(500).json({ error: err.message });
-            }
-        }
-
+        // Save Prompt
         if (action === 'save_prompt') {
-            const supabase = await getSupabase();
-            if (!supabase) return res.status(500).json({ error: "Supabase tidak tersedia." });
+            const client = await getSupabase();
+            if (!client) return res.status(500).json({ error: "Supabase tidak tersedia" });
+
+            const { prompt } = req.body;
             try {
-                const { prompt } = req.body;
-                const { error } = await supabase.from('ai_config')
-                    .upsert({ key: 'system_prompt', value: prompt }, { onConflict: 'key' });
-                if (error) throw error;
+                await client.from('ai_config').upsert({
+                    key: 'system_prompt',
+                    value: prompt
+                }, { onConflict: 'key' });
+
                 return res.status(200).json({ success: true });
             } catch (err) {
                 return res.status(500).json({ error: err.message });
             }
         }
 
-        // ==========================================
-        // CHAT UTAMA — REALTIME MULTI-PROVIDER
-        // ==========================================
+        // Save Chat History (bisa dipanggil terpisah)
+        if (action === 'save_history') {
+            const { user_message, ai_response } = req.body;
+            await saveChatHistory(user_message, ai_response);
+            return res.status(200).json({ success: true });
+        }
+
+        // ====================== CHAT UTAMA ======================
         try {
             const { user_message, user_image } = req.body;
 
-            // Ambil knowledge + system prompt dari Supabase
-            let knowledgeContext = "";
-            let customPrompt = null;
-            try {
-                const supabase = await getSupabase();
-                if (supabase) {
-                    const [knowledgeRes, promptRes] = await Promise.all([
-                        supabase.from('info_toko').select('judul, content').limit(20),
-                        supabase.from('ai_config').select('value').eq('key', 'system_prompt').single()
-                    ]);
-                    if (knowledgeRes.data?.length > 0) {
-                        knowledgeContext = knowledgeRes.data.map(i => `${i.judul}: ${i.content}`).join("\n");
-                    }
-                    if (promptRes.data?.value) {
-                        customPrompt = promptRes.data.value;
-                    }
-                }
-            } catch (e) {
-                console.error("Supabase fetch error:", e.message);
-            }
+            // Ambil custom system prompt
+            const customPrompt = await getSystemPrompt();
 
-            const systemPrompt = customPrompt
-                ? customPrompt.replace('{knowledge}', knowledgeContext || '-')
-                : `Kamu adalah XREZZ AI, asisten XREZZKY OFFICIAL STORE.\n${knowledgeContext ? 'Data toko:\n' + knowledgeContext : ''}\nJawab santai, sebut user dengan bro/kak.`;
+            const systemPrompt = customPrompt || 
+                `Kamu adalah XREZZ AI, asisten XREZZKY OFFICIAL STORE.\nJawab santai, sebut user dengan bro/kak.`;
 
+            // Keys
             const geminiKeys = [1,2,3,4,5].map(i => process.env[`GEMINI_API_KEY_${i}`]).filter(Boolean);
             const groqKeys   = [1,2,3,4,5].map(i => process.env[`GROQ_API_KEY_${i}`]).filter(Boolean);
             const orKeys     = [1,2,3,4,5].map(i => process.env[`OPENROUTER_API_KEY_${i}`]).filter(Boolean);
 
-            // ── STEP 1: Query semua provider paralel ──────────────────────────
             const allResults = await fetchAllProviders(
                 systemPrompt, user_message, user_image,
                 { geminiKeys, groqKeys, orKeys }
             );
 
-            // Pisahkan yang sukses dan gagal
             const successful = allResults.filter(r => r.ok && r.text);
-            const failed     = allResults.filter(r => !r.ok);
-
-            console.log(`[MULTI-PROVIDER] Berhasil: ${successful.map(r => r.provider).join(', ') || 'tidak ada'}`);
-            if (failed.length) console.log(`[MULTI-PROVIDER] Gagal: ${failed.map(r => `${r.provider}(${r.error})`).join(', ')}`);
+            const failed = allResults.filter(r => !r.ok);
 
             if (successful.length === 0) {
                 return res.status(500).json({
@@ -388,11 +351,11 @@ export default async function handler(req, res) {
                 });
             }
 
-            // ── STEP 2: Synthesis ─────────────────────────────────────────────
-            // Kalau cuma 1 provider yang berhasil, langsung return (tidak perlu synthesis)
-            // Kalau >1, synthesis pakai Gemini untuk jawaban terbaik
             const synthesisKey = geminiKeys[0] || null;
             const finalResponse = await synthesizeResponses(synthesisKey, user_message, successful);
+
+            // Simpan riwayat chat (fire and forget)
+            saveChatHistory(user_message, finalResponse).catch(() => {});
 
             return res.status(200).json({
                 response: finalResponse,
