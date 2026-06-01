@@ -4,7 +4,7 @@
 const _idx = { groq: 0, openrouter: 0 };
 function getKeys(p) {
     const prefix = { groq:'GROQ_API_KEY_', openrouter:'OPENROUTER_API_KEY_' }[p];
-    return [1,2,3,4,5].map(i => process.env[`${prefix}${i}`]).filter(Boolean);
+    return [1,2,3,4,5].map(i => process.env[`\( {prefix} \){i}`]).filter(Boolean);
 }
 function pickKey(p) {
     const keys = getKeys(p);
@@ -23,7 +23,7 @@ async function loadPrompt() {
     const base = process.env.GITHUB_RAW_URL;
     if (!base) return FALLBACK;
     const parts = await Promise.all(PROMPT_FILES.map(f =>
-        fetch(`${base}/${f}`).then(r => r.ok ? r.text() : '').catch(() => '')
+        fetch(`\( {base}/ \){f}`).then(r => r.ok ? r.text() : '').catch(() => '')
     ));
     const joined = parts.map(s => s.trim()).filter(Boolean).join('\n\n');
     if (!joined) return FALLBACK;
@@ -39,25 +39,30 @@ const GROQ_MODELS = [
     'mixtral-8x7b-32768',
     'gemma2-9b-it'
 ];
+
 async function callGroq(key, sys, msg) {
     let lastErr;
     for (const model of GROQ_MODELS) {
         try {
             const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
-                headers: { 'Content-Type':'application/json', Authorization:`Bearer ${key}` },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    Authorization: `Bearer ${key}` 
+                },
                 body: JSON.stringify({
                     model,
                     messages: [{ role:'system', content:sys }, { role:'user', content:msg||'Halo' }],
-                    max_tokens: 1024, temperature: 0.7
+                    max_tokens: 1024, 
+                    temperature: 0.7
                 })
             });
             if (!r.ok) {
                 const err = await r.text();
                 if (r.status===403 || err.includes('restricted') || err.includes('deactivated')) {
-                    throw new Error(`Groq key restricted`); // langsung bubble, jangan coba model lain
+                    throw new Error(`Groq key restricted`);
                 }
-                lastErr = `Groq ${r.status} [${model}]: ${err.slice(0,80)}`;
+                lastErr = `Groq \( {r.status} [ \){model}]: ${err.slice(0,80)}`;
                 continue;
             }
             const d = await r.json();
@@ -74,34 +79,39 @@ async function callGroq(key, sys, msg) {
 }
 
 // ── OPENROUTER ───────────────────────────────────────────────────────────────
-// Model prioritas: Gemini Flash → Gemini Pro → Claude Haiku → fallback gratis
+// PRIORITAS SESUAI REQUEST:
 const OR_MODELS_TEXT = [
-    'google/gemini-2.0-flash-001',
-    'google/gemini-pro',
-    'anthropic/claude-haiku-20240307',
-    'mistralai/mistral-7b-instruct:free',
-    'qwen/qwen3-8b:free',
+    'google/gemini-2.0-flash-001',           // 1. Priority Utama
+    'google/gemini-3-pro-preview',           // 2. Gemini Pro Preview
+    'anthropic/claude-haiku-4.5',            // 3. Claude Haiku Terbaru
+    'anthropic/claude-haiku-20240307',       // Fallback Haiku
+    'google/gemini-2.0-flash-lite-001',      // Backup Gemini Flash
+    'qwen/qwen3-coder:free',
+    'mistralai/mistral-7b-instruct:free'
 ];
+
 const OR_MODELS_VISION = [
     'google/gemini-2.0-flash-001',
-    'anthropic/claude-haiku-20240307',
+    'anthropic/claude-haiku-4.5',
+    'anthropic/claude-haiku-20240307'
 ];
 
 async function callOpenRouter(key, sys, msg, img) {
     const models = img ? OR_MODELS_VISION : OR_MODELS_TEXT;
-    let lastErr;
+    let lastErr = '';
 
     for (const model of models) {
         let content = msg || 'Halo';
+
         if (img) {
             try {
                 const [m, b] = img.split(',');
                 const mime = m.match(/:(.*?);/)?.[1] || 'image/jpeg';
                 content = [
-                    { type:'image_url', image_url:{ url:`data:${mime};base64,${b}` } },
-                    { type:'text', text: msg||'Lihat gambar ini' }
+                    { type: 'image_url', image_url: { url: `data:\( {mime};base64, \){b}` } },
+                    { type: 'text', text: msg || 'Lihat gambar ini' }
                 ];
-            } catch(_) {}
+            } catch (_) {}
         }
 
         try {
@@ -115,20 +125,35 @@ async function callOpenRouter(key, sys, msg, img) {
                 },
                 body: JSON.stringify({
                     model,
-                    messages: [{ role:'system', content:sys }, { role:'user', content }],
-                    max_tokens: 1024
+                    messages: [{ role: 'system', content: sys }, { role: 'user', content }],
+                    max_tokens: 1200,
+                    temperature: 0.75
                 })
             });
+
             if (!r.ok) {
-                lastErr = `OR ${r.status} [${model}]: ${(await r.text()).slice(0,80)}`;
+                const errText = await r.text().catch(() => 'No body');
+                console.log(`[OpenRouter] ${r.status} → ${model}`);
+                if (r.status === 404 || r.status === 429) {
+                    lastErr = `${r.status} ${model}`;
+                    continue;
+                }
+                lastErr = `OR \( {r.status} [ \){model}]: ${errText.slice(0,100)}`;
                 continue;
             }
+
             const d = await r.json();
-            const text = d.choices?.[0]?.message?.content;
-            if (!text) { lastErr = `OR empty [${model}]`; continue; }
-            console.log(`[OpenRouter] OK model: ${model}`);
+            const text = d.choices?.[0]?.message?.content?.trim();
+
+            if (!text) {
+                lastErr = `Empty response [${model}]`;
+                continue;
+            }
+
+            console.log(`[OpenRouter] ✅ ${model}`);
             return { text, model };
-        } catch(e) {
+
+        } catch (e) {
             lastErr = e.message;
         }
     }
@@ -148,80 +173,79 @@ function needsSearch(msg) {
 // ── FETCH ALL PARALLEL ───────────────────────────────────────────────────────
 async function fetchAll(sys, msg, img) {
     const tasks = [];
-    const orKeys  = getKeys('openrouter');
+    const orKeys = getKeys('openrouter');
     const groqKeys = getKeys('groq');
 
-    // OpenRouter — coba tiap key sampai berhasil
+    // OpenRouter Prioritas
     if (orKeys.length) {
         const tryOR = async () => {
             let lastErr;
             for (const key of orKeys) {
                 try {
                     const r = await callOpenRouter(key, sys, msg, img);
-                    return { provider:'openrouter', text:r.text, model:r.model, ok:true };
-                } catch(e) { lastErr = e.message; }
+                    return { provider: 'openrouter', text: r.text, model: r.model, ok: true };
+                } catch(e) { 
+                    lastErr = e.message; 
+                }
             }
-            return { provider:'openrouter', ok:false, error:lastErr };
+            return { provider: 'openrouter', ok: false, error: lastErr };
         };
-        // Jalankan 2 request OR paralel (key berbeda, model berbeda bisa saling backup)
+
         tasks.push(tryOR());
         if (orKeys.length > 1) {
             tasks.push(
-                // Request kedua: skip key pertama, mulai dari key ke-2
                 (async () => {
                     const key = orKeys[1] || orKeys[0];
                     try {
                         const r = await callOpenRouter(key, sys, msg, img);
-                        return { provider:'openrouter2', text:r.text, model:r.model, ok:true };
+                        return { provider: 'openrouter2', text: r.text, model: r.model, ok: true };
                     } catch(e) {
-                        return { provider:'openrouter2', ok:false, error:e.message };
+                        return { provider: 'openrouter2', ok: false, error: e.message };
                     }
                 })()
             );
         }
     }
 
-    // Groq — skip kalau ada gambar
+    // Groq (skip kalau ada gambar)
     if (!img && groqKeys.length) {
         const tryGroq = async () => {
             let lastErr;
             for (const key of groqKeys) {
                 try {
                     const r = await callGroq(key, sys, msg);
-                    return { provider:'groq', text:r.text, model:r.model, ok:true };
+                    return { provider: 'groq', text: r.text, model: r.model, ok: true };
                 } catch(e) {
                     lastErr = e.message;
                     if (e.message.includes('restricted')) break;
                 }
             }
-            return { provider:'groq', ok:false, error:lastErr };
+            return { provider: 'groq', ok: false, error: lastErr };
         };
         tasks.push(tryGroq());
     }
 
     const settled = await Promise.allSettled(tasks);
-    return settled.map(r => r.status==='fulfilled' ? r.value : { provider:'unknown', ok:false, error:r.reason?.message });
+    return settled.map(r => r.status === 'fulfilled' ? r.value : { provider: 'unknown', ok: false, error: r.reason?.message });
 }
 
-// ── SYNTHESIZE — pakai OpenRouter (Claude/Gemini) ────────────────────────────
+// ── SYNTHESIZE ───────────────────────────────────────────────────────────────
 async function synthesize(q, results) {
     const ok = results.filter(r => r.ok && r.text);
     if (!ok.length) return null;
     if (ok.length === 1) return { text: ok[0].text };
 
-    const combined = ok.map(r => `[${r.provider.toUpperCase()} - ${r.model||''}]\n${r.text}`).join('\n\n---\n\n');
+    const combined = ok.map(r => `[${r.provider.toUpperCase()} - \( {r.model||''}]\n \){r.text}`).join('\n\n---\n\n');
     const sys = `Gabungkan jawaban-jawaban berikut jadi SATU jawaban terbaik dan paling akurat. Jangan sebut nama provider atau model. Bahasa santai Indonesia, pakai bro/kak. Format rapi, langsung ke inti.`;
 
-    // Pakai OpenRouter key pertama yang tersedia untuk synthesis
     const orKeys = getKeys('openrouter');
     for (const key of orKeys) {
         try {
-            const r = await callOpenRouter(key, sys, `Pertanyaan: "${q}"\n\n${combined}\n\nJawaban terbaik:`, null);
+            const r = await callOpenRouter(key, sys, `Pertanyaan: "\( {q}"\n\n \){combined}\n\nJawaban terbaik:`, null);
             return { text: r.text };
         } catch(e) { continue; }
     }
 
-    // Fallback: pilih jawaban terpanjang
     const best = ok.reduce((a, b) => a.text.length >= b.text.length ? a : b);
     return { text: best.text };
 }
@@ -232,6 +256,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     if (req.method === 'GET') {
@@ -265,15 +290,15 @@ export default async function handler(req, res) {
             const { user_message, user_image } = req.body || {};
             if (!user_message && !user_image) return res.status(400).json({ error: 'user_message kosong' });
 
-            const sys     = await loadPrompt();
+            const sys = await loadPrompt();
             const results = await fetchAll(sys, user_message, user_image || null);
             const success = results.filter(r => r.ok && r.text);
-            const fail    = results.filter(r => !r.ok);
+            const fail = results.filter(r => !r.ok);
 
-            console.log(`[CHAT] OK:${success.map(r=>`${r.provider}(${r.model})`).join(',')||'none'} FAIL:${fail.map(r=>`${r.provider}:${r.error?.slice(0,40)}`).join(',')||'none'}`);
+            console.log(`[CHAT] OK:\( {success.map(r=>` \){r.provider}(\( {r.model})`).join(',')||'none'} FAIL: \){fail.map(r=>`\( {r.provider}: \){r.error?.slice(0,40)}`).join(',')||'none'}`);
 
             if (!success.length) return res.status(500).json({
-                response: 'Semua AI provider down bro, coba lagi 🙏',
+                response: 'Semua AI provider down bro, coba lagi sebentar 🙏',
                 error: fail.map(r => `${r.provider}: ${r.error}`).join(' | ')
             });
 
@@ -282,7 +307,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 response: final.text,
-                providers_used:   success.map(r => `${r.provider}(${r.model})`),
+                providers_used: success.map(r => `\( {r.provider}( \){r.model})`),
                 providers_failed: fail.map(r => r.provider),
                 synthesized: success.length > 1
             });
@@ -293,4 +318,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
-}
+                }
