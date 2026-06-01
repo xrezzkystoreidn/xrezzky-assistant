@@ -1,10 +1,18 @@
 {
   "name": "xrezzky-assistant",
   "version": "1.0.0",
+  "description": "XREZZ AI Assistant - Vercel Serverless",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel deploy",
+    "start": "vercel start"
+  },
+  "dependencies": {
+    "vercel": "latest"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
