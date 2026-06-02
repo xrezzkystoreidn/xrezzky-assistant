@@ -145,16 +145,22 @@ async function callOpenRouter(key, model, messages, userImage, systemPrompt) {
   }
 
   const last = messages[messages.length - 1];
-  let userContent = last?.content || 'Halo';
+  const lastText = last?.content || '';
+
+  let userContent;
   if (hasImg) {
     try {
       const [meta, imgdata] = userImage.split(',');
       const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
       userContent = [
-        { type: 'text', text: last?.content || 'Tolong analisis gambar ini secara detail.' },
+        { type: 'text', text: lastText || 'Lihat gambar ini dan ceritakan isinya.' },
         { type: 'image_url', image_url: { url: `data:${mime};base64,${imgdata}` } },
       ];
-    } catch {}
+    } catch {
+      userContent = lastText || 'Halo';
+    }
+  } else {
+    userContent = lastText || 'Halo';
   }
   msgs.push({ role: 'user', content: userContent });
 
@@ -200,7 +206,7 @@ export default async function handler(req, res) {
   // Support format lama (user_message string) dan baru (messages array)
   let messages = rawMessages;
   if (!messages?.length) {
-    const text = user_message || (user_image ? 'Tolong analisis gambar ini secara detail.' : '');
+    const text = user_message || (user_image ? 'Lihat dan ceritakan apa yang ada di gambar ini.' : '');
     if (text || user_image) {
       messages = [{ role: 'user', content: text }];
     }
