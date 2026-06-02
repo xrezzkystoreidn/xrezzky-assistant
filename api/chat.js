@@ -199,8 +199,11 @@ export default async function handler(req, res) {
 
   // Support format lama (user_message string) dan baru (messages array)
   let messages = rawMessages;
-  if (!messages?.length && user_message) {
-    messages = [{ role: 'user', content: user_message }];
+  if (!messages?.length) {
+    const text = user_message || (user_image ? 'Tolong analisis gambar ini secara detail.' : '');
+    if (text || user_image) {
+      messages = [{ role: 'user', content: text }];
+    }
   }
   if (!messages?.length) return res.status(400).json({ error: 'messages atau user_message wajib diisi' });
 
