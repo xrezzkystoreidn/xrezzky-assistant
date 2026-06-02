@@ -195,10 +195,11 @@ export default async function handler(req, res) {
   const systemPrompt = await getSystemPrompt();
   const groqKeys = getKeys('GROQ_API_KEY');
   const orKeys   = getKeys('OPENROUTER_API_KEY');
+  const hasImage = !!(user_image?.includes(','));
   let lastError  = null;
 
-  // 1. GROQ — auto-test semua model
-  if (groqKeys.length) {
+  // Kalau ada gambar → skip Groq (tidak support vision), langsung OpenRouter
+  if (!hasImage && groqKeys.length) {
     try {
       const working = await findWorkingGroq(groqKeys);
       if (working) {
@@ -211,11 +212,15 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. OPENROUTER — rotate key acak, 2 model
+  // 2. OPENROUTER — kalau ada gambar pakai model vision dulu
   if (orKeys.length) {
     const shuffled = [...orKeys].sort(() => Math.random() - 0.5);
+    // Kalau ada gambar, prioritaskan model vision (gemini-2.5-pro-preview support vision)
+    const modelsToTry = hasImage
+      ? ['google/gemini-2.5-pro-preview', 'anthropic/claude-3-haiku']
+      : OR_MODELS;
     for (const key of shuffled) {
-      for (const model of OR_MODELS) {
+      for (const model of modelsToTry) {
         try {
           const response = await callOpenRouter(key, model, messages, user_image, systemPrompt);
           if (response) return res.status(200).json({ response, provider: 'openrouter', model });
