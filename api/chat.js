@@ -183,8 +183,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
 
-  const { messages, user_image } = req.body;
-  if (!messages?.length) return res.status(400).json({ error: 'messages wajib diisi (array)' });
+  const { messages: rawMessages, user_message, user_image } = req.body;
+
+  // Support format lama (user_message string) dan baru (messages array)
+  let messages = rawMessages;
+  if (!messages?.length && user_message) {
+    messages = [{ role: 'user', content: user_message }];
+  }
+  if (!messages?.length) return res.status(400).json({ error: 'messages atau user_message wajib diisi' });
 
   const systemPrompt = await getSystemPrompt();
   const groqKeys = getKeys('GROQ_API_KEY');
