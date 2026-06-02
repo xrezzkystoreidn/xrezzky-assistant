@@ -10,9 +10,17 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 // ── Model lists ───────────────────────────────────────────────────────────
-const OR_MODELS = [
+// OpenRouter — model untuk teks
+const OR_MODELS_TEXT = [
   'google/gemini-2.5-pro-preview',
   'anthropic/claude-3-haiku',
+];
+
+// OpenRouter — model yang support vision/gambar
+const OR_MODELS_VISION = [
+  'google/gemini-2.0-flash-001',        // vision pasti bisa, cepat
+  'anthropic/claude-3-haiku',           // vision OK
+  'meta-llama/llama-3.2-11b-vision-instruct:free', // vision free
 ];
 
 const GROQ_MODELS = [
@@ -140,11 +148,11 @@ async function callOpenRouter(key, model, messages, userImage, systemPrompt) {
   let userContent = last?.content || 'Halo';
   if (hasImg) {
     try {
-      const [meta, data] = userImage.split(',');
+      const [meta, imgdata] = userImage.split(',');
       const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
       userContent = [
-        { type: 'image_url', image_url: { url: `data:${mime};base64,${data}` } },
-        { type: 'text', text: last?.content || 'Lihat gambar ini' },
+        { type: 'text', text: last?.content || 'Tolong analisis gambar ini secara detail.' },
+        { type: 'image_url', image_url: { url: `data:${mime};base64,${imgdata}` } },
       ];
     } catch {}
   }
@@ -158,7 +166,11 @@ async function callOpenRouter(key, model, messages, userImage, systemPrompt) {
       'HTTP-Referer': 'https://xrezzky-assistant.vercel.app',
       'X-Title': 'XREZZKY OFFICIAL STORE',
     },
-    body: JSON.stringify({ model, messages: msgs, max_tokens: 1024 }),
+    body: JSON.stringify({
+      model,
+      messages: msgs,
+      max_tokens: 2048,
+    }),
   });
   if (!resp.ok) {
     const err = await resp.text();
@@ -215,10 +227,8 @@ export default async function handler(req, res) {
   // 2. OPENROUTER — kalau ada gambar pakai model vision dulu
   if (orKeys.length) {
     const shuffled = [...orKeys].sort(() => Math.random() - 0.5);
-    // Kalau ada gambar, prioritaskan model vision (gemini-2.5-pro-preview support vision)
-    const modelsToTry = hasImage
-      ? ['google/gemini-2.5-pro-preview', 'anthropic/claude-3-haiku']
-      : OR_MODELS;
+    // Kalau ada gambar pakai model vision, kalau tidak pakai model teks
+    const modelsToTry = hasImage ? OR_MODELS_VISION : OR_MODELS_TEXT;
     for (const key of shuffled) {
       for (const model of modelsToTry) {
         try {
