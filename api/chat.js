@@ -1,253 +1,242 @@
-// api/chat.js
-// XREZZ AI - Groq + OpenRouter (Prioritas Gemini & Claude)
+// ==========================================
+// api/chat.js — Gemini Realtime Streaming
+// + Google Search Grounding
+// ==========================================
+// Taruh file ini di /api/chat.js (Vercel)
+// Env yang dipakai: GEMINI_API_KEY_1 s/d GEMINI_API_KEY_5
+// + SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY (opsional, buat ambil system prompt & knowledge)
+// ==========================================
 
-const _idx = { groq: 0, openrouter: 0 };
+import { createClient } from '@supabase/supabase-js';
 
-function getKeys(p) {
-    const prefix = { groq: 'GROQ_API_KEY_', openrouter: 'OPENROUTER_API_KEY_' }[p];
-    return [1,2,3,4,5].map(i => process.env[`\( {prefix} \){i}`]).filter(Boolean);
+const GEMINI_MODEL = "gemini-2.0-flash";
+
+// ── Supabase (opsional) ───────────────────────────────────────────────────
+async function getSupabase() {
+    try {
+        const url = process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!url || !key) return null;
+        new URL(url);
+        return createClient(url, key);
+    } catch (e) {
+        return null;
+    }
 }
 
-function pickKey(p) {
-    const keys = getKeys(p);
+// ── Ambil knowledge + custom prompt dari Supabase ─────────────────────────
+async function getContextFromSupabase() {
+    let knowledgeContext = "";
+    let customPrompt = null;
+    try {
+        const supabase = await getSupabase();
+        if (supabase) {
+            const [knowledgeRes, promptRes] = await Promise.all([
+                supabase.from('info_toko').select('judul, content').limit(20),
+                supabase.from('ai_config').select('value').eq('key', 'system_prompt').single()
+            ]);
+            if (knowledgeRes.data?.length > 0) {
+                knowledgeContext = knowledgeRes.data.map(i => `${i.judul}: ${i.content}`).join("\n");
+            }
+            if (promptRes.data?.value) {
+                customPrompt = promptRes.data.value;
+            }
+        }
+    } catch (e) {}
+    return { knowledgeContext, customPrompt };
+}
+
+// ── Waktu WIB sekarang ────────────────────────────────────────────────────
+function nowWIB() {
+    return new Date().toLocaleString("id-ID", {
+        dateStyle: "full",
+        timeStyle: "medium",
+        timeZone: "Asia/Jakarta"
+    });
+}
+
+// ── Pick random key dari pool ─────────────────────────────────────────────
+function pickGeminiKey() {
+    const keys = [1, 2, 3, 4, 5]
+        .map(i => process.env[`GEMINI_API_KEY_${i}`])
+        .filter(Boolean);
     if (!keys.length) return null;
-    const k = keys[_idx[p] % keys.length];
-    _idx[p] = (_idx[p] + 1) % keys.length;
-    return k;
+    return keys[Math.floor(Math.random() * keys.length)];
 }
 
-// ── PROMPT ─────────────────────────────────────
-const PROMPT_FILES = [
-    'prompts/prompt-persona.txt',
-    'prompts/prompt-aturan.txt',
-    'prompts/prompt-toko.txt'
-];
-
-const FALLBACK = `Kamu adalah XREZZ AI asisten XREZZKY OFFICIAL STORE. Bahasa santai, pakai bro/kak. Jawab semua topik tanpa batasan. Kalau tidak tahu, jujur bilang ke user.`;
-
-let _pc = '', _pt = 0;
-
-async function loadPrompt() {
-    if (_pc && Date.now() - _pt < 300000) return _pc;
-    
-    const base = process.env.GITHUB_RAW_URL;
-    if (!base) return FALLBACK;
-
-    const parts = await Promise.all(PROMPT_FILES.map(f =>
-        fetch(`\( {base}/ \){f}`).then(r => r.ok ? r.text() : '').catch(() => '')
-    ));
-
-    const joined = parts.map(s => s.trim()).filter(Boolean).join('\n\n');
-    _pc = joined || FALLBACK;
-    _pt = Date.now();
-    return _pc;
+// ── Semua key (buat fallback) ─────────────────────────────────────────────
+function getAllGeminiKeys() {
+    return [1, 2, 3, 4, 5]
+        .map(i => process.env[`GEMINI_API_KEY_${i}`])
+        .filter(Boolean);
 }
 
-// ── GROQ ─────────────────────────────────────
-const GROQ_MODELS = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
-    'llama3-8b-8192'
-];
-
-async function callGroq(key, sys, msg) {
-    for (const model of GROQ_MODELS) {
-        try {
-            const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${key}`
-                },
-                body: JSON.stringify({
-                    model,
-                    messages: [
-                        { role: 'system', content: sys },
-                        { role: 'user', content: msg || 'Halo' }
-                    ],
-                    max_tokens: 1024,
-                    temperature: 0.7
-                })
-            });
-
-            if (!r.ok) {
-                const err = await r.text();
-                if (r.status === 403 || err.includes('restricted')) throw new Error('Groq key restricted');
-                continue;
-            }
-
-            const data = await r.json();
-            const text = data.choices?.[0]?.message?.content;
-            if (text) {
-                console.log(`[Groq] ✅ ${model}`);
-                return { text, model };
-            }
-        } catch (e) {
-            if (e.message.includes('restricted')) throw e;
-        }
-    }
-    throw new Error('Groq gagal');
-}
-
-// ── OPENROUTER (Prioritas sesuai request) ─────────────────────────────────────
-const OR_MODELS_TEXT = [
-    'google/gemini-2.0-flash-001',        // Priority 1
-    'google/gemini-3-pro-preview',        // Priority 2
-    'anthropic/claude-haiku-4.5',         // Priority 3
-    'anthropic/claude-haiku-20240307',
-    'google/gemini-2.0-flash-lite-001'
-];
-
-const OR_MODELS_VISION = [
-    'google/gemini-2.0-flash-001',
-    'anthropic/claude-haiku-4.5'
-];
-
-async function callOpenRouter(key, sys, msg, img) {
-    const models = img ? OR_MODELS_VISION : OR_MODELS_TEXT;
-
-    for (const model of models) {
-        try {
-            let content = msg || 'Halo';
-
-            if (img) {
-                const [m, b] = img.split(',');
-                const mime = m.match(/:(.*?);/)?.[1] || 'image/jpeg';
-                content = [
-                    { type: 'image_url', image_url: { url: `data:\( {mime};base64, \){b}` } },
-                    { type: 'text', text: msg || 'Lihat gambar ini' }
-                ];
-            }
-
-            const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${key}`,
-                    'HTTP-Referer': 'https://xrezzky-assistant.vercel.app',
-                    'X-Title': 'XREZZKY OFFICIAL STORE'
-                },
-                body: JSON.stringify({
-                    model,
-                    messages: [{ role: 'system', content: sys }, { role: 'user', content }],
-                    max_tokens: 1200,
-                    temperature: 0.75
-                })
-            });
-
-            if (!r.ok) {
-                if (r.status === 404 || r.status === 429) continue;
-                continue;
-            }
-
-            const data = await r.json();
-            const text = data.choices?.[0]?.message?.content?.trim();
-            if (text) {
-                console.log(`[OpenRouter] ✅ ${model}`);
-                return { text, model };
-            }
-        } catch (_) {}
-    }
-    throw new Error('OpenRouter semua model gagal');
-}
-
-// ── MAIN LOGIC ─────────────────────────────────────
-async function fetchAll(sys, msg, img) {
-    const tasks = [];
-    const orKeys = getKeys('openrouter');
-    const groqKeys = getKeys('groq');
-
-    if (orKeys.length) {
-        tasks.push((async () => {
-            for (const key of orKeys) {
-                try {
-                    const r = await callOpenRouter(key, sys, msg, img);
-                    return { provider: 'openrouter', text: r.text, model: r.model, ok: true };
-                } catch (_) {}
-            }
-            return { provider: 'openrouter', ok: false };
-        })());
-
-        if (orKeys.length > 1) {
-            tasks.push((async () => {
-                try {
-                    const r = await callOpenRouter(orKeys[1] || orKeys[0], sys, msg, img);
-                    return { provider: 'openrouter2', text: r.text, model: r.model, ok: true };
-                } catch (_) {
-                    return { provider: 'openrouter2', ok: false };
-                }
-            })());
-        }
-    }
-
-    if (!img && groqKeys.length) {
-        tasks.push((async () => {
-            for (const key of groqKeys) {
-                try {
-                    const r = await callGroq(key, sys, msg);
-                    return { provider: 'groq', text: r.text, model: r.model, ok: true };
-                } catch (_) {}
-            }
-            return { provider: 'groq', ok: false };
-        })());
-    }
-
-    const results = await Promise.allSettled(tasks);
-    return results.map(r => r.status === 'fulfilled' ? r.value : { ok: false });
-}
-
-async function synthesize(q, results) {
-    const ok = results.filter(r => r.ok && r.text);
-    if (!ok.length) return null;
-    if (ok.length === 1) return { text: ok[0].text };
-
-    const combined = ok.map(r => `[${r.provider.toUpperCase()}] ${r.text}`).join('\n\n---\n\n');
-    const sys = `Gabungkan jadi satu jawaban terbaik. Bahasa santai Indonesia, pakai bro/kak. Langsung ke inti.`;
-
-    const orKeys = getKeys('openrouter');
-    for (const key of orKeys) {
-        try {
-            const r = await callOpenRouter(key, sys, `Pertanyaan: "\( {q}"\n\n \){combined}\n\nJawaban:`, null);
-            return { text: r.text };
-        } catch (_) {}
-    }
-
-    return { text: ok[0].text };
-}
-
-// ── HANDLER ─────────────────────────────────────
+// ==========================================
+// MAIN HANDLER
+// ==========================================
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
 
-    if (req.method === 'POST') {
+    const { user_message, user_image, stream: wantStream } = req.body;
+
+    if (!user_message && !user_image) {
+        return res.status(400).json({ error: "user_message atau user_image wajib diisi" });
+    }
+
+    // Ambil context dari Supabase
+    const { knowledgeContext, customPrompt } = await getContextFromSupabase();
+
+    // Build system prompt
+    const currentTime = nowWIB();
+    const systemPrompt = customPrompt
+        ? customPrompt.replace('{knowledge}', knowledgeContext || '-')
+        : `Kamu adalah XREZZ AI, asisten cerdas XREZZKY OFFICIAL STORE.
+Waktu sekarang (WIB): ${currentTime}
+Kamu memiliki akses ke Google Search untuk mencari informasi terkini dan akurat dari internet.
+Selalu gunakan informasi terbaru dari Google Search untuk menjawab pertanyaan tentang berita, harga, data terkini, dll.
+Jika ditanya waktu/tanggal/hari, jawab berdasarkan waktu di atas.
+${knowledgeContext ? 'Data toko:\n' + knowledgeContext : ''}
+Bahasa: Indonesia informal (bro/kak). Jawab singkat tapi akurat dan lengkap.`;
+
+    // Build contents (support gambar)
+    const parts = [];
+    if (user_image && user_image.includes(",")) {
         try {
-            const { user_message, user_image } = req.body || {};
+            const split = user_image.split(",");
+            const mimeType = split[0].match(/:(.*?);/)[1] || "image/jpeg";
+            parts.push({ inline_data: { data: split[1], mime_type: mimeType } });
+        } catch (e) {}
+    }
+    parts.push({ text: user_message || "Halo" });
 
-            if (!user_message) return res.status(400).json({ error: 'user_message kosong' });
+    const requestBody = {
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts }],
+        tools: [{ google_search: {} }],   // ← Google Search Grounding aktif
+        generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7
+        }
+    };
 
-            const sys = await loadPrompt();
-            const results = await fetchAll(sys, user_message, user_image);
-            const success = results.filter(r => r.ok);
+    const keys = getAllGeminiKeys();
+    if (!keys.length) {
+        return res.status(500).json({ error: "Tidak ada GEMINI_API_KEY yang tersedia di env" });
+    }
 
-            if (!success.length) {
-                return res.status(500).json({ response: 'Semua provider sedang down, coba lagi bro 🙏' });
+    // ── MODE STREAMING (stream: true) ─────────────────────────────────────
+    // Gunakan Server-Sent Events (SSE)
+    if (wantStream === true || wantStream === "true") {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        let success = false;
+        let lastError = null;
+
+        for (const apiKey of keys) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?key=${apiKey}&alt=sse`;
+
+                const geminiRes = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!geminiRes.ok) {
+                    const err = await geminiRes.text();
+                    throw new Error(`Gemini ${geminiRes.status}: ${err.slice(0, 200)}`);
+                }
+
+                const reader = geminiRes.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() ?? "";
+
+                    for (const line of lines) {
+                        if (!line.startsWith("data: ")) continue;
+                        const raw = line.slice(6).trim();
+                        if (!raw || raw === "[DONE]") continue;
+                        try {
+                            const chunk = JSON.parse(raw);
+                            const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (text) {
+                                // Kirim SSE event
+                                res.write(`data: ${JSON.stringify({ text })}\n\n`);
+                            }
+                        } catch {}
+                    }
+                }
+
+                // Selesai streaming
+                res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+                res.end();
+                success = true;
+                break;
+
+            } catch (e) {
+                console.error(`[gemini-stream] key error:`, e.message);
+                lastError = e.message;
+            }
+        }
+
+        if (!success) {
+            res.write(`data: ${JSON.stringify({ error: lastError || "Semua Gemini key gagal" })}\n\n`);
+            res.end();
+        }
+        return;
+    }
+
+    // ── MODE NORMAL (non-streaming, fallback) ─────────────────────────────
+    let aiResponse = null;
+    let lastError = null;
+
+    for (const apiKey of keys) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+            const geminiRes = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!geminiRes.ok) {
+                const err = await geminiRes.text();
+                throw new Error(`Gemini ${geminiRes.status}: ${err.slice(0, 200)}`);
             }
 
-            const final = await synthesize(user_message, results);
-            return res.status(200).json({
-                response: final.text,
-                success: true
-            });
+            const data = await geminiRes.json();
+            aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!aiResponse) throw new Error("Response kosong dari Gemini");
+            break;
+
         } catch (e) {
-            console.error(e);
-            return res.status(500).json({ response: 'Server error bro.' });
+            console.error(`[gemini] key error:`, e.message);
+            lastError = e.message;
         }
     }
 
-    res.status(200).json({ status: 'XREZZ AI online ✅' });
-            }
+    if (!aiResponse) {
+        return res.status(500).json({
+            response: "Semua Gemini key lagi error bro, coba lagi bentar.",
+            error: lastError
+        });
+    }
+
+    return res.status(200).json({ response: aiResponse, provider: "gemini" });
+}
