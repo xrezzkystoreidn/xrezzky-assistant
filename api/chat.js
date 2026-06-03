@@ -1,259 +1,218 @@
-// ==========================================
 // api/chat.js — Vercel Serverless
-// Provider: Groq (auto-test model) + OpenRouter (2 model)
-// Tanpa Supabase, tanpa Gemini
-// System prompt dari folder /prompt/*.txt
+// Provider: Groq + OpenRouter (tanpa Gemini, tanpa Supabase)
 // Env: GROQ_API_KEY_1..5, OPENROUTER_API_KEY_1..5
-// ==========================================
 
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-// ── Model lists ───────────────────────────────────────────────────────────
-// OpenRouter — model untuk teks
-const OR_MODELS_TEXT = [
+// ── Models ────────────────────────────────────────────────────────────────
+const GROQ_MODELS = [
+  'llama-3.1-8b-instant',
+  'llama-3.3-70b-versatile',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
+];
+
+// OpenRouter teks
+const OR_TEXT = [
   'google/gemini-2.5-pro-preview',
   'anthropic/claude-3-haiku',
 ];
 
-// OpenRouter — model yang support vision/gambar
-const OR_MODELS_VISION = [
-  'google/gemini-2.0-flash-001',        // vision pasti bisa, cepat
-  'anthropic/claude-3-haiku',           // vision OK
-  'meta-llama/llama-3.2-11b-vision-instruct:free', // vision free
+// OpenRouter vision (foto)
+const OR_VISION = [
+  'google/gemini-2.0-flash-001',
+  'anthropic/claude-3-haiku',
+  'meta-llama/llama-3.2-11b-vision-instruct:free',
 ];
 
-const GROQ_MODELS = [
-  'llama-3.1-8b-instant',
-  'llama-3.3-70b-versatile',
-  'llama-3.1-70b-versatile',
-  'llama3-70b-8192',
-  'mixtral-8x7b-32768',
-  'gemma2-9b-it',
-  'deepseek-r1-distill-llama-70b',
-];
-
-// ── Baca folder prompt/ ───────────────────────────────────────────────────
-async function loadPrompts() {
-  const base = join(process.cwd(), 'prompt');
-  const files = [
-    'prompt-persona.txt',
-    'prompt-aturan.txt',
-    'prompt-toko.txt',
-  ];
-
-  const parts = [];
-  for (const file of files) {
-    try {
-      const content = await readFile(join(base, file), 'utf-8');
-      if (content.trim()) parts.push(content.trim());
-    } catch (e) {
-      console.warn(`[prompt] Gagal baca ${file}:`, e.message);
-    }
-  }
-
-  return parts.join('\n\n---\n\n');
-}
-
-// Cache prompt supaya tidak baca file tiap request
-let cachedPrompt = null;
-async function getSystemPrompt() {
-  if (!cachedPrompt) {
-    const fromFiles = await loadPrompts();
-    const wib = new Date().toLocaleString('id-ID', {
-      dateStyle: 'full', timeStyle: 'medium', timeZone: 'Asia/Jakarta'
-    });
-
-    cachedPrompt = fromFiles
-      ? `${fromFiles}\n\nWaktu sekarang (WIB): ${wib}`
-      : `Kamu adalah XREZZKY AI, asisten cerdas XREZZKY OFFICIAL STORE.\nWaktu sekarang (WIB): ${wib}\nBahasa: Indonesia informal (bro/kak). Jawab akurat dan to the point.`;
-  } else {
-    // Update waktu tiap request meski prompt ter-cache
-    cachedPrompt = cachedPrompt.replace(
-      /Waktu sekarang \(WIB\): .+/,
-      `Waktu sekarang (WIB): ${new Date().toLocaleString('id-ID', {
-        dateStyle: 'full', timeStyle: 'medium', timeZone: 'Asia/Jakarta'
-      })}`
-    );
-  }
-  return cachedPrompt;
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────
+// ── Keys ──────────────────────────────────────────────────────────────────
 function getKeys(prefix) {
-  return [1,2,3,4,5].map(i => process.env[`${prefix}_${i}`]).filter(Boolean);
+  return [1,2,3,4,5]
+    .map(i => process.env[`${prefix}_${i}`])
+    .filter(Boolean);
 }
 
-function isLimit(status, msg = '') {
-  const m = msg.toLowerCase();
-  return status === 429 ||
-    m.includes('rate') || m.includes('quota') ||
-    m.includes('limit') || m.includes('resource_exhausted') ||
-    m.includes('too many');
-}
-
-// ── GROQ — auto-test model ────────────────────────────────────────────────
-async function findWorkingGroq(keys) {
-  for (const key of keys) {
-    for (const model of GROQ_MODELS) {
-      try {
-        const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: 'OK' }],
-            max_tokens: 4,
-          }),
-        });
-        if (resp.ok) return { key, model };
-        const e = await resp.text();
-        if (!isLimit(resp.status, e)) break;
-      } catch {}
-    }
+// ── Prompt ────────────────────────────────────────────────────────────────
+let _promptCache = null;
+async function getPrompt() {
+  if (_promptCache) return _promptCache;
+  const base = join(process.cwd(), 'prompt');
+  const files = ['prompt-persona.txt','prompt-aturan.txt','prompt-toko.txt'];
+  const parts = [];
+  for (const f of files) {
+    try { parts.push((await readFile(join(base, f), 'utf-8')).trim()); } catch {}
   }
-  return null;
+  const wib = new Date().toLocaleString('id-ID', { dateStyle:'full', timeStyle:'medium', timeZone:'Asia/Jakarta' });
+  _promptCache = (parts.length ? parts.join('\n\n---\n\n') : 'Kamu adalah XREZZKY AI, asisten XREZZKY OFFICIAL STORE.') + `\n\nWaktu sekarang (WIB): ${wib}`;
+  return _promptCache;
 }
 
-async function callGroq(key, model, messages, systemPrompt) {
-  const msgs = [{ role: 'system', content: systemPrompt }];
-  for (const m of messages) {
-    msgs.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' });
-  }
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({ model, messages: msgs, max_tokens: 1024 }),
+// ── Error helper ──────────────────────────────────────────────────────────
+function isRateLimit(status, msg='') {
+  return status===429 || /rate|quota|limit|exhausted|too.many/i.test(msg);
+}
+
+// ── GROQ ──────────────────────────────────────────────────────────────────
+async function callGroq(key, model, sysprompt, msgs) {
+  const body = {
+    model,
+    messages: [
+      { role:'system', content: sysprompt },
+      ...msgs.map(m => ({ role: m.role==='assistant'?'assistant':'user', content: m.content||'' }))
+    ],
+    max_tokens: 1024,
+  };
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${key}` },
+    body: JSON.stringify(body),
   });
-  if (!resp.ok) {
-    const err = await resp.text();
-    let msg = err.slice(0, 200);
-    try { msg = JSON.parse(err)?.error?.message || msg; } catch {}
-    const e = new Error(msg); e.status = resp.status; e.isLimit = isLimit(resp.status, msg); throw e;
+  const txt = await r.text();
+  if (!r.ok) {
+    let m = txt.slice(0,150); try { m=JSON.parse(txt)?.error?.message||m; } catch{}
+    const e=new Error(m); e.status=r.status; e.limit=isRateLimit(r.status,m); throw e;
   }
-  const data = await resp.json();
-  return data.choices[0].message.content;
+  return JSON.parse(txt).choices[0].message.content;
 }
 
 // ── OPENROUTER ────────────────────────────────────────────────────────────
-async function callOpenRouter(key, model, messages, userImage, systemPrompt) {
-  const hasImg = !!(userImage?.includes(','));
-  const msgs = [{ role: 'system', content: systemPrompt }];
+async function callOR(key, model, sysprompt, msgs, imageB64) {
+  const hasImg = !!(imageB64?.includes(','));
 
-  for (const m of messages.slice(0, -1)) {
-    msgs.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' });
-  }
+  const history = msgs.slice(0,-1).map(m => ({
+    role: m.role==='assistant'?'assistant':'user',
+    content: m.content||''
+  }));
 
-  const last = messages[messages.length - 1];
-  const lastText = last?.content || '';
-
-  let userContent;
+  const lastText = msgs[msgs.length-1]?.content || '';
+  let lastContent;
   if (hasImg) {
-    try {
-      const [meta, imgdata] = userImage.split(',');
-      const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
-      userContent = [
-        { type: 'text', text: lastText || 'Lihat gambar ini dan ceritakan isinya.' },
-        { type: 'image_url', image_url: { url: `data:${mime};base64,${imgdata}` } },
-      ];
-    } catch {
-      userContent = lastText || 'Halo';
-    }
+    const [meta, data] = imageB64.split(',');
+    const mime = meta.match(/:(.*?);/)?.[1]||'image/jpeg';
+    lastContent = [
+      { type:'text', text: lastText||'Lihat dan ceritakan isi gambar ini.' },
+      { type:'image_url', image_url:{ url:`data:${mime};base64,${data}` } },
+    ];
   } else {
-    userContent = lastText || 'Halo';
+    lastContent = lastText||'Halo';
   }
-  msgs.push({ role: 'user', content: userContent });
 
-  const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${key}`,
-      'HTTP-Referer': 'https://xrezzky-assistant.vercel.app',
-      'X-Title': 'XREZZKY OFFICIAL STORE',
+  const body = {
+    model,
+    messages: [
+      { role:'system', content: sysprompt },
+      ...history,
+      { role:'user', content: lastContent },
+    ],
+    max_tokens: 2048,
+  };
+
+  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':`Bearer ${key}`,
+      'HTTP-Referer':'https://xrezzky-assistant.vercel.app',
+      'X-Title':'XREZZKY OFFICIAL STORE',
     },
-    body: JSON.stringify({
-      model,
-      messages: msgs,
-      max_tokens: 2048,
-    }),
+    body: JSON.stringify(body),
   });
-  if (!resp.ok) {
-    const err = await resp.text();
-    let msg = err.slice(0, 200);
-    try { msg = JSON.parse(err)?.error?.message || msg; } catch {}
-    const e = new Error(msg); e.status = resp.status; e.isLimit = isLimit(resp.status, msg); throw e;
+  const txt = await r.text();
+  if (!r.ok) {
+    let m=txt.slice(0,150); try { m=JSON.parse(txt)?.error?.message||m; } catch{}
+    const e=new Error(m); e.status=r.status; e.limit=isRateLimit(r.status,m); throw e;
   }
-  const data = await resp.json();
-  const result = data.choices?.[0]?.message?.content;
-  if (!result) throw new Error('Response kosong dari OpenRouter');
+  const result = JSON.parse(txt).choices?.[0]?.message?.content;
+  if (!result) throw new Error('Response kosong');
   return result;
 }
 
+// ── Try list helper ───────────────────────────────────────────────────────
+// Coba semua kombinasi [key x model] sampai ada yang berhasil
+async function tryList(keys, models, fn) {
+  let lastErr;
+  for (const key of keys) {
+    for (const model of models) {
+      try {
+        const result = await fn(key, model);
+        if (result) return { result, model };
+      } catch(e) {
+        lastErr = e;
+        console.error(`[${model}]`, e.message?.slice(0,80));
+        // kalau bukan rate limit, skip model ini untuk key ini
+        if (!e.limit) break;
+      }
+    }
+  }
+  throw lastErr || new Error('Semua opsi gagal');
+}
+
 // ══════════════════════════════════════════════════════════════════════════
-// MAIN HANDLER
+// HANDLER
 // ══════════════════════════════════════════════════════════════════════════
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
+  if (req.method==='OPTIONS') return res.status(200).end();
+  if (req.method!=='POST') return res.status(405).json({ error:'Method tidak diizinkan' });
 
-  const { messages: rawMessages, user_message, user_image } = req.body;
+  // Terima format lama (user_message) maupun baru (messages array)
+  let { messages, user_message, user_image } = req.body||{};
 
-  // Support format lama (user_message string) dan baru (messages array)
-  let messages = rawMessages;
   if (!messages?.length) {
-    const text = user_message || (user_image ? 'Lihat dan ceritakan apa yang ada di gambar ini.' : '');
-    if (text || user_image) {
-      messages = [{ role: 'user', content: text }];
-    }
+    const text = user_message || null;
+    const hasImg = !!(user_image?.includes(','));
+    if (!text && !hasImg) return res.status(400).json({ error:'Kirim pesan atau foto dulu bro' });
+    messages = [{ role:'user', content: text||'' }];
   }
-  if (!messages?.length) return res.status(400).json({ error: 'messages atau user_message wajib diisi' });
 
-  const systemPrompt = await getSystemPrompt();
+  const hasImage = !!(user_image?.includes(','));
+  const sysprompt = await getPrompt();
   const groqKeys = getKeys('GROQ_API_KEY');
   const orKeys   = getKeys('OPENROUTER_API_KEY');
-  const hasImage = !!(user_image?.includes(','));
-  let lastError  = null;
 
-  // Kalau ada gambar → skip Groq (tidak support vision), langsung OpenRouter
-  if (!hasImage && groqKeys.length) {
+  // Shuffle OR keys supaya load tersebar
+  const orShuffled = [...orKeys].sort(()=>Math.random()-0.5);
+
+  // ── Ada foto → langsung OpenRouter vision ────────────────────────────
+  if (hasImage) {
     try {
-      const working = await findWorkingGroq(groqKeys);
-      if (working) {
-        const response = await callGroq(working.key, working.model, messages, systemPrompt);
-        if (response) return res.status(200).json({ response, provider: 'groq', model: working.model });
-      }
-    } catch (e) {
-      lastError = e.message;
-      console.error('[groq]:', e.message);
+      const { result, model } = await tryList(orShuffled, OR_VISION,
+        (key, model) => callOR(key, model, sysprompt, messages, user_image)
+      );
+      return res.status(200).json({ response: result, provider:'openrouter', model });
+    } catch(e) {
+      return res.status(500).json({ response:'Maaf bro, gagal baca foto. Coba lagi.', error: e.message });
     }
   }
 
-  // 2. OPENROUTER — kalau ada gambar pakai model vision dulu
-  if (orKeys.length) {
-    const shuffled = [...orKeys].sort(() => Math.random() - 0.5);
-    // Kalau ada gambar pakai model vision, kalau tidak pakai model teks
-    const modelsToTry = hasImage ? OR_MODELS_VISION : OR_MODELS_TEXT;
-    for (const key of shuffled) {
-      for (const model of modelsToTry) {
-        try {
-          const response = await callOpenRouter(key, model, messages, user_image, systemPrompt);
-          if (response) return res.status(200).json({ response, provider: 'openrouter', model });
-        } catch (e) {
-          lastError = e.message;
-          console.error(`[openrouter] ${model}:`, e.message);
-          if (!e.isLimit) break;
-        }
-      }
+  // ── Teks → Groq dulu, fallback OpenRouter ────────────────────────────
+  // Groq: coba semua key, tiap key coba model satu per satu
+  if (groqKeys.length) {
+    try {
+      const { result, model } = await tryList(groqKeys, GROQ_MODELS,
+        (key, model) => callGroq(key, model, sysprompt, messages)
+      );
+      return res.status(200).json({ response: result, provider:'groq', model });
+    } catch(e) {
+      console.error('[groq semua gagal]', e.message?.slice(0,80));
     }
   }
 
-  return res.status(500).json({
-    response: 'Semua AI provider lagi down bro, coba lagi bentar.',
-    error: lastError,
-  });
+  // Fallback OpenRouter teks
+  if (orShuffled.length) {
+    try {
+      const { result, model } = await tryList(orShuffled, OR_TEXT,
+        (key, model) => callOR(key, model, sysprompt, messages, null)
+      );
+      return res.status(200).json({ response: result, provider:'openrouter', model });
+    } catch(e) {
+      return res.status(500).json({ response:'Semua AI provider lagi down bro, coba lagi bentar.', error: e.message });
+    }
+  }
+
+  return res.status(500).json({ response:'Tidak ada API key yang tersedia.', error:'no keys' });
 }
