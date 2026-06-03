@@ -1,5 +1,5 @@
 // api/chat.js — Vercel Serverless
-// Provider: Groq + OpenRouter (tanpa Gemini, tanpa Supabase)
+// Provider: Groq + OpenRouter (tanpa Gemini direct, tanpa Supabase)
 // Env: GROQ_API_KEY_1..5, OPENROUTER_API_KEY_1..5
 
 import { readFile } from 'fs/promises';
@@ -13,17 +13,18 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
-// OpenRouter teks
+// OpenRouter teks — gemini utama
 const OR_TEXT = [
+  'google/gemini-2.0-flash-001',
   'google/gemini-2.5-pro-preview',
   'anthropic/claude-3-haiku',
 ];
 
-// OpenRouter vision (foto)
+// OpenRouter vision — gemini utama
 const OR_VISION = [
   'google/gemini-2.0-flash-001',
+  'google/gemini-2.5-pro-preview',
   'anthropic/claude-3-haiku',
-  'meta-llama/llama-3.2-11b-vision-instruct:free',
 ];
 
 // ── Keys ──────────────────────────────────────────────────────────────────
@@ -34,19 +35,33 @@ function getKeys(prefix) {
 }
 
 // ── Prompt ────────────────────────────────────────────────────────────────
-let _promptCache = null;
+let _promptBase = null;
 async function getPrompt() {
-  if (_promptCache) return _promptCache;
-  const base = join(process.cwd(), 'prompt');
-  const files = ['prompt-persona.txt','prompt-aturan.txt','prompt-toko.txt'];
-  const parts = [];
-  for (const f of files) {
-    try { parts.push((await readFile(join(base, f), 'utf-8')).trim()); } catch {}
+  // Base (file txt) di-cache, tapi waktu WIB di-update tiap request
+  if (!_promptBase) {
+    const base = join(process.cwd(), 'prompt');
+    const files = ['prompt-persona.txt','prompt-aturan.txt','prompt-toko.txt'];
+    const parts = [];
+    for (const f of files) {
+      try { parts.push((await readFile(join(base, f), 'utf-8')).trim()); } catch {}
+    }
+    _promptBase = parts.length
+      ? parts.join('\n\n---\n\n')
+      : `Kamu adalah XREZZKY AI, asisten cerdas XREZZKY OFFICIAL STORE.\nBahasa: Indonesia informal (bro/kak). Jawab akurat dan to the point.`;
   }
-  const wib = new Date().toLocaleString('id-ID', { dateStyle:'full', timeStyle:'medium', timeZone:'Asia/Jakarta' });
-  _promptCache = (parts.length ? parts.join('\n\n---\n\n') : 'Kamu adalah XREZZKY AI, asisten XREZZKY OFFICIAL STORE.') + `\n\nWaktu sekarang (WIB): ${wib}`;
-  return _promptCache;
-}
+
+  const wib = new Date().toLocaleString('id-ID', {
+    dateStyle:'full', timeStyle:'medium', timeZone:'Asia/Jakarta'
+  });
+
+  return `${_promptBase}
+
+Waktu sekarang (WIB): ${wib}
+
+KEMAMPUAN KAMU:
+- Kamu BISA melihat dan menganalisis foto/gambar yang dikirim user.
+- Kalau user kirim foto, deskripsikan dan analisis isinya secara detail dan jujur.
+- JANGAN pernah bilang tidak bisa lihat gambar, karena kamu BISA.`;
 
 // ── Error helper ──────────────────────────────────────────────────────────
 function isRateLimit(status, msg='') {
