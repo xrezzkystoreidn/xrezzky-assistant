@@ -37,7 +37,6 @@
             position: relative;
         }
 
-        /* --- HEADER CHAT --- */
         .chat-header {
             position: fixed;
             top: 0;
@@ -97,12 +96,12 @@
             cursor: pointer;
             padding: 8px;
             border-radius: 50%;
+            transition: background 0.2s;
         }
         .header-btn:active {
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* --- AREA LAYAR CHAT UTAMA --- */
         .chat-container {
             position: absolute;
             top: 60px;
@@ -153,14 +152,13 @@
             margin-bottom: 6px;
             display: block;
             object-fit: cover;
-            cursor: pointer; /* Menandakan gambar bisa diklik */
+            cursor: pointer;
             transition: opacity 0.2s;
         }
         .chat-img:active {
             opacity: 0.8;
         }
 
-        /* --- PREVIEW GAMBAR (MELAYANG DI ATAS INPUT) --- */
         .preview-bar {
             position: fixed;
             bottom: 80px;
@@ -195,7 +193,6 @@
             color: var(--text-muted);
         }
 
-        /* --- BAR INPUT FIXED DI BAWAH --- */
         .chat-form {
             position: fixed;
             bottom: 0;
@@ -242,6 +239,10 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .bar-btn:active {
+            background-color: rgba(255,255,255,0.05);
         }
 
         .send-btn-active {
@@ -249,7 +250,6 @@
             background-color: var(--bg-bubble-user);
         }
 
-        /* --- SIDEBAR RIWAYAT KANAN --- */
         .sidebar-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -321,6 +321,10 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            transition: background 0.2s;
+        }
+        .history-item:active {
+            background-color: rgba(37, 99, 235, 0.1);
         }
         .history-item.active-session {
             border-color: var(--bg-bubble-user);
@@ -349,7 +353,6 @@
             gap: 6px;
         }
 
-        /* --- MODAL ZOOM FOTO (NEW) --- */
         .image-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -391,353 +394,384 @@
 </head>
 <body>
 
-    <div class="chat-header">
-        <div class="brand-info">
-            <div class="avatar">X</div>
-            <div class="brand-name">
-                <h1>XREZZKY OFFICIAL STORE</h1>
-                <p><i class="fas fa-circle" style="font-size: 7px;"></i> XREZZ AI Aktif</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
-            <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
+<div class="chat-header">
+    <div class="brand-info">
+        <div class="avatar">X</div>
+        <div class="brand-name">
+            <h1>XREZZKY OFFICIAL STORE</h1>
+            <p><i class="fas fa-circle" style="font-size: 7px;"></i> XREZZ AI Aktif</p>
         </div>
     </div>
-
-    <div class="chat-container" id="chatContainer"></div>
-
-    <div class="preview-bar" id="previewBar">
-        <div class="preview-container">
-            <img src="" id="imgElementPreview" class="preview-img">
-            <span class="preview-text">Gambar siap dikirim...</span>
-        </div>
-        <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
+    <div class="header-actions">
+        <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
     </div>
+</div>
 
-    <form class="chat-form" id="chatForm">
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        <div class="modern-input-bar">
-            <button type="button" class="bar-btn" id="uploadBtn">
-                <i class="fa-regular fa-image"></i>
-            </button>
-            <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
-            <button type="submit" class="bar-btn send-btn-active" id="sendBtn">
-                <i class="fas fa-arrow-up"></i>
-            </button>
-        </div>
-    </form>
+<div class="chat-container" id="chatContainer"></div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="history-sidebar" id="historySidebar">
-        <div class="sidebar-header">
-            <h2>Riwayat Percakapan</h2>
-            <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
-        </div>
-        <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
-        <div class="history-list" id="historyList"></div>
+<div class="preview-bar" id="previewBar">
+    <div class="preview-container">
+        <img src="" id="imgElementPreview" class="preview-img">
+        <span class="preview-text">Gambar siap dikirim...</span>
     </div>
+    <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
+</div>
 
-    <div class="image-modal" id="imageModal">
-        <button class="modal-close-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
-        <img src="" id="modalImgTarget" class="modal-img-content">
+<form class="chat-form" id="chatForm">
+    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    <div class="modern-input-bar">
+        <button type="button" class="bar-btn" id="uploadBtn">
+            <i class="fa-regular fa-image"></i>
+        </button>
+        <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
+        <button type="submit" class="bar-btn send-btn-active" id="sendBtn">
+            <i class="fas fa-arrow-up"></i>
+        </button>
     </div>
+</form>
 
-    <script>
-        const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
-        const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
-        const CURRENT_SESSION_KEY = "xrezzky_current_id";
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="history-sidebar" id="historySidebar">
+    <div class="sidebar-header">
+        <h2>Riwayat Percakapan</h2>
+        <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
+    <div class="history-list" id="historyList"></div>
+</div>
 
-        const chatContainer = document.getElementById("chatContainer");
-        const chatForm = document.getElementById("chatForm");
-        const userInput = document.getElementById("userInput");
-        const fileInput = document.getElementById("fileInput");
-        const uploadBtn = document.getElementById("uploadBtn");
-        const previewBar = document.getElementById("previewBar");
-        const imgElementPreview = document.getElementById("imgElementPreview");
-        const cancelImgBtn = document.getElementById("cancelImgBtn");
-        const clearChatBtn = document.getElementById("clearChatBtn");
+<div class="image-modal" id="imageModal">
+    <button class="modal-close-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+    <img src="" id="modalImgTarget" class="modal-img-content">
+</div>
 
-        // Elemen Sidebar Riwayat
-        const openHistoryBtn = document.getElementById("openHistoryBtn");
-        const closeHistoryBtn = document.getElementById("closeHistoryBtn");
-        const sidebarOverlay = document.getElementById("sidebarOverlay");
-        const historySidebar = document.getElementById("historySidebar");
-        const historyList = document.getElementById("historyList");
-        const newChatBtn = document.getElementById("newChatBtn");
+<script>
+    // Konfigurasi
+    const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
+    const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
+    const CURRENT_SESSION_KEY = "xrezzky_current_id";
 
-        // Elemen Modal Gambar (NEW)
-        const imageModal = document.getElementById("imageModal");
-        const closeModalBtn = document.getElementById("closeModalBtn");
-        const modalImgTarget = document.getElementById("modalImgTarget");
+    // DOM Elements
+    const chatContainer = document.getElementById("chatContainer");
+    const chatForm = document.getElementById("chatForm");
+    const userInput = document.getElementById("userInput");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const previewBar = document.getElementById("previewBar");
+    const imgElementPreview = document.getElementById("imgElementPreview");
+    const cancelImgBtn = document.getElementById("cancelImgBtn");
+    const clearChatBtn = document.getElementById("clearChatBtn");
+    const openHistoryBtn = document.getElementById("openHistoryBtn");
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+    const historySidebar = document.getElementById("historySidebar");
+    const historyList = document.getElementById("historyList");
+    const newChatBtn = document.getElementById("newChatBtn");
+    const imageModal = document.getElementById("imageModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const modalImgTarget = document.getElementById("modalImgTarget");
 
-        let selectedBase64Image = null;
-        let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+    let selectedBase64Image = null;
+    let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
 
-        // --- SISTEM MODAL BUKA FOTO (NEW) ---
-        function openImageModal(src) {
-            modalImgTarget.src = src;
-            imageModal.style.display = "flex";
-            setTimeout(() => {
-                modalImgTarget.style.transform = "scale(1)";
-            }, 50);
+    // --- Helper Functions ---
+    function scrollToBottom() {
+        setTimeout(() => {
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: "smooth" });
+        }, 50);
+    }
+
+    function openImageModal(src) {
+        modalImgTarget.src = src;
+        imageModal.style.display = "flex";
+        setTimeout(() => {
+            modalImgTarget.style.transform = "scale(1)";
+        }, 50);
+    }
+
+    function closeImageModal() {
+        modalImgTarget.style.transform = "scale(0.9)";
+        setTimeout(() => {
+            imageModal.style.display = "none";
+            modalImgTarget.src = "";
+        }, 200);
+    }
+
+    // --- Session Management ---
+    function createNewSession() {
+        currentSessionId = "session_" + Date.now();
+        localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+        
+        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+        sessions[currentSessionId] = {
+            title: "Obrolan Baru",
+            timestamp: Date.now(),
+            chats: []
+        };
+        localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    }
+
+    function loadCurrentSessionChat() {
+        chatContainer.innerHTML = "";
+        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+        let currentData = sessions[currentSessionId];
+
+        if (!currentData || currentData.chats.length === 0) {
+            appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
+        } else {
+            currentData.chats.forEach(item => {
+                appendMessage(item.text, item.image, item.sender);
+            });
+        }
+        scrollToBottom();
+    }
+
+    function renderSidebarList() {
+        historyList.innerHTML = "";
+        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+        let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
+
+        if(sortedKeys.length === 0) {
+            historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
+            return;
         }
 
-        function closeImageModal() {
-            modalImgTarget.style.transform = "scale(0.9)";
-            setTimeout(() => {
-                imageModal.style.display = "none";
-                modalImgTarget.src = "";
-            }, 200);
-        }
+        sortedKeys.forEach(key => {
+            const session = sessions[key];
+            const item = document.createElement("div");
+            item.classList.add("history-item");
+            if (key === currentSessionId) item.classList.add("active-session");
 
-        closeModalBtn.addEventListener("click", closeImageModal);
-        imageModal.addEventListener("click", (e) => {
-            // Jika yang diklik adalah background hitamnya (bukan gambarnya), maka tutup modal
-            if(e.target !== modalImgTarget && e.target !== closeModalBtn) {
-                closeImageModal();
-            }
+            const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour: '2-digit', minute:'2-digit'});
+
+            item.innerHTML = `
+                <div class="title">${escapeHtml(session.title)}</div>
+                <div class="time">${dateStr}</div>
+            `;
+
+            item.addEventListener("click", () => {
+                currentSessionId = key;
+                localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+                loadCurrentSessionChat();
+                renderSidebarList();
+                closeSidebar();
+            });
+
+            historyList.appendChild(item);
         });
+    }
 
-        // --- MANAJEMEN SESI & SIDEBAR ---
-        window.addEventListener("DOMContentLoaded", () => {
-            if (!currentSessionId) {
+    function closeSidebar() {
+        historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
+        setTimeout(() => { sidebarOverlay.style.display = "none"; }, 300);
+    }
+
+    function saveChatToSession(text, image, sender) {
+        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+        if (!sessions[currentSessionId]) return;
+
+        // Update title jika pesan pertama dari user dan ada teks
+        if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text && text.trim()) {
+            let title = text.trim().slice(0, 40);
+            sessions[currentSessionId].title = title.length < 40 ? title : title + "...";
+        }
+
+        sessions[currentSessionId].chats.push({ text, image, sender });
+        sessions[currentSessionId].timestamp = Date.now();
+        
+        localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    }
+
+    // --- UI Messaging ---
+    function appendMessage(text, imageBase64, sender) {
+        const row = document.createElement("div");
+        row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
+
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble");
+
+        if (imageBase64) {
+            const img = document.createElement("img");
+            img.src = imageBase64;
+            img.classList.add("chat-img");
+            img.addEventListener("click", () => openImageModal(imageBase64));
+            bubble.appendChild(img);
+        }
+        if (text) {
+            const textSpan = document.createElement("span");
+            textSpan.textContent = text;
+            bubble.appendChild(textSpan);
+        }
+        row.appendChild(bubble);
+        chatContainer.appendChild(row);
+        scrollToBottom();
+    }
+
+    function appendLoadingIndicator() {
+        const id = "load-" + Date.now();
+        const row = document.createElement("div");
+        row.id = id;
+        row.classList.add("message-row", "bot-row");
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble", "loading-bubble");
+        bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
+        row.appendChild(bubble);
+        chatContainer.appendChild(row);
+        scrollToBottom();
+        return id;
+    }
+
+    function removeLoadingIndicator(id) {
+        const element = document.getElementById(id);
+        if (element) element.remove();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // --- Event Handlers ---
+    uploadBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", function() {
+        const file = this.files[0];
+        if (!file) return;
+
+        // Validasi tipe file
+        if (!file.type.startsWith('image/')) {
+            alert("Hanya file gambar yang didukung.");
+            fileInput.value = "";
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            selectedBase64Image = e.target.result;
+            imgElementPreview.src = selectedBase64Image;
+            previewBar.style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    });
+
+    cancelImgBtn.addEventListener("click", () => {
+        selectedBase64Image = null;
+        fileInput.value = "";
+        previewBar.style.display = "none";
+    });
+
+    clearChatBtn.addEventListener("click", () => {
+        if(confirm("Hapus obrolan aktif saat ini?")) {
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            delete sessions[currentSessionId];
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+            
+            const remainingKeys = Object.keys(sessions);
+            if(remainingKeys.length > 0) {
+                currentSessionId = remainingKeys[0];
+                localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+            } else {
                 createNewSession();
             }
             loadCurrentSessionChat();
             renderSidebarList();
-        });
-
-        function createNewSession() {
-            currentSessionId = "session_" + Date.now();
-            localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-            
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            sessions[currentSessionId] = {
-                title: "Obrolan Baru",
-                timestamp: Date.now(),
-                chats: []
-            };
-            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
         }
+    });
 
-        function loadCurrentSessionChat() {
-            chatContainer.innerHTML = "";
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            let currentData = sessions[currentSessionId];
+    openHistoryBtn.addEventListener("click", () => {
+        renderSidebarList();
+        sidebarOverlay.style.display = "block";
+        setTimeout(() => { historySidebar.style.right = "0"; }, 10);
+    });
 
-            if (!currentData || currentData.chats.length === 0) {
-                appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
-            } else {
-                currentData.chats.forEach(item => {
-                    appendMessage(item.text, item.image, item.sender);
-                });
-            }
-            setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
+    closeHistoryBtn.addEventListener("click", closeSidebar);
+    sidebarOverlay.addEventListener("click", closeSidebar);
+
+    newChatBtn.addEventListener("click", () => {
+        createNewSession();
+        loadCurrentSessionChat();
+        renderSidebarList();
+        closeSidebar();
+    });
+
+    closeModalBtn.addEventListener("click", closeImageModal);
+    imageModal.addEventListener("click", (e) => {
+        if(e.target !== modalImgTarget && e.target !== closeModalBtn) {
+            closeImageModal();
         }
+    });
 
-        function renderSidebarList() {
-            historyList.innerHTML = "";
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
+    // --- Submit Chat ---
+    chatForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const textMessage = userInput.value.trim();
+        const hasText = !!textMessage;
+        const hasImage = !!selectedBase64Image;
 
-            if(sortedKeys.length === 0) {
-                historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
-                return;
-            }
+        if (!hasText && !hasImage) return;
 
-            sortedKeys.forEach(key => {
-                const session = sessions[key];
-                const item = document.createElement("div");
-                item.classList.add("history-item");
-                if (key === currentSessionId) item.classList.add("active-session");
+        // Ambil data sebelum dibersihkan
+        const currentText = textMessage;
+        const currentImage = selectedBase64Image;
 
-                const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour: '2-digit', minute:'2-digit'});
+        // Reset form
+        userInput.value = "";
+        selectedBase64Image = null;
+        fileInput.value = "";
+        previewBar.style.display = "none";
 
-                item.innerHTML = `
-                    <div class="title">${session.title}</div>
-                    <div class="time">${dateStr}</div>
-                `;
+        // Tampilkan pesan user
+        appendMessage(currentText, currentImage, "user");
+        saveChatToSession(currentText, currentImage, "user");
 
-                item.addEventListener("click", () => {
-                    currentSessionId = key;
-                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-                    loadCurrentSessionChat();
-                    renderSidebarList();
-                    closeSidebar();
-                });
+        // Loading indicator
+        const loadingId = appendLoadingIndicator();
 
-                historyList.appendChild(item);
+        try {
+            const response = await fetch(BACKEND_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_message: currentText || "",
+                    user_image: currentImage || null,
+                    user_id: currentSessionId
+                })
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText.slice(0, 100)}`);
+            }
+
+            const data = await response.json();
+            removeLoadingIndicator(loadingId);
+
+            if (data.response) {
+                appendMessage(data.response, null, "bot");
+                saveChatToSession(data.response, null, "bot");
+            } else {
+                appendMessage("Maaf, sistem XREZZ AI sedang sibuk. Coba lagi nanti.", null, "bot");
+            }
+        } catch (error) {
+            console.error("Chat error:", error);
+            removeLoadingIndicator(loadingId);
+            appendMessage("Gagal terhubung ke server XREZZKY. Periksa jaringan Anda atau coba lagi nanti.", null, "bot");
         }
+    });
 
-        openHistoryBtn.addEventListener("click", () => {
-            renderSidebarList();
-            sidebarOverlay.style.display = "block";
-            setTimeout(() => { historySidebar.style.right = "0"; }, 10);
-        });
-
-        function closeSidebar() {
-            historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
-            setTimeout(() => { sidebarOverlay.style.display = "none"; }, 300);
-        }
-
-        closeHistoryBtn.addEventListener("click", closeSidebar);
-        sidebarOverlay.addEventListener("click", closeSidebar);
-
-        newChatBtn.addEventListener("click", () => {
+    // Inisialisasi
+    window.addEventListener("DOMContentLoaded", () => {
+        if (!currentSessionId) {
             createNewSession();
-            loadCurrentSessionChat();
-            renderSidebarList();
-            closeSidebar();
-        });
-
-        // --- SISTEM INPUT FOTO ---
-        uploadBtn.addEventListener("click", () => fileInput.click());
-        fileInput.addEventListener("change", function() {
-            const file = this.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedBase64Image = e.target.result;
-                imgElementPreview.src = selectedBase64Image;
-                previewBar.style.display = "flex";
-            };
-            reader.readAsDataURL(file);
-        });
-
-        cancelImgBtn.addEventListener("click", () => {
-            selectedBase64Image = null;
-            fileInput.value = "";
-            previewBar.style.display = "none";
-        });
-
-        clearChatBtn.addEventListener("click", () => {
-            if(confirm("Hapus obrolan aktif saat ini?")) {
-                let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-                delete sessions[currentSessionId];
-                localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-                
-                const remainingKeys = Object.keys(sessions);
-                if(remainingKeys.length > 0) {
-                    currentSessionId = remainingKeys[0];
-                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-                } else {
-                    createNewSession();
-                }
-                loadCurrentSessionChat();
-                renderSidebarList();
-            }
-        });
-
-        // --- PROSES SUBMIT CHAT ---
-        chatForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const textMessage = userInput.value.trim();
-            if (!textMessage && !selectedBase64Image) return;
-
-            const currentText = textMessage;
-            const currentImage = selectedBase64Image;
-
-            userInput.value = "";
-            selectedBase64Image = null;
-            fileInput.value = "";
-            previewBar.style.display = "none";
-
-            appendMessage(currentText, currentImage, "user");
-            saveChatToSession(currentText, currentImage, "user");
-
-            const loadingId = appendLoadingIndicator();
-
-            try {
-                const response = await fetch(BACKEND_API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_message: currentText,
-                        user_image: currentImage,
-                        user_id: currentSessionId
-                    })
-                });
-
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                removeLoadingIndicator(loadingId);
-
-                if (data.response) {
-                    appendMessage(data.response, null, "bot");
-                    saveChatToSession(data.response, null, "bot");
-                } else {
-                    appendMessage("Maaf, sistem XREZZ AI sedang dikonfigurasi.", null, "bot");
-                }
-            } catch (error) {
-                removeLoadingIndicator(loadingId);
-                appendMessage("Gagal terhubung ke server XREZZKY. Periksa jaringan Anda.", null, "bot");
-            }
-        });
-
-        function appendMessage(text, imageBase64, sender) {
-            const row = document.createElement("div");
-            row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
-
-            const bubble = document.createElement("div");
-            bubble.classList.add("bubble");
-
-            if (imageBase64) {
-                const img = document.createElement("img");
-                img.src = imageBase64;
-                img.classList.add("chat-img");
-                
-                // PASANG EVENT KLIK AGAR BISA ZOOM FOTO (NEW)
-                img.addEventListener("click", () => {
-                    openImageModal(imageBase64);
-                });
-                
-                bubble.appendChild(img);
-            }
-            if (text) {
-                const textNode = document.createElement("span");
-                textNode.textContent = text;
-                bubble.appendChild(textNode);
-            }
-            row.appendChild(bubble);
-            chatContainer.appendChild(row);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-
-        function appendLoadingIndicator() {
-            const id = "load-" + Date.now();
-            const row = document.createElement("div");
-            row.id = id;
-            row.classList.add("message-row", "bot-row");
-            const bubble = document.createElement("div");
-            bubble.classList.add("bubble", "loading-bubble");
-            bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
-            row.appendChild(bubble);
-            chatContainer.appendChild(row);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return id;
-        }
-
-        function removeLoadingIndicator(id) {
-            const element = document.getElementById(id);
-            if (element) element.remove();
-        }
-
-        function saveChatToSession(text, image, sender) {
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            if (!sessions[currentSessionId]) return;
-
-            if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
-                sessions[currentSessionId].title = text; 
-            }
-
-            sessions[currentSessionId].chats.push({ text, image, sender });
-            sessions[currentSessionId].timestamp = Date.now();
-            
-            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-        }
-    </script>
+        loadCurrentSessionChat();
+        renderSidebarList();
+    });
+</script>
 </body>
 </html>
