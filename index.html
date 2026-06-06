@@ -16,362 +16,90 @@
             --text-muted: #94a3b8;
             --border-color: #334155;
             --sidebar-width: 280px;
-            --code-bg: #0f172a;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-        /* header, sidebar, input bar style sama seperti sebelumnya */
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+        body { background-color:var(--bg-main); color:var(--text-main); display:flex; flex-direction:column; height:100vh; overflow:hidden; position:relative; }
+
         .chat-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: var(--bg-chat);
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
+            position:fixed; top:0; left:0; right:0; height:60px;
+            background-color:var(--bg-chat); padding:0 16px;
+            display:flex; align-items:center; justify-content:space-between;
+            border-bottom:1px solid var(--border-color); z-index:10;
         }
-        .brand-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .avatar {
-            width: 36px;
-            height: 36px;
-            background-color: #2563eb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .brand-name h1 {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .brand-name p {
-            font-size: 10px;
-            color: #22c55e;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .header-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .header-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-        .header-btn:active {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
+        .brand-info { display:flex; align-items:center; gap:10px; }
+        .avatar { width:36px; height:36px; background-color:#2563eb; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; }
+        .brand-name h1 { font-size:14px; font-weight:600; }
+        .brand-name p { font-size:10px; color:#22c55e; display:flex; align-items:center; gap:4px; }
+        .header-actions { display:flex; gap:8px; }
+        .header-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:8px; border-radius:50%; }
+        .header-btn:active { background-color:rgba(255,255,255,0.05); }
+
         .chat-container {
-            position: absolute;
-            top: 60px;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-behavior: smooth;
+            position:absolute; top:60px; bottom:80px; left:0; right:0;
+            padding:16px; overflow-y:auto; display:flex; flex-direction:column;
+            gap:16px; scroll-behavior:smooth;
         }
-        .message-row {
-            display: flex;
-            width: 100%;
-        }
-        .message-row.user-row { justify-content: flex-end; }
-        .message-row.bot-row { justify-content: flex-start; }
-        .bubble {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.5;
-            word-break: break-word;
-            position: relative;
-            user-select: text; /* Bisa di-copy */
-        }
-        .user-row .bubble {
-            background-color: var(--bg-bubble-user);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-        .bot-row .bubble {
-            background-color: var(--bg-bubble-bot);
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-            border: 1px solid var(--border-color);
-        }
-        /* Markdown styling */
-        .bubble h1, .bubble h2, .bubble h3 {
-            margin: 0.5em 0 0.25em;
-            font-weight: 600;
-        }
-        .bubble h1 { font-size: 1.4em; }
-        .bubble h2 { font-size: 1.2em; }
-        .bubble h3 { font-size: 1.1em; }
-        .bubble p {
-            margin: 0.5em 0;
-        }
-        .bubble strong, .bubble b {
-            font-weight: 700;
-            color: inherit;
-        }
-        .bubble em, .bubble i {
-            font-style: italic;
-        }
-        .bubble ul, .bubble ol {
-            margin: 0.5em 0;
-            padding-left: 1.5em;
-        }
-        .bubble li {
-            margin: 0.2em 0;
-        }
-        .bubble code {
-            background-color: var(--code-bg);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-        .bubble pre {
-            background-color: var(--code-bg);
-            padding: 0.75em;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 0.5em 0;
-        }
-        .bubble pre code {
-            background: none;
-            padding: 0;
-        }
-        .bubble blockquote {
-            border-left: 3px solid var(--text-muted);
-            margin: 0.5em 0;
-            padding-left: 1em;
-            color: var(--text-muted);
-        }
-        .message-time {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 6px;
-            text-align: right;
-            display: block;
-        }
-        .user-row .message-time {
-            color: rgba(255,255,255,0.6);
-        }
-        .chat-img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            display: block;
-            object-fit: cover;
-            cursor: pointer;
-        }
+        .message-row { display:flex; width:100%; }
+        .message-row.user-row { justify-content:flex-end; }
+        .message-row.bot-row { justify-content:flex-start; }
+        .bubble { max-width:85%; padding:12px 14px; border-radius:16px; font-size:14px; line-height:1.6; word-break:break-word; }
+        .user-row .bubble { background-color:var(--bg-bubble-user); color:white; border-bottom-right-radius:4px; }
+        .bot-row .bubble { background-color:var(--bg-bubble-bot); color:var(--text-main); border-bottom-left-radius:4px; border:1px solid var(--border-color); }
+
+        /* markdown styles */
+        .bot-row .bubble strong { color:#fff; }
+        .bot-row .bubble em { color:var(--text-muted); }
+        .bot-row .bubble code { background:#0b0f17; border:1px solid var(--border-color); border-radius:4px; padding:1px 5px; font-size:12px; font-family:monospace; color:#4ade80; }
+        .bot-row .bubble pre { background:#0b0f17; border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; overflow-x:auto; margin:6px 0; font-size:12px; line-height:1.6; }
+        .bot-row .bubble pre code { background:none; border:none; padding:0; color:#60a5fa; }
+        .bot-row .bubble a { color:#60a5fa; text-decoration:underline; }
+        .bot-row .bubble hr { border:none; border-top:1px solid var(--border-color); margin:8px 0; }
+
+        .chat-img { max-width:100%; max-height:200px; border-radius:8px; margin-bottom:6px; display:block; object-fit:cover; cursor:pointer; transition:opacity 0.2s; }
+        .chat-img:active { opacity:0.8; }
+
         .preview-bar {
-            position: fixed;
-            bottom: 80px;
-            left: 16px;
-            right: 16px;
-            background-color: #1e293b;
-            padding: 8px 12px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            z-index: 9;
+            position:fixed; bottom:80px; left:16px; right:16px;
+            background-color:#1e293b; padding:8px 12px;
+            display:none; align-items:center; justify-content:space-between;
+            border:1px solid var(--border-color); border-radius:12px;
+            z-index:9; box-shadow:0 -4px 10px rgba(0,0,0,0.2);
         }
-        .preview-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .preview-img {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
+        .preview-container { display:flex; align-items:center; gap:10px; }
+        .preview-img { width:40px; height:40px; object-fit:cover; border-radius:6px; }
+        .preview-text { font-size:12px; color:var(--text-muted); }
+
         .chat-form {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background-color: var(--bg-chat);
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-            border-top: 1px solid var(--border-color);
-            z-index: 10;
+            position:fixed; bottom:0; left:0; right:0; height:80px;
+            background-color:var(--bg-chat);
+            padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+            border-top:1px solid var(--border-color); z-index:10;
         }
         .modern-input-bar {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 2px 6px 2px 12px;
-            gap: 6px;
-            width: 100%;
-            height: 44px;
+            display:flex; align-items:center; background-color:var(--bg-main);
+            border:1px solid var(--border-color); border-radius:24px;
+            padding:2px 6px 2px 12px; gap:6px; width:100%; height:44px;
         }
-        .modern-input-bar input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 14px;
-            outline: none;
-            height: 100%;
-        }
-        .bar-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .send-btn-active {
-            color: var(--text-main);
-            background-color: var(--bg-bubble-user);
-        }
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 20;
-            display: none;
-        }
-        .history-sidebar {
-            position: fixed;
-            top: 0;
-            right: calc(-1 * var(--sidebar-width));
-            width: var(--sidebar-width);
-            height: 100%;
-            background-color: var(--bg-chat);
-            border-left: 1px solid var(--border-color);
-            z-index: 21;
-            display: flex;
-            flex-direction: column;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-        }
-        .new-chat-btn {
-            background-color: var(--bg-bubble-user);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            width: calc(100% - 32px);
-            margin: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .history-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 12px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .history-item {
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .history-item.active-session {
-            border-color: var(--bg-bubble-user);
-            background-color: rgba(37, 99, 235, 0.05);
-        }
-        .loading-bubble {
-            color: var(--text-muted);
-            font-style: italic;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .image-modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        .modal-img-content {
-            max-width: 100%;
-            max-height: 80vh;
-            border-radius: 8px;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
+        .modern-input-bar input { flex:1; background:none; border:none; color:var(--text-main); font-size:14px; outline:none; height:100%; }
+        .bar-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+        .send-btn-active { color:var(--text-main); background-color:var(--bg-bubble-user); }
+
+        .sidebar-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px); z-index:20; display:none; }
+        .history-sidebar { position:fixed; top:0; right:calc(-1 * var(--sidebar-width)); width:var(--sidebar-width); height:100%; background-color:var(--bg-chat); border-left:1px solid var(--border-color); z-index:21; display:flex; flex-direction:column; transition:right 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .sidebar-header { padding:16px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
+        .sidebar-header h2 { font-size:15px; font-weight:600; }
+        .new-chat-btn { background-color:var(--bg-bubble-user); color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; width:calc(100% - 32px); margin:16px; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .history-list { flex:1; overflow-y:auto; padding:0 12px 16px 12px; display:flex; flex-direction:column; gap:8px; }
+        .history-item { background-color:var(--bg-main); border:1px solid var(--border-color); padding:12px; border-radius:10px; cursor:pointer; display:flex; flex-direction:column; gap:4px; }
+        .history-item.active-session { border-color:var(--bg-bubble-user); background-color:rgba(37,99,235,0.05); }
+        .history-item .title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-main); }
+        .history-item .time { font-size:10px; color:var(--text-muted); }
+
+        .loading-bubble { color:var(--text-muted); font-style:italic; display:flex; align-items:center; gap:6px; }
+
+        .image-modal { position:fixed; top:0; left:0; right:0; bottom:0; background-color:rgba(0,0,0,0.9); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
+        .modal-close-btn { position:absolute; top:calc(16px + env(safe-area-inset-top)); right:16px; background:rgba(255,255,255,0.1); border:none; color:white; font-size:20px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .modal-img-content { max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.5); object-fit:contain; transform:scale(0.9); transition:transform 0.3s ease; }
     </style>
 </head>
 <body>
@@ -381,12 +109,12 @@
         <div class="avatar">X</div>
         <div class="brand-name">
             <h1>XREZZKY OFFICIAL STORE</h1>
-            <p><i class="fas fa-circle" style="font-size: 7px;"></i> XREZZ AI Aktif</p>
+            <p><i class="fas fa-circle" style="font-size:7px;"></i> XREZZKY AI Aktif</p>
         </div>
     </div>
     <div class="header-actions">
-        <button class="header-btn" id="openHistoryBtn"><i class="fa-solid fa-clock-rotate-left"></i></button>
-        <button class="header-btn" id="clearChatBtn"><i class="fas fa-trash-can"></i></button>
+        <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
     </div>
 </div>
 
@@ -395,13 +123,13 @@
 <div class="preview-bar" id="previewBar">
     <div class="preview-container">
         <img src="" id="imgElementPreview" class="preview-img">
-        <span class="preview-text">Gambar siap dikirim...</span>
+        <span class="preview-text" id="previewText">Gambar siap dikirim...</span>
     </div>
-    <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
+    <i class="fas fa-times" id="cancelImgBtn" style="color:#ef4444;cursor:pointer;"></i>
 </div>
 
 <form class="chat-form" id="chatForm">
-    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
     <div class="modern-input-bar">
         <button type="button" class="bar-btn" id="uploadBtn"><i class="fa-regular fa-image"></i></button>
         <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
@@ -425,84 +153,68 @@
 </div>
 
 <script>
-    // Konfigurasi
-    const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat"; // ganti sesuai endpoint kamu
+    const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
     const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
     const CURRENT_SESSION_KEY = "xrezzky_current_id";
+    const MAX_HISTORY = 20;
 
-    // DOM
-    const chatContainer = document.getElementById("chatContainer");
-    const chatForm = document.getElementById("chatForm");
-    const userInput = document.getElementById("userInput");
-    const fileInput = document.getElementById("fileInput");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const previewBar = document.getElementById("previewBar");
+    const chatContainer  = document.getElementById("chatContainer");
+    const chatForm       = document.getElementById("chatForm");
+    const userInput      = document.getElementById("userInput");
+    const fileInput      = document.getElementById("fileInput");
+    const uploadBtn      = document.getElementById("uploadBtn");
+    const previewBar     = document.getElementById("previewBar");
     const imgElementPreview = document.getElementById("imgElementPreview");
-    const cancelImgBtn = document.getElementById("cancelImgBtn");
-    const clearChatBtn = document.getElementById("clearChatBtn");
+    const previewText    = document.getElementById("previewText");
+    const cancelImgBtn   = document.getElementById("cancelImgBtn");
+    const clearChatBtn   = document.getElementById("clearChatBtn");
     const openHistoryBtn = document.getElementById("openHistoryBtn");
-    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const closeHistoryBtn= document.getElementById("closeHistoryBtn");
     const sidebarOverlay = document.getElementById("sidebarOverlay");
     const historySidebar = document.getElementById("historySidebar");
-    const historyList = document.getElementById("historyList");
-    const newChatBtn = document.getElementById("newChatBtn");
-    const imageModal = document.getElementById("imageModal");
-    const closeModalBtn = document.getElementById("closeModalBtn");
+    const historyList    = document.getElementById("historyList");
+    const newChatBtn     = document.getElementById("newChatBtn");
+    const imageModal     = document.getElementById("imageModal");
+    const closeModalBtn  = document.getElementById("closeModalBtn");
     const modalImgTarget = document.getElementById("modalImgTarget");
 
     let selectedBase64Image = null;
     let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+    let conversationHistory = []; // kirim ke backend setiap request
 
-    // Helper markdown sederhana (render aman)
+    // ── MARKDOWN RENDERER ──────────────────────────────────────
     function renderMarkdown(text) {
         if (!text) return '';
-        // Escape HTML dulu
-        let html = text.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-        // Bold **text** atau __text__
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
-        // Italic *text* atau _text_
-        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        html = html.replace(/_(.+?)_/g, '<em>$1</em>');
-        // Heading ###
-        html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-        // Inline code `code`
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-        // Code block ``` ```
-        html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-        // List item - atau *
-        html = html.replace(/^\s*[-*]\s+(.*$)/gm, '<li>$1</li>');
-        // Wrap list items yang berurutan
-        html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-        // Blockquote >
-        html = html.replace(/^&gt;\s+(.*$)/gm, '<blockquote>$1</blockquote>');
-        // Paragraf
-        html = html.replace(/\n\n/g, '</p><p>');
-        html = '<p>' + html + '</p>';
-        // Bersihkan paragraf kosong
-        html = html.replace(/<p><\/p>/g, '');
-        return html;
+        let t = text
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        // code block
+        t = t.replace(/```[\w]*\n?([\s\S]*?)```/g,
+            '<pre><code>$1</code></pre>');
+        // inline code
+        t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // bold
+        t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // italic
+        t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        // header
+        t = t.replace(/^### (.+)$/gm, '<b style="font-size:14px;display:block;margin-top:6px">$1</b>');
+        t = t.replace(/^## (.+)$/gm,  '<b style="font-size:15px;display:block;margin-top:6px">$1</b>');
+        t = t.replace(/^# (.+)$/gm,   '<b style="font-size:16px;display:block;margin-top:6px">$1</b>');
+        // hr
+        t = t.replace(/^---$/gm, '<hr>');
+        // link
+        t = t.replace(/\[(.+?)\]\((.+?)\)/g,
+            '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        // newline
+        t = t.replace(/\n/g, '<br>');
+        return t;
     }
 
-    function getCurrentTime() {
-        return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function scrollToBottom() {
-        setTimeout(() => chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: "smooth" }), 50);
-    }
-
+    // ── MODAL FOTO ─────────────────────────────────────────────
     function openImageModal(src) {
         modalImgTarget.src = src;
         imageModal.style.display = "flex";
-        setTimeout(() => modalImgTarget.style.transform = "scale(1)", 50);
+        setTimeout(() => { modalImgTarget.style.transform = "scale(1)"; }, 50);
     }
     function closeImageModal() {
         modalImgTarget.style.transform = "scale(0.9)";
@@ -513,33 +225,51 @@
         if (e.target !== modalImgTarget && e.target !== closeModalBtn) closeImageModal();
     });
 
-    // Session
+    // ── SESI ───────────────────────────────────────────────────
+    window.addEventListener("DOMContentLoaded", () => {
+        if (!currentSessionId) createNewSession();
+        loadCurrentSessionChat();
+        renderSidebarList();
+    });
+
     function createNewSession() {
         currentSessionId = "session_" + Date.now();
         localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
         let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-        sessions[currentSessionId] = { title: "Obrolan Baru", timestamp: Date.now(), chats: [] };
+        sessions[currentSessionId] = { title:"Obrolan Baru", timestamp:Date.now(), chats:[] };
         localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+        conversationHistory = [];
     }
 
     function loadCurrentSessionChat() {
         chatContainer.innerHTML = "";
+        conversationHistory = [];
         let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
         let currentData = sessions[currentSessionId];
         if (!currentData || currentData.chats.length === 0) {
-            appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu?", null, "bot");
+            appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZKY AI bantu?", null, "bot");
         } else {
-            currentData.chats.forEach(item => appendMessage(item.text, item.image, item.sender, item.time));
+            currentData.chats.forEach(item => {
+                appendMessage(item.text, item.image, item.sender);
+                // rebuild history untuk konteks AI
+                if (item.sender === "user") {
+                    conversationHistory.push({ role:"user", content: item.text || "" });
+                } else {
+                    conversationHistory.push({ role:"assistant", content: item.text || "" });
+                }
+            });
+            if (conversationHistory.length > MAX_HISTORY)
+                conversationHistory = conversationHistory.slice(-MAX_HISTORY);
         }
-        scrollToBottom();
+        setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
     }
 
     function renderSidebarList() {
         historyList.innerHTML = "";
         let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
         let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
-        if (sortedKeys.length === 0) {
-            historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
+        if (!sortedKeys.length) {
+            historyList.innerHTML = `<p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px;">Belum ada riwayat.</p>`;
             return;
         }
         sortedKeys.forEach(key => {
@@ -547,7 +277,8 @@
             const item = document.createElement("div");
             item.classList.add("history-item");
             if (key === currentSessionId) item.classList.add("active-session");
-            item.innerHTML = `<div class="title">${escapeHtml(session.title)}</div><div class="time">${new Date(session.timestamp).toLocaleDateString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>`;
+            const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour:'2-digit', minute:'2-digit'});
+            item.innerHTML = `<div class="title">${session.title}</div><div class="time">${dateStr}</div>`;
             item.addEventListener("click", () => {
                 currentSessionId = key;
                 localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
@@ -559,129 +290,15 @@
         });
     }
 
-    function closeSidebar() {
-        historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
-        setTimeout(() => sidebarOverlay.style.display = "none", 300);
-    }
-
-    function saveChatToSession(text, image, sender, time) {
-        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-        if (!sessions[currentSessionId]) return;
-        if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text && text.trim()) {
-            sessions[currentSessionId].title = text.trim().slice(0, 40) + (text.length>40 ? "..." : "");
-        }
-        sessions[currentSessionId].chats.push({ text, image, sender, time });
-        sessions[currentSessionId].timestamp = Date.now();
-        localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-    }
-
-    function appendMessage(text, imageBase64, sender, time = getCurrentTime()) {
-        const row = document.createElement("div");
-        row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
-        const bubble = document.createElement("div");
-        bubble.classList.add("bubble");
-        if (imageBase64) {
-            const img = document.createElement("img");
-            img.src = imageBase64;
-            img.classList.add("chat-img");
-            img.addEventListener("click", () => openImageModal(imageBase64));
-            bubble.appendChild(img);
-        }
-        if (text) {
-            if (sender === "bot") {
-                const formattedHtml = renderMarkdown(text);
-                bubble.innerHTML = formattedHtml + `<div class="message-time">${time}</div>`;
-            } else {
-                const textSpan = document.createElement("span");
-                textSpan.textContent = text;
-                bubble.appendChild(textSpan);
-                const timeSpan = document.createElement("div");
-                timeSpan.classList.add("message-time");
-                timeSpan.textContent = time;
-                bubble.appendChild(timeSpan);
-            }
-        } else {
-            const timeSpan = document.createElement("div");
-            timeSpan.classList.add("message-time");
-            timeSpan.textContent = time;
-            bubble.appendChild(timeSpan);
-        }
-        row.appendChild(bubble);
-        chatContainer.appendChild(row);
-        scrollToBottom();
-    }
-
-    function appendLoadingIndicator() {
-        const id = "load-" + Date.now();
-        const row = document.createElement("div");
-        row.id = id;
-        row.classList.add("message-row", "bot-row");
-        const bubble = document.createElement("div");
-        bubble.classList.add("bubble", "loading-bubble");
-        bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...<div class="message-time">${getCurrentTime()}</div>`;
-        row.appendChild(bubble);
-        chatContainer.appendChild(row);
-        scrollToBottom();
-        return id;
-    }
-
-    function removeLoadingIndicator(id) {
-        const el = document.getElementById(id);
-        if (el) el.remove();
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // Event listeners
-    uploadBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", function() {
-        const file = this.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            alert("Hanya file gambar yang didukung.");
-            fileInput.value = "";
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            selectedBase64Image = e.target.result;
-            imgElementPreview.src = selectedBase64Image;
-            previewBar.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
-    });
-    cancelImgBtn.addEventListener("click", () => {
-        selectedBase64Image = null;
-        fileInput.value = "";
-        previewBar.style.display = "none";
-    });
-    clearChatBtn.addEventListener("click", () => {
-        if (confirm("Hapus obrolan aktif saat ini?")) {
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            delete sessions[currentSessionId];
-            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-            const keys = Object.keys(sessions);
-            if (keys.length) {
-                currentSessionId = keys[0];
-                localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-            } else createNewSession();
-            loadCurrentSessionChat();
-            renderSidebarList();
-        }
-    });
     openHistoryBtn.addEventListener("click", () => {
         renderSidebarList();
         sidebarOverlay.style.display = "block";
-        setTimeout(() => historySidebar.style.right = "0", 10);
+        setTimeout(() => { historySidebar.style.right = "0"; }, 10);
     });
+    function closeSidebar() {
+        historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
+        setTimeout(() => { sidebarOverlay.style.display = "none"; }, 300);
+    }
     closeHistoryBtn.addEventListener("click", closeSidebar);
     sidebarOverlay.addEventListener("click", closeSidebar);
     newChatBtn.addEventListener("click", () => {
@@ -691,54 +308,173 @@
         closeSidebar();
     });
 
+    clearChatBtn.addEventListener("click", () => {
+        if (confirm("Hapus obrolan aktif saat ini?")) {
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            delete sessions[currentSessionId];
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+            const remaining = Object.keys(sessions);
+            if (remaining.length > 0) {
+                currentSessionId = remaining[0];
+                localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+            } else {
+                createNewSession();
+            }
+            loadCurrentSessionChat();
+            renderSidebarList();
+        }
+    });
+
+    // ── INPUT FOTO ─────────────────────────────────────────────
+    uploadBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", function() {
+        const file = this.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Ukuran foto max 5MB ya bro");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            selectedBase64Image = e.target.result;
+            imgElementPreview.src = selectedBase64Image;
+            previewText.textContent = file.name + " · " + (file.size/1024).toFixed(0) + "KB";
+            previewBar.style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    });
+    cancelImgBtn.addEventListener("click", () => {
+        selectedBase64Image = null;
+        fileInput.value = "";
+        previewBar.style.display = "none";
+    });
+
+    // ── SUBMIT CHAT ────────────────────────────────────────────
     chatForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const textMessage = userInput.value.trim();
         if (!textMessage && !selectedBase64Image) return;
-        const currentText = textMessage;
+
+        const currentText  = textMessage;
         const currentImage = selectedBase64Image;
-        const timeNow = getCurrentTime();
 
         userInput.value = "";
         selectedBase64Image = null;
         fileInput.value = "";
         previewBar.style.display = "none";
 
-        appendMessage(currentText, currentImage, "user", timeNow);
-        saveChatToSession(currentText, currentImage, "user", timeNow);
+        appendMessage(currentText, currentImage, "user");
+        saveChatToSession(currentText, currentImage, "user");
+
+        // Push ke history (teks; gambar tidak bisa masuk history teks)
+        const userContent = currentText || (currentImage ? "Lihat dan ceritakan isi gambar ini." : "");
+        conversationHistory.push({ role:"user", content: userContent });
+        if (conversationHistory.length > MAX_HISTORY)
+            conversationHistory = conversationHistory.slice(-MAX_HISTORY);
 
         const loadingId = appendLoadingIndicator();
+
         try {
-            const res = await fetch(BACKEND_API_URL, {
+            const resp = await fetch(BACKEND_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    user_message: currentText || "",
-                    user_image: currentImage || null,
-                    user_id: currentSessionId
+                    // format baru — history array
+                    messages:     conversationHistory,
+                    // format lama — backward compat dengan chat.js
+                    user_message: currentText  || null,
+                    user_image:   currentImage || null,
+                    user_id:      currentSessionId
                 })
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            removeLoadingIndicator(loadingId);
-            if (data.response) {
-                appendMessage(data.response, null, "bot", getCurrentTime());
-                saveChatToSession(data.response, null, "bot", getCurrentTime());
-            } else {
-                appendMessage("Maaf, respons kosong dari server.", null, "bot", getCurrentTime());
+
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${resp.status}`);
             }
-        } catch (err) {
-            console.error(err);
+
+            const data = await resp.json();
             removeLoadingIndicator(loadingId);
-            appendMessage("Gagal terhubung ke server XREZZKY. Cek jaringan atau coba lagi.", null, "bot", getCurrentTime());
+
+            if (data.response) {
+                appendMessage(data.response, null, "bot");
+                saveChatToSession(data.response, null, "bot");
+                conversationHistory.push({ role:"assistant", content: data.response });
+                if (conversationHistory.length > MAX_HISTORY)
+                    conversationHistory = conversationHistory.slice(-MAX_HISTORY);
+            } else {
+                appendMessage("Maaf, sistem XREZZKY AI sedang dikonfigurasi.", null, "bot");
+            }
+
+        } catch (err) {
+            removeLoadingIndicator(loadingId);
+            appendMessage("Gagal terhubung ke server XREZZKY. " + (err.message || "Periksa jaringan Anda."), null, "bot");
+            // rollback history kalau gagal
+            if (conversationHistory[conversationHistory.length-1]?.role === "user")
+                conversationHistory.pop();
         }
     });
 
-    window.addEventListener("DOMContentLoaded", () => {
-        if (!currentSessionId) createNewSession();
-        loadCurrentSessionChat();
-        renderSidebarList();
-    });
+    // ── APPEND MESSAGE ─────────────────────────────────────────
+    function appendMessage(text, imageBase64, sender) {
+        const row = document.createElement("div");
+        row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble");
+
+        if (imageBase64) {
+            const img = document.createElement("img");
+            img.src = imageBase64;
+            img.classList.add("chat-img");
+            img.addEventListener("click", () => openImageModal(imageBase64));
+            bubble.appendChild(img);
+        }
+
+        if (text) {
+            if (sender === "bot") {
+                const div = document.createElement("div");
+                div.innerHTML = renderMarkdown(text);
+                bubble.appendChild(div);
+            } else {
+                const span = document.createElement("span");
+                span.textContent = text;
+                bubble.appendChild(span);
+            }
+        }
+
+        row.appendChild(bubble);
+        chatContainer.appendChild(row);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function appendLoadingIndicator() {
+        const id = "load-" + Date.now();
+        const row = document.createElement("div");
+        row.id = id;
+        row.classList.add("message-row", "bot-row");
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble", "loading-bubble");
+        bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
+        row.appendChild(bubble);
+        chatContainer.appendChild(row);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return id;
+    }
+
+    function removeLoadingIndicator(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    function saveChatToSession(text, image, sender) {
+        let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+        if (!sessions[currentSessionId]) return;
+        if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text)
+            sessions[currentSessionId].title = text;
+        sessions[currentSessionId].chats.push({ text, image, sender });
+        sessions[currentSessionId].timestamp = Date.now();
+        localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    }
 </script>
 </body>
-        </html>
+</html>
