@@ -10,13 +10,17 @@ import { join } from 'path';
 // SEMUA MODEL YANG AKAN DI-SCAN
 // ══════════════════════════════════════════════════════════════════════════
 const OR_ALL_MODELS = [
+  // Gemini — vision + teks
   { id: 'google/gemini-2.0-flash-001',       vision: true  },
   { id: 'google/gemini-2.5-pro-preview',     vision: true  },
   { id: 'google/gemini-2.5-flash-preview',   vision: true  },
   { id: 'google/gemini-1.5-flash',           vision: true  },
+  // Claude — vision + teks
   { id: 'anthropic/claude-3-haiku',          vision: true  },
   { id: 'anthropic/claude-3.5-sonnet',       vision: true  },
+  // Llama vision
   { id: 'meta-llama/llama-3.2-11b-vision-instruct:free', vision: true  },
+  // Teks only
   { id: 'google/gemini-2.5-pro-preview-03-25', vision: false },
   { id: 'meta-llama/llama-3.3-70b-instruct:free', vision: false },
   { id: 'meta-llama/llama-3.1-8b-instruct:free',  vision: false },
@@ -33,16 +37,35 @@ const GROQ_ALL_MODELS = [
   'deepseek-r1-distill-llama-70b',
 ];
 
+// ══════════════════════════════════════════════════════════════════════════
+// CACHE HASIL SCAN
+// ══════════════════════════════════════════════════════════════════════════
 const SCAN_INTERVAL_MS = 60 * 60 * 1000; // 1 jam
 
 let scanCache = {
-  or: { lastScan: 0, working: [], limited: [] },
-  groq: { lastScan: 0, working: [], limited: [] },
+  or: {
+    lastScan: 0,
+    working: [],       // [{ id, vision, ms }] — model OK
+    limited: [],       // model rate-limited (bisa dicoba lagi)
+  },
+  groq: {
+    lastScan: 0,
+    working: [],       // [{ model, key, ms }]
+    limited: [],
+  },
 };
+
 let scanRunning = { or: false, groq: false };
 
+// ══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════════════
 function getKeys(prefix) {
   return [1,2,3,4,5].map(i => process.env[`${prefix}_${i}`]).filter(Boolean);
+}
+
+function pickRandom(arr) {
+  return arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
 }
 
 function isRateLimit(status, msg = '') {
@@ -51,11 +74,6 @@ function isRateLimit(status, msg = '') {
 
 function isNotFound(status, msg = '') {
   return status === 404 || /not.found|no.endpoints|unavailable|does.not.exist/i.test(msg);
-}
-
-function isImageBase64(str) {
-  if (!str || typeof str !== 'string') return false;
-  return str.startsWith('data:image/') && str.includes('base64,');
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -85,7 +103,7 @@ PENTING: Kamu BISA melihat dan menganalisis foto/gambar. Jika user kirim foto, a
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SCAN OPENROUTER
+// SCAN OPENROUTER — test semua model
 // ══════════════════════════════════════════════════════════════════════════
 async function scanOpenRouter() {
   if (scanRunning.or) return;
@@ -93,8 +111,10 @@ async function scanOpenRouter() {
   if (!keys.length) return;
   scanRunning.or = true;
 
-  const working = [], limited = [];
-  const key = keys[0];
+  const working = [];
+  const limited = [];
+  const key = keys[0]; // pakai key pertama buat scan
+
   console.log('[scan-or] mulai scan', OR_ALL_MODELS.length, 'model...');
 
   for (const m of OR_ALL_MODELS) {
@@ -116,31 +136,34 @@ async function scanOpenRouter() {
       });
       const txt = await r.text();
       if (r.ok) {
-        working.push({ ...m, ms: Date.now() - t0 });
-        console.log(`[scan-or] ✓ ${m.id}`);
+        const ms = Date.now() - t0;
+        working.push({ ...m, ms });
+        console.log(`[scan-or] ✓ ${m.id} (${ms}ms)`);
       } else {
-        let msg = txt.slice(0,100);
+        let msg = txt.slice(0, 100);
         try { msg = JSON.parse(txt)?.error?.message || msg; } catch {}
         if (isRateLimit(r.status, msg)) {
           limited.push(m);
           console.log(`[scan-or] ⚠ ${m.id} limit`);
         } else {
-          console.log(`[scan-or] ✗ ${m.id}: ${msg.slice(0,60)}`);
+          console.log(`[scan-or] ✗ ${m.id}: ${msg.slice(0, 60)}`);
         }
       }
     } catch (e) {
-      console.log(`[scan-or] ✗ ${m.id}: ${e.message?.slice(0,60)}`);
+      console.log(`[scan-or] ✗ ${m.id}: ${e.message?.slice(0, 60)}`);
     }
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 200)); // delay antar request
   }
-  working.sort((a,b) => a.ms - b.ms);
+
+  // Urutkan: tercepat dulu
+  working.sort((a, b) => a.ms - b.ms);
   scanCache.or = { lastScan: Date.now(), working, limited };
   scanRunning.or = false;
   console.log(`[scan-or] selesai: ${working.length} OK, ${limited.length} limit`);
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SCAN GROQ
+// SCAN GROQ — test semua model
 // ══════════════════════════════════════════════════════════════════════════
 async function scanGroq() {
   if (scanRunning.groq) return;
@@ -148,7 +171,9 @@ async function scanGroq() {
   if (!keys.length) return;
   scanRunning.groq = true;
 
-  const working = [], limited = [];
+  const working = [];
+  const limited = [];
+
   console.log('[scan-groq] mulai scan', GROQ_ALL_MODELS.length, 'model...');
 
   for (const model of GROQ_ALL_MODELS) {
@@ -157,60 +182,89 @@ async function scanGroq() {
         const t0 = Date.now();
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-          body: JSON.stringify({ model, messages: [{ role: 'user', content: 'OK' }], max_tokens: 4 }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: 'OK' }],
+            max_tokens: 4,
+          }),
         });
         if (r.ok) {
-          working.push({ model, key, ms: Date.now() - t0 });
-          console.log(`[scan-groq] ✓ ${model}`);
-          break;
+          const ms = Date.now() - t0;
+          working.push({ model, key, ms });
+          console.log(`[scan-groq] ✓ ${model} key${keys.indexOf(key)+1} (${ms}ms)`);
+          break; // model ini OK dengan key ini, skip key lain
         }
         const txt = await r.text();
-        let msg = txt.slice(0,100);
+        let msg = txt.slice(0, 100);
         try { msg = JSON.parse(txt)?.error?.message || msg; } catch {}
         if (isRateLimit(r.status, msg)) {
           limited.push({ model, key });
-          console.log(`[scan-groq] ⚠ ${model} limit`);
+          console.log(`[scan-groq] ⚠ ${model} key${keys.indexOf(key)+1} limit`);
         } else {
-          console.log(`[scan-groq] ✗ ${model}: ${msg.slice(0,60)}`);
-          break;
+          console.log(`[scan-groq] ✗ ${model}: ${msg.slice(0, 60)}`);
+          break; // model tidak tersedia, skip semua key
         }
       } catch (e) {
-        console.log(`[scan-groq] ✗ ${model}: ${e.message?.slice(0,60)}`);
+        console.log(`[scan-groq] ✗ ${model}: ${e.message?.slice(0, 60)}`);
         break;
       }
     }
     await new Promise(r => setTimeout(r, 150));
   }
-  working.sort((a,b) => a.ms - b.ms);
+
+  working.sort((a, b) => a.ms - b.ms);
   scanCache.groq = { lastScan: Date.now(), working, limited };
   scanRunning.groq = false;
   console.log(`[scan-groq] selesai: ${working.length} OK, ${limited.length} limit`);
 }
 
+// Trigger scan kalau sudah waktunya (non-blocking)
 function triggerScanIfNeeded() {
   const now = Date.now();
-  if (now - scanCache.or.lastScan > SCAN_INTERVAL_MS) scanOpenRouter().catch(e => console.error(e));
-  if (now - scanCache.groq.lastScan > SCAN_INTERVAL_MS) scanGroq().catch(e => console.error(e));
+  if (now - scanCache.or.lastScan > SCAN_INTERVAL_MS) {
+    scanOpenRouter().catch(e => console.error('[scan-or error]', e.message));
+  }
+  if (now - scanCache.groq.lastScan > SCAN_INTERVAL_MS) {
+    scanGroq().catch(e => console.error('[scan-groq error]', e.message));
+  }
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// GET WORKING MODELS — ambil dari cache, fallback ke semua kalau kosong
+// ══════════════════════════════════════════════════════════════════════════
 function getOrModels(needVision) {
-  let models = scanCache.or.working.length ? scanCache.or.working : OR_ALL_MODELS.map(m => ({ ...m, ms: 9999 }));
+  const { working, limited } = scanCache.or;
+  let models = working.length ? working : OR_ALL_MODELS.map(m => ({ ...m, ms: 9999 }));
   if (needVision) models = models.filter(m => m.vision);
-  if (!models.length && needVision) models = OR_ALL_MODELS.filter(m => m.vision).map(m => ({ ...m, ms: 9999 }));
+  // Kalau semua working adalah vision model dan kita butuh teks, pakai semua
+  if (!models.length) models = working.length ? working : OR_ALL_MODELS.map(m => ({ ...m, ms: 9999 }));
   return models;
 }
 
+function getGroqWorking() {
+  return scanCache.groq.working;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// CALL OPENROUTER
+// ══════════════════════════════════════════════════════════════════════════
 async function callOR(key, modelId, sysprompt, msgs, imageB64) {
-  const hasImage = isImageBase64(imageB64);
-  const history = msgs.slice(0, -1).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' }));
-  const lastText = msgs[msgs.length-1]?.content || '';
+  const hasImg = !!(imageB64?.includes(','));
+  const history = msgs.slice(0, -1).map(m => ({
+    role: m.role === 'assistant' ? 'assistant' : 'user',
+    content: m.content || '',
+  }));
+  const lastText = msgs[msgs.length - 1]?.content || '';
   let lastContent;
-  if (hasImage) {
+  if (hasImg) {
     const [meta, data] = imageB64.split(',');
     const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
     lastContent = [
-      { type: 'text', text: lastText || 'Apa yang ada di gambar ini? Jelaskan secara detail.' },
+      { type: 'text', text: lastText || 'Lihat dan ceritakan isi gambar ini secara detail.' },
       { type: 'image_url', image_url: { url: `data:${mime};base64,${data}` } },
     ];
   } else {
@@ -227,13 +281,18 @@ async function callOR(key, modelId, sysprompt, msgs, imageB64) {
     },
     body: JSON.stringify({
       model: modelId,
-      messages: [{ role: 'system', content: sysprompt }, ...history, { role: 'user', content: lastContent }],
+      messages: [
+        { role: 'system', content: sysprompt },
+        ...history,
+        { role: 'user', content: lastContent },
+      ],
       max_tokens: 2048,
     }),
   });
+
   const txt = await r.text();
   if (!r.ok) {
-    let msg = txt.slice(0,150);
+    let msg = txt.slice(0, 150);
     try { msg = JSON.parse(txt)?.error?.message || msg; } catch {}
     const e = new Error(msg);
     e.status = r.status;
@@ -246,19 +305,31 @@ async function callOR(key, modelId, sysprompt, msgs, imageB64) {
   return result;
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// CALL GROQ
+// ══════════════════════════════════════════════════════════════════════════
 async function callGroq(key, model, sysprompt, msgs) {
   const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+    },
     body: JSON.stringify({
       model,
-      messages: [{ role: 'system', content: sysprompt }, ...msgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' }))],
+      messages: [
+        { role: 'system', content: sysprompt },
+        ...msgs.map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content || '',
+        })),
+      ],
       max_tokens: 1024,
     }),
   });
   const txt = await r.text();
   if (!r.ok) {
-    let msg = txt.slice(0,150);
+    let msg = txt.slice(0, 150);
     try { msg = JSON.parse(txt)?.error?.message || msg; } catch {}
     const e = new Error(msg);
     e.status = r.status;
@@ -279,55 +350,62 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
 
+  // Trigger scan background (non-blocking)
   triggerScanIfNeeded();
 
+  // Parse body
   let { messages, user_message, user_image } = req.body || {};
-  const hasImage = isImageBase64(user_image);
-  console.log(`[debug] hasImage: ${hasImage}, image length: ${user_image?.length || 0}`);
-
   if (!messages?.length) {
-    const text = user_message || '';
-    if (!text && !hasImage) return res.status(400).json({ error: 'Kirim pesan atau foto dulu bro' });
-    messages = [{ role: 'user', content: text }];
+    const text = user_message || null;
+    const hasImg = !!(user_image?.includes(','));
+    if (!text && !hasImg) return res.status(400).json({ error: 'Kirim pesan atau foto dulu bro' });
+    messages = [{ role: 'user', content: text || '' }];
   }
 
+  const hasImage = !!(user_image?.includes(','));
   const sysprompt = await getPrompt();
   const orKeys = getKeys('OPENROUTER_API_KEY');
   const orShuffled = [...orKeys].sort(() => Math.random() - 0.5);
 
-  // ── FOTO ──────────────────────────────────────────────────────────────
+  // ── FOTO → OpenRouter vision ──────────────────────────────────────────
   if (hasImage) {
     const visionModels = getOrModels(true);
     let lastErr;
+
     for (const m of visionModels) {
       for (const key of orShuffled) {
         try {
-          console.log(`[vision] mencoba ${m.id}`);
           const result = await callOR(key, m.id, sysprompt, messages, user_image);
           console.log(`[vision] OK: ${m.id}`);
           return res.status(200).json({ response: result, provider: 'openrouter', model: m.id });
         } catch (e) {
           lastErr = e;
-          console.error(`[vision] ${m.id} gagal: ${e.message?.slice(0,80)}`);
-          if (e.notFound) break;
-          if (!e.limit) break;
+          console.error(`[vision] ${m.id}: ${e.message?.slice(0, 80)}`);
+          if (e.notFound) break; // model tidak ada, skip ke model berikutnya
+          if (!e.limit) break;   // error lain, skip key ini
         }
       }
     }
-    return res.status(500).json({ response: 'Maaf bro, gagal baca foto sekarang. Coba lagi.', error: lastErr?.message });
+    return res.status(500).json({
+      response: 'Maaf bro, gagal baca foto sekarang. Coba lagi.',
+      error: lastErr?.message,
+    });
   }
 
-  // ── TEKS via Groq ──────────────────────────────────────────────────────
-  const groqWorking = scanCache.groq.working;
+  // ── TEKS → Groq dulu (dari cache scan) ───────────────────────────────
+  const groqWorking = getGroqWorking();
   if (groqWorking.length) {
+    // Coba dari yang tercepat
     for (const { model, key } of groqWorking) {
       try {
         const result = await callGroq(key, model, sysprompt, messages);
         console.log(`[groq] OK: ${model}`);
         return res.status(200).json({ response: result, provider: 'groq', model });
       } catch (e) {
-        console.error(`[groq] ${model} gagal: ${e.message?.slice(0,80)}`);
+        console.error(`[groq] ${model}: ${e.message?.slice(0, 80)}`);
+        // kalau limit, tandai dan coba berikutnya
         if (e.limit) {
+          // tandai key ini sebagai limit, coba key lain untuk model sama
           const altKeys = getKeys('GROQ_API_KEY').filter(k => k !== key);
           for (const altKey of altKeys) {
             try {
@@ -339,12 +417,14 @@ export default async function handler(req, res) {
       }
     }
   } else {
+    // Scan belum jalan — coba langsung semua key x model
     const groqKeys = getKeys('GROQ_API_KEY');
     for (const key of groqKeys) {
       for (const model of GROQ_ALL_MODELS) {
         try {
           const result = await callGroq(key, model, sysprompt, messages);
           console.log(`[groq-raw] OK: ${model}`);
+          // Simpan ke cache supaya request berikutnya lebih cepat
           if (!scanCache.groq.working.find(w => w.model === model)) {
             scanCache.groq.working.push({ model, key, ms: 0 });
           }
@@ -356,7 +436,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── FALLBACK OpenRouter teks ──────────────────────────────────────────
+  // ── FALLBACK → OpenRouter teks ────────────────────────────────────────
   const textModels = getOrModels(false);
   let lastErr;
   for (const m of textModels) {
@@ -367,12 +447,15 @@ export default async function handler(req, res) {
         return res.status(200).json({ response: result, provider: 'openrouter', model: m.id });
       } catch (e) {
         lastErr = e;
-        console.error(`[or-text] ${m.id} gagal: ${e.message?.slice(0,80)}`);
+        console.error(`[or-text] ${m.id}: ${e.message?.slice(0, 80)}`);
         if (e.notFound) break;
         if (!e.limit) break;
       }
     }
   }
 
-  return res.status(500).json({ response: 'Semua AI provider lagi down bro, coba lagi bentar.', error: lastErr?.message });
-        }
+  return res.status(500).json({
+    response: 'Semua AI provider lagi down bro, coba lagi bentar.',
+    error: lastErr?.message,
+  });
+}
