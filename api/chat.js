@@ -6,9 +6,21 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-// ══════════════════════════════════════════════════════════════════════════
-// SEMUA MODEL YANG AKAN DI-SCAN
-// ══════════════════════════════════════════════════════════════════════════
+// ── PRIORITY MODELS — selalu dicoba pertama ───────────────────────────────
+// Ini yang dipaksa, tidak nunggu scan
+const OR_PRIORITY_VISION = [
+  'google/gemini-2.0-flash-001',
+  'google/gemini-2.5-pro-preview',
+  'anthropic/claude-3-haiku',
+];
+
+const OR_PRIORITY_TEXT = [
+  'google/gemini-2.0-flash-001',
+  'google/gemini-2.5-pro-preview',
+  'anthropic/claude-3-haiku',
+];
+
+// ── SEMUA MODEL (untuk scan background) ──────────────────────────────────
 const OR_ALL_MODELS = [
   // Gemini — vision + teks
   { id: 'google/gemini-2.0-flash-001',       vision: true  },
@@ -237,12 +249,34 @@ function triggerScanIfNeeded() {
 // GET WORKING MODELS — ambil dari cache, fallback ke semua kalau kosong
 // ══════════════════════════════════════════════════════════════════════════
 function getOrModels(needVision) {
-  const { working, limited } = scanCache.or;
-  let models = working.length ? working : OR_ALL_MODELS.map(m => ({ ...m, ms: 9999 }));
-  if (needVision) models = models.filter(m => m.vision);
-  // Kalau semua working adalah vision model dan kita butuh teks, pakai semua
-  if (!models.length) models = working.length ? working : OR_ALL_MODELS.map(m => ({ ...m, ms: 9999 }));
-  return models;
+  const priority = needVision ? OR_PRIORITY_VISION : OR_PRIORITY_TEXT;
+  const { working } = scanCache.or;
+
+  if (!working.length) {
+    // Scan belum selesai — pakai priority list langsung
+    return priority.map(id => {
+      const meta = OR_ALL_MODELS.find(m => m.id === id);
+      return { id, vision: meta?.vision ?? true, ms: 0 };
+    });
+  }
+
+  // Scan sudah ada — gabungkan: priority yang OK duluan, lalu sisa dari scan
+  const workingIds = working.map(m => m.id);
+  const priorityWorking = priority
+    .filter(id => workingIds.includes(id))
+    .map(id => working.find(m => m.id === id));
+
+  const otherWorking = working
+    .filter(m => !priority.includes(m.id))
+    .filter(m => needVision ? m.vision : true);
+
+  const result = [...priorityWorking.filter(Boolean), ...otherWorking];
+
+  // Kalau tidak ada yang cocok dari scan, tetap pakai priority
+  if (!result.length) {
+    return priority.map(id => ({ id, vision: true, ms: 0 }));
+  }
+  return result;
 }
 
 function getGroqWorking() {
