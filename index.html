@@ -141,16 +141,23 @@ let CONFIG = { prompt: '', groq: [], openrouter: [] };
 let configLoaded = false;
 
 async function loadConfig() {
-    try {
-        const r = await fetch(CONFIG_URL);
-        if (r.ok) {
-            CONFIG = await r.json();
-            configLoaded = true;
-            console.log('[config] loaded — groq:', CONFIG.groq.length, 'keys, or:', CONFIG.openrouter.length, 'keys');
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const r = await fetch(CONFIG_URL);
+            if (r.ok) {
+                CONFIG = await r.json();
+                configLoaded = true;
+                console.log('[config] loaded — groq:', CONFIG.groq.length, 'keys, or:', CONFIG.openrouter.length, 'keys');
+                return;
+            }
+            console.warn('[config] attempt', attempt, 'status:', r.status);
+        } catch(e) {
+            console.warn('[config] attempt', attempt, 'error:', e.message);
         }
-    } catch(e) {
-        console.error('[config] gagal load:', e.message);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 1000));
     }
+    // Gagal setelah 3x — tampilkan pesan
+    console.error('[config] gagal load setelah 3x percobaan');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -198,10 +205,14 @@ const previewText    = document.getElementById('previewText');
 // INIT
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
-    await loadConfig();
     if (!currentSessionId) createNewSession();
-    loadCurrentSession();
+    loadCurrentSession(); // tampil dulu
     renderSidebar();
+    await loadConfig();   // load config background
+    // kalau gagal load config, kasih tau user
+    if (!configLoaded) {
+        appendMessage('⚠️ Gagal load konfigurasi dari server. Pastikan api/config.js sudah di-deploy di Vercel.', null, 'bot', null);
+    }
 });
 
 // ═══════════════════════════════════════════════════════
