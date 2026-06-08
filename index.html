@@ -272,7 +272,7 @@
         .message-row.bot-row { justify-content: flex-start; }
 
         .bubble {
-            max-width: 80%;
+            max-width: 85%;
             padding: 14px 18px;
             border-radius: 18px;
             font-size: 15px;
@@ -297,15 +297,16 @@
             position: relative;
         }
 
-        /* Tombol audio kecil di bubble bot */
         .speak-bubble-btn {
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
             font-size: 12px;
-            margin-top: 6px;
-            display: block;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             transition: color 0.2s;
         }
         .speak-bubble-btn:hover {
@@ -360,7 +361,7 @@
             color: var(--text-muted);
         }
 
-        /* --- BAR INPUT BAWAH FIXED FIX --- */
+        /* --- BAR INPUT BAWAH FIXED --- */
         .chat-form-wrapper {
             background-color: transparent;
             padding: 0 24px 24px 24px;
@@ -380,9 +381,9 @@
             border: 1px solid var(--border-color);
             border-radius: 28px;
             padding: 6px 8px 6px 16px;
-            gap: 6px;
+            gap: 8px;
             width: 100%;
-            min-height: 52px;
+            min-height: 54px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
@@ -394,6 +395,7 @@
             font-size: 15px;
             outline: none;
             height: 100%;
+            padding: 0 4px;
         }
 
         .bar-btn {
@@ -402,32 +404,29 @@
             color: var(--text-muted);
             font-size: 18px;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
         }
         .bar-btn:hover {
             background-color: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
         }
 
-        /* Efek Berkedip saat merekam mic */
         .mic-recording {
             color: #ef4444 !important;
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: rgba(239, 68, 68, 0.15);
             animation: pulse 1.5s infinite;
         }
 
         .send-btn-active {
             color: white !important;
             background-color: var(--bg-bubble-user);
-        }
-        .send-btn-active:hover {
-            opacity: 0.9;
         }
 
         .sidebar-overlay {
@@ -519,10 +518,12 @@
 
         @media (max-width: 640px) {
             .chat-container { padding: 16px; }
-            .chat-form-wrapper { padding: 0 16px 16px 16px; }
-            .bubble { max-width: 90%; font-size: 14px; padding: 12px 14px; }
+            .chat-form-wrapper { padding: 0 12px 12px 12px; }
+            .bubble { max-width: 88%; font-size: 14px; padding: 12px 14px; }
             .chat-header { padding: 0 16px; }
             .welcome-title { font-size: 18px; }
+            .modern-input-bar { padding: 4px 6px 4px 12px; min-height: 50px; }
+            .bar-btn { width: 38px; height: 38px; font-size: 16px; }
         }
     </style>
 </head>
@@ -574,10 +575,10 @@
                     <button type="button" class="bar-btn" id="uploadBtn" title="Kirim Foto">
                         <i class="fa-regular fa-image"></i>
                     </button>
-                    <button type="button" class="bar-btn" id="micBtn" title="Bicara">
+                    <button type="button" class="bar-btn" id="micBtn" title="Bicara (VN)">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
-                    <input type="text" id="userInput" placeholder="Tanyakan hal yang ingin Anda ketahui..." autocomplete="off">
+                    <input type="text" id="userInput" placeholder="Ketik pesan atau gunakan mic..." autocomplete="off">
                     <button type="submit" class="bar-btn send-btn-active" id="sendBtn" title="Kirim Pesan">
                         <i class="fas fa-arrow-up"></i>
                     </button>
@@ -643,7 +644,7 @@
             recognition.onend = () => {
                 isRecording = false;
                 micBtn.classList.remove("mic-recording");
-                userInput.placeholder = "Tanyakan hal yang ingin Anda ketahui...";
+                userInput.placeholder = "Ketik pesan atau gunakan mic...";
             };
 
             recognition.onerror = (event) => {
@@ -656,7 +657,6 @@
                 const speechToText = event.results[0][0].transcript;
                 if (speechToText.trim() !== "") {
                     userInput.value = speechToText;
-                    // FIX: Selesai ngomong langsung otomatis submit kirim!
                     setTimeout(() => {
                         chatForm.requestSubmit(); 
                     }, 300);
@@ -670,9 +670,8 @@
             e.preventDefault();
             if (!recognition) return;
 
-            // Buka gerbang audio mobile browser
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+                window.speechSynthesis.speak(new SynthesisUtterance(""));
             }
 
             if (isRecording) {
@@ -683,7 +682,7 @@
             }
         });
 
-        // FIX: KAMUS TRANSLATE GAUL (Mencegah AI Mengeja Singkatan Teks Kaku)
+        // RE-FIX KAMUS FILTER AGAR SUARA AI TIDAK MENGEJA KATA GAUL SINGKATAN
         function filterSlangToFormalText(text) {
             let clean = text;
             const slangMap = {
@@ -691,7 +690,6 @@
                 "\\bgua\\b": "gua",
                 "\\bga\\b": "nggak",
                 "\\bgak\\b": "nggak",
-                "\\bndak\\b": "nggak",
                 "\\bdn\\b": "dan",
                 "\\bdll\\b": "dan lain-lain",
                 "\\bbtw\\b": "by the way",
@@ -703,8 +701,6 @@
                 "\\butk\\b": "untuk",
                 "\\bLu\\b": "lu",
                 "\\blo\\b": "lu",
-                "\\belo\\b": "lu",
-                "\\bkm\\b": "kamu",
                 "\\bmks\\b": "makasih",
                 "\\bthx\\b": "terima kasih",
                 "\\bttg\\b": "tentang",
@@ -719,25 +715,24 @@
             return clean;
         }
 
-        // FIX: OUTPUT SUARA TEXT TO SPEECH DI INPUT OPTIMALISASI
+        // OUTPUT SUARA TEXT TO SPEECH YANG FASIH DI HP (KUNCI BAHASA INDONESIA)
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); 
                 
-                // Hilangkan simbol markdown pembacaan teks kaku
                 let parsedText = text.replace(/[*#_`~\-]/g, ''); 
-                // Masukkan filter translasi kamus gaul
                 parsedText = filterSlangToFormalText(parsedText);
 
                 const utterance = new SpeechSynthesisUtterance(parsedText);
                 utterance.lang = 'id-ID'; 
-                utterance.rate = 1.0; // Kecepatan normal pas manusia ngomong
+                utterance.rate = 1.0; 
                 utterance.pitch = 1.0; 
 
-                // Cari list suara sistem lokal bahasa Indonesia agar natural tidak cempreng robot
                 const voices = window.speechSynthesis.getVoices();
                 const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-                if (idVoice) utterance.voice = idVoice;
+                if (idVoice) {
+                    utterance.voice = idVoice;
+                }
 
                 window.speechSynthesis.speak(utterance);
             }
