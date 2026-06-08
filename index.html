@@ -20,7 +20,6 @@
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
         body { background-color:var(--bg-main); color:var(--text-main); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
-        /* HEADER */
         .chat-header { position:fixed; top:0; left:0; right:0; height:60px; background-color:var(--bg-chat); padding:0 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border-color); z-index:10; }
         .brand-info { display:flex; align-items:center; gap:10px; }
         .avatar { width:36px; height:36px; background-color:#2563eb; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; }
@@ -30,7 +29,6 @@
         .header-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:8px; border-radius:50%; }
         .header-btn:active { background-color:rgba(255,255,255,0.05); }
 
-        /* CHAT AREA */
         .chat-container { position:absolute; top:60px; bottom:80px; left:0; right:0; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; scroll-behavior:smooth; }
         .message-row { display:flex; width:100%; }
         .message-row.user-row { justify-content:flex-end; }
@@ -39,34 +37,31 @@
         .user-row .bubble { background-color:var(--bg-bubble-user); color:white; border-bottom-right-radius:4px; }
         .bot-row  .bubble { background-color:var(--bg-bubble-bot); color:var(--text-main); border-bottom-left-radius:4px; border:1px solid var(--border-color); }
 
-        /* Markdown styles */
         .bot-row .bubble strong { color:#fff; }
         .bot-row .bubble em { color:var(--text-muted); }
         .bot-row .bubble code { background:#0b0f17; border:1px solid var(--border-color); border-radius:4px; padding:1px 5px; font-size:12px; font-family:monospace; color:#4ade80; }
         .bot-row .bubble pre { background:#0b0f17; border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; overflow-x:auto; margin:6px 0; }
-        .bot-row .bubble pre code { background:none; border:none; padding:0; color:#60a5fa; }
+        .bot-row .bubble pre code { background:none; border:none; padding:0; color:#60a5fa; font-size:12px; }
         .bot-row .bubble a { color:#60a5fa; text-decoration:underline; }
 
-        /* Provider badge */
-        .provider-badge { font-size:9px; font-family:monospace; padding:2px 7px; border-radius:10px; display:inline-block; margin-bottom:5px; background:rgba(96,165,250,0.15); color:#60a5fa; }
+        .provider-badge { font-size:9px; font-family:monospace; padding:2px 7px; border-radius:10px; display:inline-block; margin-bottom:5px; }
+        .badge-gemini    { background:rgba(74,222,128,0.15); color:#4ade80; }
+        .badge-groq      { background:rgba(96,165,250,0.15); color:#60a5fa; }
+        .badge-openrouter{ background:rgba(251,146,60,0.15); color:#fb923c; }
 
-        /* Image */
-        .chat-img { max-width:100%; max-height:200px; border-radius:8px; margin-bottom:6px; display:block; object-fit:cover; cursor:pointer; }
+        .chat-img { max-width:100%; max-height:200px; border-radius:8px; margin-bottom:6px; display:block; object-fit:cover; cursor:pointer; transition:opacity 0.2s; }
 
-        /* Preview bar */
         .preview-bar { position:fixed; bottom:80px; left:16px; right:16px; background-color:#1e293b; padding:8px 12px; display:none; align-items:center; justify-content:space-between; border:1px solid var(--border-color); border-radius:12px; z-index:9; }
         .preview-container { display:flex; align-items:center; gap:10px; }
         .preview-img { width:40px; height:40px; object-fit:cover; border-radius:6px; }
         .preview-text { font-size:12px; color:var(--text-muted); }
 
-        /* Input */
         .chat-form { position:fixed; bottom:0; left:0; right:0; height:80px; background-color:var(--bg-chat); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--border-color); z-index:10; }
         .modern-input-bar { display:flex; align-items:center; background-color:var(--bg-main); border:1px solid var(--border-color); border-radius:24px; padding:2px 6px 2px 12px; gap:6px; width:100%; height:44px; }
         .modern-input-bar input { flex:1; background:none; border:none; color:var(--text-main); font-size:14px; outline:none; height:100%; }
         .bar-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
         .send-btn-active { color:var(--text-main); background-color:var(--bg-bubble-user); }
 
-        /* Sidebar */
         .sidebar-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px); z-index:20; display:none; }
         .history-sidebar { position:fixed; top:0; right:calc(-1 * var(--sidebar-width)); width:var(--sidebar-width); height:100%; background-color:var(--bg-chat); border-left:1px solid var(--border-color); z-index:21; display:flex; flex-direction:column; transition:right 0.3s ease; }
         .sidebar-header { padding:16px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
@@ -77,25 +72,11 @@
         .history-item.active-session { border-color:var(--bg-bubble-user); background-color:rgba(37,99,235,0.05); }
         .history-item .title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .history-item .time { font-size:10px; color:var(--text-muted); margin-top:3px; }
-
         .loading-bubble { color:var(--text-muted); font-style:italic; display:flex; align-items:center; gap:6px; }
 
-        /* Modal zoom */
         .image-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
         .modal-close-btn { position:absolute; top:20px; right:16px; background:rgba(255,255,255,0.1); border:none; color:white; width:40px; height:40px; border-radius:50%; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
         .modal-img { max-width:100%; max-height:85vh; border-radius:8px; object-fit:contain; }
-
-        /* Keys modal */
-        .keys-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:50; display:none; align-items:flex-end; justify-content:center; }
-        .keys-modal.show { display:flex; }
-        .keys-box { background:var(--bg-chat); border-top:1px solid var(--border-color); border-radius:20px 20px 0 0; padding:20px 16px 32px; width:100%; max-width:500px; }
-        .keys-title { font-size:14px; font-weight:600; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-        .key-group { margin-bottom:12px; }
-        .key-group label { font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px; }
-        .key-group input { width:100%; background:var(--bg-main); border:1px solid var(--border-color); border-radius:8px; padding:9px 12px; color:var(--text-main); font-size:13px; outline:none; font-family:monospace; }
-        .key-group input:focus { border-color:#2563eb; }
-        .btn-save-keys { width:100%; background:#2563eb; color:white; border:none; padding:12px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; margin-top:4px; }
-        .keys-note { font-size:10px; color:var(--text-muted); text-align:center; margin-top:8px; }
     </style>
 </head>
 <body>
@@ -109,9 +90,8 @@
         </div>
     </div>
     <div class="header-actions">
-        <button class="header-btn" id="btnKeys" title="API Keys"><i class="fas fa-key"></i></button>
-        <button class="header-btn" id="btnHistory" title="Riwayat"><i class="fa-solid fa-clock-rotate-left"></i></button>
-        <button class="header-btn" id="btnClear" title="Hapus"><i class="fas fa-trash-can"></i></button>
+        <button class="header-btn" id="btnHistory"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        <button class="header-btn" id="btnClear"><i class="fas fa-trash-can"></i></button>
     </div>
 </div>
 
@@ -134,7 +114,6 @@
     </div>
 </form>
 
-<!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="history-sidebar" id="historySidebar">
     <div class="sidebar-header">
@@ -145,74 +124,51 @@
     <div class="history-list" id="historyList"></div>
 </div>
 
-<!-- MODAL ZOOM FOTO -->
 <div class="image-modal" id="imageModal">
     <button class="modal-close-btn" id="btnCloseModal"><i class="fas fa-times"></i></button>
     <img src="" id="modalImg" class="modal-img">
 </div>
 
-<!-- MODAL API KEYS -->
-<div class="keys-modal" id="keysModal">
-    <div class="keys-box">
-        <div class="keys-title">
-            <span>🔑 API Keys</span>
-            <button class="header-btn" id="btnCloseKeys"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="key-group">
-            <label>GROQ API KEY (gsk_...)</label>
-            <input type="password" id="inputGroqKey" placeholder="gsk_..." autocomplete="off">
-        </div>
-        <div class="key-group">
-            <label>OPENROUTER API KEY (sk-or-...)</label>
-            <input type="password" id="inputOrKey" placeholder="sk-or-v1-..." autocomplete="off">
-        </div>
-        <button class="btn-save-keys" id="btnSaveKeys">Simpan Key</button>
-        <div class="keys-note">Key disimpan di browser (localStorage) · tidak dikirim ke server mana pun</div>
-    </div>
-</div>
-
 <script>
-// ═══════════════════════════════════════════════════
-// PROMPT — ambil dari folder /prompt di repo GitHub
-// ═══════════════════════════════════════════════════
-// File-file ini dibaca langsung dari repo via fetch
-const PROMPT_FILES = [
-    '/prompt/prompt-persona.txt',
-    '/prompt/prompt-aturan.txt',
-    '/prompt/prompt-toko.txt',
-];
+// ═══════════════════════════════════════════════
+// CONFIG dari Vercel /api/config
+// ═══════════════════════════════════════════════
+let keyStore = { gemini: [], groq: [], openrouter: [] };
+let _systemPromptBase = '';
 
-let systemPromptBase = '';
-
-async function loadPrompts() {
-    const parts = [];
-    for (const path of PROMPT_FILES) {
-        try {
-            const r = await fetch(path);
-            if (r.ok) parts.push((await r.text()).trim());
-        } catch {}
+async function loadConfig() {
+    try {
+        const r = await fetch('/api/config');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const cfg = await r.json();
+        ['gemini','groq','openrouter'].forEach(p => {
+            const keys = cfg[p] || [];
+            keyStore[p] = keys.map(v => ({ val: v, status: 'ok' }));
+        });
+        if (cfg.prompt) _systemPromptBase = cfg.prompt;
+    } catch(e) {
+        console.error('[config]', e.message);
     }
-    systemPromptBase = parts.length
-        ? parts.join('\n\n---\n\n')
-        : 'Kamu adalah XREZZKY AI, asisten cerdas XREZZKY OFFICIAL STORE.\nBahasa: Indonesia informal (bro/kak).';
 }
 
-function getSystemPrompt() {
-    const wib = new Date().toLocaleString('id-ID', {
-        dateStyle: 'full', timeStyle: 'medium', timeZone: 'Asia/Jakarta'
-    });
-    return `${systemPromptBase}
-
-Waktu sekarang (WIB): ${wib}
-Kamu BISA melihat dan menganalisis foto/gambar yang dikirim user. Analisis isinya secara detail. JANGAN bilang tidak bisa lihat gambar.`;
+function getKey(p) {
+    const ok  = keyStore[p].filter(k=>k.val&&k.status==='ok').map(k=>k.val);
+    const any = keyStore[p].filter(k=>k.val).map(k=>k.val);
+    const pool = ok.length ? ok : any;
+    return pool.length ? pool[Math.floor(Math.random()*pool.length)] : '';
 }
 
-// ═══════════════════════════════════════════════════
+function getAllKeys(p) {
+    return keyStore[p].filter(k=>k.val).map(k=>k.val);
+}
+
+// ═══════════════════════════════════════════════
 // MODELS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 const GROQ_MODELS = [
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
+    'llama3-70b-8192',
     'mixtral-8x7b-32768',
     'gemma2-9b-it',
 ];
@@ -229,17 +185,16 @@ const OR_TEXT_MODELS = [
     'anthropic/claude-3-haiku',
 ];
 
-// ═══════════════════════════════════════════════════
-// API KEYS — simpan di localStorage
-// ═══════════════════════════════════════════════════
-function getGroqKey()  { return localStorage.getItem('xrezz_groq_key')  || ''; }
-function getOrKey()    { return localStorage.getItem('xrezz_or_key')    || ''; }
-function saveGroqKey(k){ localStorage.setItem('xrezz_groq_key', k); }
-function saveOrKey(k)  { localStorage.setItem('xrezz_or_key', k); }
+const GEMINI_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-pro',
+];
 
-// ═══════════════════════════════════════════════════
-// SESSION & HISTORY
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════════
 const SESSIONS_KEY = 'xrezzky_sessions';
 const CURRENT_KEY  = 'xrezzky_current_id';
 const MAX_HISTORY  = 20;
@@ -255,26 +210,23 @@ function createNewSession() {
     currentSessionId = 'session_' + Date.now();
     localStorage.setItem(CURRENT_KEY, currentSessionId);
     const s = getSessions();
-    s[currentSessionId] = { title: 'Obrolan Baru', timestamp: Date.now(), chats: [] };
-    saveSessions(s);
-    conversationHistory = [];
+    s[currentSessionId] = { title:'Obrolan Baru', timestamp:Date.now(), chats:[] };
+    saveSessions(s); conversationHistory = [];
 }
 
 function loadCurrentSession() {
     const chat = document.getElementById('chatContainer');
-    chat.innerHTML = '';
-    conversationHistory = [];
+    chat.innerHTML = ''; conversationHistory = [];
     const session = getSessions()[currentSessionId];
     if (!session || !session.chats.length) {
         appendMsg('Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZKY AI bantu?', null, 'bot', null);
     } else {
         session.chats.forEach(item => {
-            appendMsg(item.text, item.image, item.sender, item.badge || null);
-            if (item.sender === 'user') conversationHistory.push({ role: 'user', content: item.text || '' });
-            else conversationHistory.push({ role: 'assistant', content: item.text || '' });
+            appendMsg(item.text, item.image, item.sender, item.badge||null);
+            if (item.sender === 'user')     conversationHistory.push({ role:'user',      content:item.text||'', image:item.image||null });
+            else if (item.sender === 'bot') conversationHistory.push({ role:'assistant', content:item.text||'' });
         });
-        if (conversationHistory.length > MAX_HISTORY)
-            conversationHistory = conversationHistory.slice(-MAX_HISTORY);
+        if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
     }
     setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 100);
 }
@@ -282,31 +234,28 @@ function loadCurrentSession() {
 function saveChat(text, image, sender, badge) {
     const s = getSessions();
     if (!s[currentSessionId]) return;
-    if (sender === 'user' && !s[currentSessionId].chats.length && text)
+    if (sender==='user' && !s[currentSessionId].chats.length && text)
         s[currentSessionId].title = text;
     s[currentSessionId].chats.push({ text, image, sender, badge });
     s[currentSessionId].timestamp = Date.now();
     saveSessions(s);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // SIDEBAR
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function renderSidebar() {
     const list = document.getElementById('historyList');
     list.innerHTML = '';
     const sessions = getSessions();
-    const keys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
-    if (!keys.length) {
-        list.innerHTML = '<p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px">Belum ada riwayat.</p>';
-        return;
-    }
+    const keys = Object.keys(sessions).sort((a,b)=>sessions[b].timestamp-sessions[a].timestamp);
+    if (!keys.length) { list.innerHTML='<p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px">Belum ada riwayat.</p>'; return; }
     keys.forEach(key => {
         const s = sessions[key];
         const el = document.createElement('div');
-        el.className = 'history-item' + (key === currentSessionId ? ' active-session' : '');
+        el.className = 'history-item'+(key===currentSessionId?' active-session':'');
         el.innerHTML = `<div class="title">${s.title}</div><div class="time">${new Date(s.timestamp).toLocaleDateString('id-ID',{hour:'2-digit',minute:'2-digit'})}</div>`;
-        el.onclick = () => { currentSessionId = key; localStorage.setItem(CURRENT_KEY, key); loadCurrentSession(); renderSidebar(); closeSidebar(); };
+        el.onclick = () => { currentSessionId=key; localStorage.setItem(CURRENT_KEY,key); loadCurrentSession(); renderSidebar(); closeSidebar(); };
         list.appendChild(el);
     });
 }
@@ -314,51 +263,32 @@ function renderSidebar() {
 function openSidebar()  { renderSidebar(); document.getElementById('sidebarOverlay').style.display='block'; setTimeout(()=>{ document.getElementById('historySidebar').style.right='0'; },10); }
 function closeSidebar() { document.getElementById('historySidebar').style.right='calc(-1 * var(--sidebar-width))'; setTimeout(()=>{ document.getElementById('sidebarOverlay').style.display='none'; },300); }
 
-// ═══════════════════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
     if (!currentSessionId) createNewSession();
     loadCurrentSession();
     renderSidebar();
-    await loadPrompts(); // load prompt dari folder /prompt
-    // Tampilkan modal key kalau belum ada
-    if (!getGroqKey() && !getOrKey()) openKeysModal();
+    await loadConfig();
 });
 
-document.getElementById('btnHistory').onclick  = openSidebar;
+document.getElementById('btnHistory').onclick     = openSidebar;
 document.getElementById('btnCloseSidebar').onclick = closeSidebar;
 document.getElementById('sidebarOverlay').onclick  = closeSidebar;
-document.getElementById('btnNewChat').onclick   = () => { createNewSession(); loadCurrentSession(); renderSidebar(); closeSidebar(); };
-document.getElementById('btnClear').onclick     = () => {
+document.getElementById('btnNewChat').onclick = () => { createNewSession(); loadCurrentSession(); renderSidebar(); closeSidebar(); };
+document.getElementById('btnClear').onclick   = () => {
     if (!confirm('Hapus obrolan ini?')) return;
-    const s = getSessions(); delete s[currentSessionId]; saveSessions(s);
-    const rem = Object.keys(s);
-    if (rem.length) { currentSessionId = rem[0]; localStorage.setItem(CURRENT_KEY, currentSessionId); }
+    const s=getSessions(); delete s[currentSessionId]; saveSessions(s);
+    const rem=Object.keys(s);
+    if (rem.length) { currentSessionId=rem[0]; localStorage.setItem(CURRENT_KEY,currentSessionId); }
     else createNewSession();
     loadCurrentSession(); renderSidebar();
 };
 
-// Keys modal
-document.getElementById('btnKeys').onclick       = openKeysModal;
-document.getElementById('btnCloseKeys').onclick  = closeKeysModal;
-document.getElementById('keysModal').onclick     = e => { if (e.target.id === 'keysModal') closeKeysModal(); };
-document.getElementById('btnSaveKeys').onclick   = () => {
-    const g = document.getElementById('inputGroqKey').value.trim();
-    const o = document.getElementById('inputOrKey').value.trim();
-    if (g) saveGroqKey(g);
-    if (o) saveOrKey(o);
-    closeKeysModal();
-};
-
-function openKeysModal() {
-    document.getElementById('inputGroqKey').value = getGroqKey();
-    document.getElementById('inputOrKey').value   = getOrKey();
-    document.getElementById('keysModal').classList.add('show');
-}
-function closeKeysModal() { document.getElementById('keysModal').classList.remove('show'); }
-
-// Upload foto
+// ═══════════════════════════════════════════════
+// IMAGE
+// ═══════════════════════════════════════════════
 document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
 document.getElementById('fileInput').onchange = function() {
     const file = this.files[0]; if (!file) return;
@@ -367,30 +297,25 @@ document.getElementById('fileInput').onchange = function() {
     reader.onload = e => {
         selectedImage = e.target.result;
         document.getElementById('imgPreview').src = selectedImage;
-        document.getElementById('previewText').textContent = file.name + ' · ' + (file.size/1024).toFixed(0) + 'KB';
+        document.getElementById('previewText').textContent = file.name+' · '+(file.size/1024).toFixed(0)+'KB';
         document.getElementById('previewBar').style.display = 'flex';
     };
-    reader.readAsDataURL(file); this.value = '';
+    reader.readAsDataURL(file); this.value='';
 };
-document.getElementById('btnCancelImg').onclick = () => { selectedImage = null; document.getElementById('previewBar').style.display = 'none'; };
-
-// Modal zoom
+document.getElementById('btnCancelImg').onclick = () => { selectedImage=null; document.getElementById('previewBar').style.display='none'; };
 document.getElementById('btnCloseModal').onclick = closeModal;
-document.getElementById('imageModal').onclick    = e => { if (e.target.id === 'imageModal') closeModal(); };
-function openModal(src) { document.getElementById('modalImg').src = src; document.getElementById('imageModal').style.display = 'flex'; }
-function closeModal()   { document.getElementById('imageModal').style.display = 'none'; }
+document.getElementById('imageModal').onclick    = e => { if(e.target.id==='imageModal') closeModal(); };
+function openModal(src) { document.getElementById('modalImg').src=src; document.getElementById('imageModal').style.display='flex'; }
+function closeModal()   { document.getElementById('imageModal').style.display='none'; }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // SUBMIT
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 document.getElementById('chatForm').addEventListener('submit', async e => {
     e.preventDefault();
     const text  = document.getElementById('userInput').value.trim();
     const image = selectedImage;
     if (!text && !image) return;
-
-    // Cek key
-    if (!getGroqKey() && !getOrKey()) { openKeysModal(); return; }
 
     document.getElementById('userInput').value = '';
     selectedImage = null;
@@ -399,7 +324,7 @@ document.getElementById('chatForm').addEventListener('submit', async e => {
     appendMsg(text, image, 'user', null);
     saveChat(text, image, 'user', null);
 
-    conversationHistory.push({ role: 'user', content: text || (image ? 'Lihat dan ceritakan isi gambar ini.' : '') });
+    conversationHistory.push({ role:'user', content: text||(image?'Lihat dan ceritakan isi gambar ini.':''), image: image||null });
     if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
 
     const loadId = appendLoading();
@@ -409,153 +334,236 @@ document.getElementById('chatForm').addEventListener('submit', async e => {
         removeLoading(loadId);
         appendMsg(response, null, 'bot', badge);
         saveChat(response, null, 'bot', badge);
-        conversationHistory.push({ role: 'assistant', content: response });
+        conversationHistory.push({ role:'assistant', content:response });
         if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
     } catch(err) {
         removeLoading(loadId);
-        appendMsg('❌ ' + err.message, null, 'bot', null);
+        appendMsg('❌ '+err.message, null, 'bot', null);
         conversationHistory.pop();
     }
 });
 
-// ═══════════════════════════════════════════════════
-// SEND TO AI
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// SYSTEM PROMPT — pakai dari /api/config (folder prompt/)
+// ═══════════════════════════════════════════════
+function buildSystemPrompt() {
+    const wib = new Date().toLocaleString('id-ID', { dateStyle:'full', timeStyle:'medium', timeZone:'Asia/Jakarta' });
+    const base = _systemPromptBase || 'Kamu adalah XREZZKY AI, asisten cerdas XREZZKY OFFICIAL STORE.\nBahasa: Indonesia informal (bro/kak).';
+    return `${base}
+
+Waktu sekarang (WIB): ${wib}
+Kamu BISA melihat dan menganalisis foto/gambar yang dikirim user. Jika ada foto, analisis isinya secara detail. JANGAN bilang tidak bisa lihat gambar.`;
+}
+
+// ═══════════════════════════════════════════════
+// SEND TO AI — sistem dari test API yang sudah terbukti jalan
+// ═══════════════════════════════════════════════
 async function sendToAI(text, imageB64, history) {
-    const hasImg   = !!(imageB64?.includes(','));
-    const sysprompt = getSystemPrompt();
+    const hasImg    = !!(imageB64?.includes(','));
+    const sysprompt = buildSystemPrompt();
 
     // Ada foto → OpenRouter vision langsung
     if (hasImg) {
-        const key = getOrKey();
-        if (!key) throw new Error('Isi OpenRouter API key dulu bro (klik 🔑)');
-        for (const model of OR_VISION_MODELS) {
-            try {
-                const result = await callOpenRouter(key, model, sysprompt, history, imageB64);
-                return { response: result, badge: `openrouter · ${model}` };
-            } catch(e) {
-                console.warn('[or-vision]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e.status, e.message)) break;
+        const keys = getAllKeys('openrouter');
+        if (!keys.length) throw new Error('Tidak ada OpenRouter key di Vercel env');
+        for (const key of keys) {
+            for (const model of OR_VISION_MODELS) {
+                try {
+                    const result = await callOpenRouter(key, model, sysprompt, text, imageB64, history);
+                    return { response: result, badge: `openrouter · ${model}` };
+                } catch(e) {
+                    console.warn('[or-vision]', model, e.message?.slice(0,60));
+                    if (!isRateLimit(e)) break;
+                }
             }
         }
-        throw new Error('Semua model vision gagal. Cek key OpenRouter lo.');
+        throw new Error('Semua model vision gagal');
     }
 
-    // Teks → Groq dulu
-    const groqKey = getGroqKey();
-    if (groqKey) {
+    // Teks → Gemini streaming dulu
+    const geminiKeys = getAllKeys('gemini');
+    for (const key of geminiKeys) {
+        for (const model of GEMINI_MODELS) {
+            try {
+                let response = '';
+                for await (const chunk of streamGemini(key, model, history, text||'Halo', null, sysprompt, false)) {
+                    response += chunk;
+                }
+                if (response) return { response, badge: `gemini · ${model}` };
+            } catch(e) {
+                console.warn('[gemini]', model, e.message?.slice(0,60));
+                if (!isRateLimit(e)) break;
+            }
+        }
+    }
+
+    // Fallback Groq
+    const groqKeys = getAllKeys('groq');
+    for (const key of groqKeys) {
         for (const model of GROQ_MODELS) {
             try {
-                const result = await callGroq(groqKey, model, sysprompt, history);
+                const result = await callGroq(key, model, sysprompt, text||'Halo', history);
                 return { response: result, badge: `groq · ${model}` };
             } catch(e) {
                 console.warn('[groq]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e.status, e.message)) break;
+                if (!isRateLimit(e)) break;
             }
         }
     }
 
     // Fallback OpenRouter teks
-    const orKey = getOrKey();
-    if (orKey) {
+    const orKeys = getAllKeys('openrouter');
+    for (const key of orKeys) {
         for (const model of OR_TEXT_MODELS) {
             try {
-                const result = await callOpenRouter(orKey, model, sysprompt, history, null);
+                const result = await callOpenRouter(key, model, sysprompt, text||'Halo', null, history);
                 return { response: result, badge: `openrouter · ${model}` };
             } catch(e) {
                 console.warn('[or-text]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e.status, e.message)) break;
+                if (!isRateLimit(e)) break;
             }
         }
     }
 
-    throw new Error('Semua provider gagal. Cek API key lo (klik 🔑).');
+    throw new Error('Semua provider gagal. Cek API key di Vercel env.');
 }
 
-// ═══════════════════════════════════════════════════
-// GROQ
-// ═══════════════════════════════════════════════════
-async function callGroq(key, model, sysprompt, history) {
-    const msgs = [{ role: 'system', content: sysprompt }];
-    for (const m of history) msgs.push({ role: m.role, content: m.content || '' });
-
-    const r = await fetchTimeout('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-        body: JSON.stringify({ model, messages: msgs, max_tokens: 1024 })
-    });
-    if (!r.ok) throw await mkErr(r);
-    const data = await r.json();
-    const res = data.choices?.[0]?.message?.content;
-    if (!res) throw new Error('Response kosong');
-    return res;
+function isRateLimit(e) {
+    return e?.status === 429 || /rate|quota|limit|exhausted|too.many/i.test(e?.message||'');
 }
 
-// ═══════════════════════════════════════════════════
-// OPENROUTER — teks DULU baru gambar
-// ═══════════════════════════════════════════════════
-async function callOpenRouter(key, model, sysprompt, history, imageB64) {
-    const hasImg = !!(imageB64?.includes(','));
-    const msgs   = [{ role: 'system', content: sysprompt }];
-
-    const hist = history.slice(0, -1);
-    for (const m of hist) msgs.push({ role: m.role, content: m.content || '' });
-
-    const lastText = history[history.length - 1]?.content || '';
-    let userContent;
-    if (hasImg) {
-        const [meta, b64] = imageB64.split(',');
-        const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
-        userContent = [
-            { type: 'text',      text: lastText || 'Lihat dan ceritakan isi gambar ini secara detail.' },
-            { type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } }
-        ];
-    } else {
-        userContent = lastText || 'Halo';
+// ═══════════════════════════════════════════════
+// GEMINI STREAMING — dari test API
+// ═══════════════════════════════════════════════
+function buildGeminiContents(history, userText, userImage) {
+    const contents = [];
+    for (const m of history) {
+        const parts = [];
+        if (m.image) {
+            try {
+                const split = m.image.split(',');
+                const mime = split[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+                parts.push({ inline_data: { data: split[1], mime_type: mime } });
+            } catch {}
+        }
+        if (m.content && m.content !== '(foto)') parts.push({ text: m.content });
+        else if (!m.image) parts.push({ text: m.content || '' });
+        if (parts.length) contents.push({ role: m.role==='assistant'?'model':'user', parts });
     }
-    msgs.push({ role: 'user', content: userContent });
+    const latestParts = [];
+    if (userImage) {
+        try {
+            const split = userImage.split(',');
+            const mime = split[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+            latestParts.push({ inline_data: { data: split[1], mime_type: mime } });
+        } catch {}
+    }
+    latestParts.push({ text: userText || 'Halo' });
+    contents.push({ role: 'user', parts: latestParts });
+    return contents;
+}
 
-    const r = await fetchTimeout('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type':  'application/json',
-            'Authorization': `Bearer ${key}`,
-            'HTTP-Referer':  'https://xrezzky-assistant.vercel.app',
-            'X-Title':       'XREZZKY OFFICIAL STORE'
-        },
-        body: JSON.stringify({ model, messages: msgs, max_tokens: 2048 })
+async function* streamGemini(apiKey, model, history, userText, userImage, systemPrompt, useSearch) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
+    const body = {
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: buildGeminiContents(history, userText, userImage),
+        generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
+    };
+    if (useSearch) body.tools = [{ google_search: {} }];
+    const resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!resp.ok) {
+        const err = await resp.text(); let msg = err.slice(0,150);
+        try { msg = JSON.parse(err)?.error?.message || msg; } catch {}
+        const e = new Error(`Gemini ${resp.status}: ${msg}`); e.status = resp.status; throw e;
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream:true });
+        const lines = buffer.split('\n'); buffer = lines.pop() ?? '';
+        for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (!raw || raw==='[DONE]') continue;
+            try {
+                const chunk = JSON.parse(raw);
+                const t = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (t) yield t;
+            } catch {}
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════
+// GROQ — dari test API
+// ═══════════════════════════════════════════════
+async function callGroq(apiKey, model, systemPrompt, userText, history) {
+    const msgs = [{ role:'system', content:systemPrompt }];
+    if (history) for (const m of history) msgs.push({ role:m.role==='assistant'?'assistant':'user', content:m.content||'' });
+    msgs.push({ role:'user', content: userText||'Halo' });
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages:msgs, max_tokens:1024 })
     });
-    if (!r.ok) throw await mkErr(r);
-    const data = await r.json();
-    const res = data.choices?.[0]?.message?.content;
-    if (!res) throw new Error('Response kosong');
-    return res;
+    if (!resp.ok) {
+        const err = await resp.text(); let msg = err.slice(0,150);
+        try { msg = JSON.parse(err)?.error?.message||msg; } catch {}
+        const e = new Error(`Groq ${resp.status}: ${msg}`); e.status = resp.status; throw e;
+    }
+    return (await resp.json()).choices[0].message.content;
 }
 
-// ═══════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════
-function isRateLimit(status, msg) {
-    return status === 429 || /rate|quota|limit|exhausted|too.many/i.test(msg || '');
+// ═══════════════════════════════════════════════
+// OPENROUTER — dari test API, TEKS DULU baru gambar
+// ═══════════════════════════════════════════════
+async function callOpenRouter(apiKey, model, systemPrompt, userText, userImage, history) {
+    const msgs = [{ role:'system', content:systemPrompt }];
+    if (history) {
+        for (const m of history.slice(0,-1)) msgs.push({ role:m.role==='assistant'?'assistant':'user', content:m.content||'' });
+    }
+    const hasImg = !!(userImage?.includes(','));
+    let userContent = userText || 'Halo';
+    if (hasImg) {
+        try {
+            const [meta, b64] = userImage.split(',');
+            const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
+            // TEKS DULU baru gambar
+            userContent = [
+                { type:'text', text: userText||'Lihat dan ceritakan isi gambar ini secara detail.' },
+                { type:'image_url', image_url:{ url:`data:${mime};base64,${b64}` } }
+            ];
+        } catch {}
+    }
+    msgs.push({ role:'user', content:userContent });
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${apiKey}`,
+            'HTTP-Referer':'https://xrezzky-assistant.vercel.app',
+            'X-Title':'XREZZKY OFFICIAL STORE'
+        },
+        body: JSON.stringify({ model, messages:msgs, max_tokens:2048 })
+    });
+    if (!resp.ok) {
+        const err = await resp.text(); let msg = err.slice(0,150);
+        try { msg = JSON.parse(err)?.error?.message||msg; } catch {}
+        const e = new Error(`OpenRouter ${resp.status}: ${msg}`); e.status = resp.status; throw e;
+    }
+    const data = await resp.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) throw new Error('Response kosong');
+    return result;
 }
 
-async function fetchTimeout(url, opts, ms = 55000) {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    try { const r = await fetch(url, { ...opts, signal: ctrl.signal }); clearTimeout(t); return r; }
-    catch(e) { clearTimeout(t); if (e.name === 'AbortError') throw Object.assign(new Error('Timeout 55s'), {status:0}); throw e; }
-}
-
-async function mkErr(resp) {
-    const txt = await resp.text().catch(() => '');
-    let msg = txt.slice(0, 200);
-    try { msg = JSON.parse(txt)?.error?.message || msg; } catch {}
-    return Object.assign(new Error(msg), { status: resp.status });
-}
-
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // MARKDOWN
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function renderMarkdown(text) {
     if (!text) return '';
     let t = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -572,31 +580,32 @@ function renderMarkdown(text) {
     return t;
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // DOM HELPERS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function appendMsg(text, imageB64, sender, badge) {
     const chat = document.getElementById('chatContainer');
     const row  = document.createElement('div');
-    row.className = 'message-row ' + (sender === 'user' ? 'user-row' : 'bot-row');
+    row.className = 'message-row '+(sender==='user'?'user-row':'bot-row');
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
 
-    if (badge && sender === 'bot') {
+    if (badge && sender==='bot') {
+        const p = badge.split('·')[0].trim();
         const b = document.createElement('div');
-        b.className = 'provider-badge';
+        b.className = `provider-badge badge-${p}`;
         b.textContent = badge;
         bubble.appendChild(b);
     }
     if (imageB64) {
         const img = document.createElement('img');
-        img.src = imageB64; img.className = 'chat-img';
-        img.onclick = () => openModal(imageB64);
+        img.src=imageB64; img.className='chat-img';
+        img.onclick=()=>openModal(imageB64);
         bubble.appendChild(img);
     }
     if (text) {
         const el = document.createElement('div');
-        if (sender === 'bot') el.innerHTML = renderMarkdown(text);
+        if (sender==='bot') el.innerHTML = renderMarkdown(text);
         else el.textContent = text;
         bubble.appendChild(el);
     }
@@ -606,18 +615,17 @@ function appendMsg(text, imageB64, sender, badge) {
 }
 
 function appendLoading() {
-    const id = 'load-' + Date.now();
+    const id = 'load-'+Date.now();
     const chat = document.getElementById('chatContainer');
     const row  = document.createElement('div');
-    row.id = id; row.className = 'message-row bot-row';
+    row.id=id; row.className='message-row bot-row';
     const b = document.createElement('div');
-    b.className = 'bubble loading-bubble';
-    b.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengetik...';
+    b.className='bubble loading-bubble';
+    b.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Mengetik...';
     row.appendChild(b); chat.appendChild(row);
     chat.scrollTop = chat.scrollHeight;
     return id;
 }
-
 function removeLoading(id) { document.getElementById(id)?.remove(); }
 </script>
 </body>
