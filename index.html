@@ -6,6 +6,7 @@
     <title>XREZZKY ASSISTANT - Official Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
     <style>
         :root {
             --bg-main: #0b0f17;
@@ -17,616 +18,726 @@
             --border-color: #334155;
             --sidebar-width: 280px;
         }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
-        body { background-color:var(--bg-main); color:var(--text-main); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
-        .chat-header { position:fixed; top:0; left:0; right:0; height:60px; background-color:var(--bg-chat); padding:0 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border-color); z-index:10; }
-        .brand-info { display:flex; align-items:center; gap:10px; }
-        .avatar { width:36px; height:36px; background-color:#2563eb; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; }
-        .brand-name h1 { font-size:14px; font-weight:600; }
-        .brand-name p { font-size:10px; color:#22c55e; display:flex; align-items:center; gap:4px; }
-        .header-actions { display:flex; gap:4px; }
-        .header-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:8px; border-radius:50%; }
-        .header-btn:active { background-color:rgba(255,255,255,0.05); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .chat-container { position:absolute; top:60px; bottom:80px; left:0; right:0; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; scroll-behavior:smooth; }
-        .message-row { display:flex; width:100%; }
-        .message-row.user-row { justify-content:flex-end; }
-        .message-row.bot-row  { justify-content:flex-start; }
-        .bubble { max-width:85%; padding:12px 14px; border-radius:16px; font-size:14px; line-height:1.6; word-break:break-word; }
-        .user-row .bubble { background-color:var(--bg-bubble-user); color:white; border-bottom-right-radius:4px; }
-        .bot-row  .bubble { background-color:var(--bg-bubble-bot); color:var(--text-main); border-bottom-left-radius:4px; border:1px solid var(--border-color); }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
 
-        .bot-row .bubble strong { color:#fff; }
-        .bot-row .bubble em { color:var(--text-muted); }
-        .bot-row .bubble code { background:#0b0f17; border:1px solid var(--border-color); border-radius:4px; padding:1px 5px; font-size:12px; font-family:monospace; color:#4ade80; }
-        .bot-row .bubble pre { background:#0b0f17; border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; overflow-x:auto; margin:6px 0; }
-        .bot-row .bubble pre code { background:none; border:none; padding:0; color:#60a5fa; font-size:12px; }
-        .bot-row .bubble a { color:#60a5fa; text-decoration:underline; }
+        /* --- HEADER CHAT --- */
+        .chat-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: var(--bg-chat);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 10;
+        }
 
-        .provider-badge { font-size:9px; font-family:monospace; padding:2px 7px; border-radius:10px; display:inline-block; margin-bottom:5px; }
-        .badge-gemini    { background:rgba(74,222,128,0.15); color:#4ade80; }
-        .badge-groq      { background:rgba(96,165,250,0.15); color:#60a5fa; }
-        .badge-openrouter{ background:rgba(251,146,60,0.15); color:#fb923c; }
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-        .chat-img { max-width:100%; max-height:200px; border-radius:8px; margin-bottom:6px; display:block; object-fit:cover; cursor:pointer; transition:opacity 0.2s; }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-        .preview-bar { position:fixed; bottom:80px; left:16px; right:16px; background-color:#1e293b; padding:8px 12px; display:none; align-items:center; justify-content:space-between; border:1px solid var(--border-color); border-radius:12px; z-index:9; }
-        .preview-container { display:flex; align-items:center; gap:10px; }
-        .preview-img { width:40px; height:40px; object-fit:cover; border-radius:6px; }
-        .preview-text { font-size:12px; color:var(--text-muted); }
+        .brand-name h1 {
+            font-size: 14px;
+            font-weight: 600;
+        }
 
-        .chat-form { position:fixed; bottom:0; left:0; right:0; height:80px; background-color:var(--bg-chat); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--border-color); z-index:10; }
-        .modern-input-bar { display:flex; align-items:center; background-color:var(--bg-main); border:1px solid var(--border-color); border-radius:24px; padding:2px 6px 2px 12px; gap:6px; width:100%; height:44px; }
-        .modern-input-bar input { flex:1; background:none; border:none; color:var(--text-main); font-size:14px; outline:none; height:100%; }
-        .bar-btn { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
-        .send-btn-active { color:var(--text-main); background-color:var(--bg-bubble-user); }
+        .brand-name p {
+            font-size: 10px;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-        .sidebar-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px); z-index:20; display:none; }
-        .history-sidebar { position:fixed; top:0; right:calc(-1 * var(--sidebar-width)); width:var(--sidebar-width); height:100%; background-color:var(--bg-chat); border-left:1px solid var(--border-color); z-index:21; display:flex; flex-direction:column; transition:right 0.3s ease; }
-        .sidebar-header { padding:16px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
-        .sidebar-header h2 { font-size:15px; font-weight:600; }
-        .new-chat-btn { background-color:var(--bg-bubble-user); color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; cursor:pointer; width:calc(100% - 32px); margin:16px; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .history-list { flex:1; overflow-y:auto; padding:0 12px 16px; display:flex; flex-direction:column; gap:8px; }
-        .history-item { background-color:var(--bg-main); border:1px solid var(--border-color); padding:12px; border-radius:10px; cursor:pointer; }
-        .history-item.active-session { border-color:var(--bg-bubble-user); background-color:rgba(37,99,235,0.05); }
-        .history-item .title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .history-item .time { font-size:10px; color:var(--text-muted); margin-top:3px; }
-        .loading-bubble { color:var(--text-muted); font-style:italic; display:flex; align-items:center; gap:6px; }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
 
-        .image-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
-        .modal-close-btn { position:absolute; top:20px; right:16px; background:rgba(255,255,255,0.1); border:none; color:white; width:40px; height:40px; border-radius:50%; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-        .modal-img { max-width:100%; max-height:85vh; border-radius:8px; object-fit:contain; }
+        .header-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .header-btn:active {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- AREA LAYAR CHAT UTAMA --- */
+        .chat-container {
+            position: absolute;
+            top: 60px;
+            bottom: 80px; 
+            left: 0;
+            right: 0;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+        .message-row.user-row { justify-content: flex-end; }
+        .message-row.bot-row { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 85%;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .user-row .bubble {
+            background-color: var(--bg-bubble-user);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-row .bubble {
+            background-color: var(--bg-bubble-bot);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            display: block;
+            object-fit: cover;
+            cursor: pointer; /* Menandakan gambar bisa diklik */
+            transition: opacity 0.2s;
+        }
+        .chat-img:active {
+            opacity: 0.8;
+        }
+
+        /* --- PREVIEW GAMBAR (MELAYANG DI ATAS INPUT) --- */
+        .preview-bar {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            background-color: #1e293b;
+            padding: 8px 12px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            z-index: 9;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+        }
+
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .preview-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* --- BAR INPUT FIXED DI BAWAH --- */
+        .chat-form {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background-color: var(--bg-chat);
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); 
+            border-top: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .modern-input-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2px 6px 2px 12px;
+            gap: 6px;
+            width: 100%;
+            height: 44px;
+        }
+
+        .modern-input-bar input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            height: 100%;
+        }
+
+        .bar-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .send-btn-active {
+            color: var(--text-main);
+            background-color: var(--bg-bubble-user);
+        }
+
+        /* --- SIDEBAR RIWAYAT KANAN --- */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 20;
+            display: none;
+        }
+
+        .history-sidebar {
+            position: fixed;
+            top: 0;
+            right: calc(-1 * var(--sidebar-width));
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: var(--bg-chat);
+            border-left: 1px solid var(--border-color);
+            z-index: 21;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .new-chat-btn {
+            background-color: var(--bg-bubble-user);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            width: calc(100% - 32px);
+            margin: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .history-item.active-session {
+            border-color: var(--bg-bubble-user);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .history-item .title {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .history-item .time {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .loading-bubble {
+            color: var(--text-muted);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- MODAL ZOOM FOTO (NEW) --- */
+        .image-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: calc(16px + env(safe-area-inset-top));
+            right: 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .modal-img-content {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
     </style>
 </head>
 <body>
 
-<div class="chat-header">
-    <div class="brand-info">
-        <div class="avatar">X</div>
-        <div class="brand-name">
-            <h1>XREZZKY OFFICIAL STORE</h1>
-            <p><i class="fas fa-circle" style="font-size:7px"></i> XREZZKY AI Aktif</p>
+    <div class="chat-header">
+        <div class="brand-info">
+            <div class="avatar">X</div>
+            <div class="brand-name">
+                <h1>XREZZKY OFFICIAL STORE</h1>
+                <p><i class="fas fa-circle" style="font-size: 7px;"></i> XREZZ AI Aktif</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
+            <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
         </div>
     </div>
-    <div class="header-actions">
-        <button class="header-btn" id="btnHistory"><i class="fa-solid fa-clock-rotate-left"></i></button>
-        <button class="header-btn" id="btnClear"><i class="fas fa-trash-can"></i></button>
+
+    <div class="chat-container" id="chatContainer"></div>
+
+    <div class="preview-bar" id="previewBar">
+        <div class="preview-container">
+            <img src="" id="imgElementPreview" class="preview-img">
+            <span class="preview-text">Gambar siap dikirim...</span>
+        </div>
+        <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
     </div>
-</div>
 
-<div class="chat-container" id="chatContainer"></div>
+    <form class="chat-form" id="chatForm">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <div class="modern-input-bar">
+            <button type="button" class="bar-btn" id="uploadBtn">
+                <i class="fa-regular fa-image"></i>
+            </button>
+            <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
+            <button type="submit" class="bar-btn send-btn-active" id="sendBtn">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+        </div>
+    </form>
 
-<div class="preview-bar" id="previewBar">
-    <div class="preview-container">
-        <img src="" id="imgPreview" class="preview-img">
-        <span class="preview-text" id="previewText">Gambar siap dikirim...</span>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="history-sidebar" id="historySidebar">
+        <div class="sidebar-header">
+            <h2>Riwayat Percakapan</h2>
+            <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
+        <div class="history-list" id="historyList"></div>
     </div>
-    <i class="fas fa-times" id="btnCancelImg" style="color:#ef4444;cursor:pointer;font-size:16px;"></i>
-</div>
 
-<form class="chat-form" id="chatForm">
-    <input type="file" id="fileInput" accept="image/*" style="display:none">
-    <div class="modern-input-bar">
-        <button type="button" class="bar-btn" id="btnUpload"><i class="fa-regular fa-image"></i></button>
-        <input type="text" id="userInput" placeholder="Tanya tentang XREZZKY STORE..." autocomplete="off">
-        <button type="submit" class="bar-btn send-btn-active"><i class="fas fa-arrow-up"></i></button>
+    <div class="image-modal" id="imageModal">
+        <button class="modal-close-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+        <img src="" id="modalImgTarget" class="modal-img-content">
     </div>
-</form>
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<div class="history-sidebar" id="historySidebar">
-    <div class="sidebar-header">
-        <h2>Riwayat Percakapan</h2>
-        <button class="header-btn" id="btnCloseSidebar"><i class="fas fa-times"></i></button>
-    </div>
-    <button class="new-chat-btn" id="btnNewChat"><i class="fas fa-plus"></i> Obrolan Baru</button>
-    <div class="history-list" id="historyList"></div>
-</div>
+    <script>
+        const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
+        const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
+        const CURRENT_SESSION_KEY = "xrezzky_current_id";
 
-<div class="image-modal" id="imageModal">
-    <button class="modal-close-btn" id="btnCloseModal"><i class="fas fa-times"></i></button>
-    <img src="" id="modalImg" class="modal-img">
-</div>
+        const chatContainer = document.getElementById("chatContainer");
+        const chatForm = document.getElementById("chatForm");
+        const userInput = document.getElementById("userInput");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const previewBar = document.getElementById("previewBar");
+        const imgElementPreview = document.getElementById("imgElementPreview");
+        const cancelImgBtn = document.getElementById("cancelImgBtn");
+        const clearChatBtn = document.getElementById("clearChatBtn");
 
-<script>
-// ═══════════════════════════════════════════════
-// CONFIG dari Vercel /api/config
-// ═══════════════════════════════════════════════
-let keyStore = { gemini: [], groq: [], openrouter: [] };
-let _systemPromptBase = '';
+        // Elemen Sidebar Riwayat
+        const openHistoryBtn = document.getElementById("openHistoryBtn");
+        const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+        const sidebarOverlay = document.getElementById("sidebarOverlay");
+        const historySidebar = document.getElementById("historySidebar");
+        const historyList = document.getElementById("historyList");
+        const newChatBtn = document.getElementById("newChatBtn");
 
-async function loadConfig() {
-    try {
-        const r = await fetch('/api/config');
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const cfg = await r.json();
-        ['gemini','groq','openrouter'].forEach(p => {
-            const keys = cfg[p] || [];
-            keyStore[p] = keys.map(v => ({ val: v, status: 'ok' }));
+        // Elemen Modal Gambar (NEW)
+        const imageModal = document.getElementById("imageModal");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const modalImgTarget = document.getElementById("modalImgTarget");
+
+        let selectedBase64Image = null;
+        let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+
+        // --- SISTEM MODAL BUKA FOTO (NEW) ---
+        function openImageModal(src) {
+            modalImgTarget.src = src;
+            imageModal.style.display = "flex";
+            setTimeout(() => {
+                modalImgTarget.style.transform = "scale(1)";
+            }, 50);
+        }
+
+        function closeImageModal() {
+            modalImgTarget.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                imageModal.style.display = "none";
+                modalImgTarget.src = "";
+            }, 200);
+        }
+
+        closeModalBtn.addEventListener("click", closeImageModal);
+        imageModal.addEventListener("click", (e) => {
+            // Jika yang diklik adalah background hitamnya (bukan gambarnya), maka tutup modal
+            if(e.target !== modalImgTarget && e.target !== closeModalBtn) {
+                closeImageModal();
+            }
         });
-        if (cfg.prompt) _systemPromptBase = cfg.prompt;
-    } catch(e) {
-        console.error('[config]', e.message);
-    }
-}
 
-function getKey(p) {
-    const ok  = keyStore[p].filter(k=>k.val&&k.status==='ok').map(k=>k.val);
-    const any = keyStore[p].filter(k=>k.val).map(k=>k.val);
-    const pool = ok.length ? ok : any;
-    return pool.length ? pool[Math.floor(Math.random()*pool.length)] : '';
-}
-
-function getAllKeys(p) {
-    return keyStore[p].filter(k=>k.val).map(k=>k.val);
-}
-
-// ═══════════════════════════════════════════════
-// MODELS
-// ═══════════════════════════════════════════════
-const GROQ_MODELS = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
-    'llama3-70b-8192',
-    'mixtral-8x7b-32768',
-    'gemma2-9b-it',
-];
-
-const OR_VISION_MODELS = [
-    'google/gemini-2.0-flash-001',
-    'google/gemini-2.5-pro-preview',
-    'anthropic/claude-3-haiku',
-];
-
-const OR_TEXT_MODELS = [
-    'google/gemini-2.0-flash-001',
-    'google/gemini-2.5-pro-preview',
-    'anthropic/claude-3-haiku',
-];
-
-const GEMINI_MODELS = [
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-pro',
-];
-
-// ═══════════════════════════════════════════════
-// SESSION
-// ═══════════════════════════════════════════════
-const SESSIONS_KEY = 'xrezzky_sessions';
-const CURRENT_KEY  = 'xrezzky_current_id';
-const MAX_HISTORY  = 20;
-
-let currentSessionId    = localStorage.getItem(CURRENT_KEY);
-let conversationHistory = [];
-let selectedImage       = null;
-
-function getSessions()   { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}'); }
-function saveSessions(s) { localStorage.setItem(SESSIONS_KEY, JSON.stringify(s)); }
-
-function createNewSession() {
-    currentSessionId = 'session_' + Date.now();
-    localStorage.setItem(CURRENT_KEY, currentSessionId);
-    const s = getSessions();
-    s[currentSessionId] = { title:'Obrolan Baru', timestamp:Date.now(), chats:[] };
-    saveSessions(s); conversationHistory = [];
-}
-
-function loadCurrentSession() {
-    const chat = document.getElementById('chatContainer');
-    chat.innerHTML = ''; conversationHistory = [];
-    const session = getSessions()[currentSessionId];
-    if (!session || !session.chats.length) {
-        appendMsg('Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZKY AI bantu?', null, 'bot', null);
-    } else {
-        session.chats.forEach(item => {
-            appendMsg(item.text, item.image, item.sender, item.badge||null);
-            if (item.sender === 'user')     conversationHistory.push({ role:'user',      content:item.text||'', image:item.image||null });
-            else if (item.sender === 'bot') conversationHistory.push({ role:'assistant', content:item.text||'' });
+        // --- MANAJEMEN SESI & SIDEBAR ---
+        window.addEventListener("DOMContentLoaded", () => {
+            if (!currentSessionId) {
+                createNewSession();
+            }
+            loadCurrentSessionChat();
+            renderSidebarList();
         });
-        if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
-    }
-    setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 100);
-}
 
-function saveChat(text, image, sender, badge) {
-    const s = getSessions();
-    if (!s[currentSessionId]) return;
-    if (sender==='user' && !s[currentSessionId].chats.length && text)
-        s[currentSessionId].title = text;
-    s[currentSessionId].chats.push({ text, image, sender, badge });
-    s[currentSessionId].timestamp = Date.now();
-    saveSessions(s);
-}
+        function createNewSession() {
+            currentSessionId = "session_" + Date.now();
+            localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+            
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            sessions[currentSessionId] = {
+                title: "Obrolan Baru",
+                timestamp: Date.now(),
+                chats: []
+            };
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+        }
 
-// ═══════════════════════════════════════════════
-// SIDEBAR
-// ═══════════════════════════════════════════════
-function renderSidebar() {
-    const list = document.getElementById('historyList');
-    list.innerHTML = '';
-    const sessions = getSessions();
-    const keys = Object.keys(sessions).sort((a,b)=>sessions[b].timestamp-sessions[a].timestamp);
-    if (!keys.length) { list.innerHTML='<p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px">Belum ada riwayat.</p>'; return; }
-    keys.forEach(key => {
-        const s = sessions[key];
-        const el = document.createElement('div');
-        el.className = 'history-item'+(key===currentSessionId?' active-session':'');
-        el.innerHTML = `<div class="title">${s.title}</div><div class="time">${new Date(s.timestamp).toLocaleDateString('id-ID',{hour:'2-digit',minute:'2-digit'})}</div>`;
-        el.onclick = () => { currentSessionId=key; localStorage.setItem(CURRENT_KEY,key); loadCurrentSession(); renderSidebar(); closeSidebar(); };
-        list.appendChild(el);
-    });
-}
+        function loadCurrentSessionChat() {
+            chatContainer.innerHTML = "";
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            let currentData = sessions[currentSessionId];
 
-function openSidebar()  { renderSidebar(); document.getElementById('sidebarOverlay').style.display='block'; setTimeout(()=>{ document.getElementById('historySidebar').style.right='0'; },10); }
-function closeSidebar() { document.getElementById('historySidebar').style.right='calc(-1 * var(--sidebar-width))'; setTimeout(()=>{ document.getElementById('sidebarOverlay').style.display='none'; },300); }
+            if (!currentData || currentData.chats.length === 0) {
+                appendMessage("Halo! Selamat datang di XREZZKY OFFICIAL STORE. Ada yang bisa XREZZ AI bantu mengenai produk, aturan, atau layanan toko kami hari ini?", null, "bot");
+            } else {
+                currentData.chats.forEach(item => {
+                    appendMessage(item.text, item.image, item.sender);
+                });
+            }
+            setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
+        }
 
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', async () => {
-    if (!currentSessionId) createNewSession();
-    loadCurrentSession();
-    renderSidebar();
-    await loadConfig();
-});
+        function renderSidebarList() {
+            historyList.innerHTML = "";
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
 
-document.getElementById('btnHistory').onclick     = openSidebar;
-document.getElementById('btnCloseSidebar').onclick = closeSidebar;
-document.getElementById('sidebarOverlay').onclick  = closeSidebar;
-document.getElementById('btnNewChat').onclick = () => { createNewSession(); loadCurrentSession(); renderSidebar(); closeSidebar(); };
-document.getElementById('btnClear').onclick   = () => {
-    if (!confirm('Hapus obrolan ini?')) return;
-    const s=getSessions(); delete s[currentSessionId]; saveSessions(s);
-    const rem=Object.keys(s);
-    if (rem.length) { currentSessionId=rem[0]; localStorage.setItem(CURRENT_KEY,currentSessionId); }
-    else createNewSession();
-    loadCurrentSession(); renderSidebar();
-};
+            if(sortedKeys.length === 0) {
+                historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
+                return;
+            }
 
-// ═══════════════════════════════════════════════
-// IMAGE
-// ═══════════════════════════════════════════════
-document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
-document.getElementById('fileInput').onchange = function() {
-    const file = this.files[0]; if (!file) return;
-    if (file.size > 5*1024*1024) { alert('Max 5MB'); return; }
-    const reader = new FileReader();
-    reader.onload = e => {
-        selectedImage = e.target.result;
-        document.getElementById('imgPreview').src = selectedImage;
-        document.getElementById('previewText').textContent = file.name+' · '+(file.size/1024).toFixed(0)+'KB';
-        document.getElementById('previewBar').style.display = 'flex';
-    };
-    reader.readAsDataURL(file); this.value='';
-};
-document.getElementById('btnCancelImg').onclick = () => { selectedImage=null; document.getElementById('previewBar').style.display='none'; };
-document.getElementById('btnCloseModal').onclick = closeModal;
-document.getElementById('imageModal').onclick    = e => { if(e.target.id==='imageModal') closeModal(); };
-function openModal(src) { document.getElementById('modalImg').src=src; document.getElementById('imageModal').style.display='flex'; }
-function closeModal()   { document.getElementById('imageModal').style.display='none'; }
+            sortedKeys.forEach(key => {
+                const session = sessions[key];
+                const item = document.createElement("div");
+                item.classList.add("history-item");
+                if (key === currentSessionId) item.classList.add("active-session");
 
-// ═══════════════════════════════════════════════
-// SUBMIT
-// ═══════════════════════════════════════════════
-document.getElementById('chatForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const text  = document.getElementById('userInput').value.trim();
-    const image = selectedImage;
-    if (!text && !image) return;
+                const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour: '2-digit', minute:'2-digit'});
 
-    document.getElementById('userInput').value = '';
-    selectedImage = null;
-    document.getElementById('previewBar').style.display = 'none';
+                item.innerHTML = `
+                    <div class="title">${session.title}</div>
+                    <div class="time">${dateStr}</div>
+                `;
 
-    appendMsg(text, image, 'user', null);
-    saveChat(text, image, 'user', null);
+                item.addEventListener("click", () => {
+                    currentSessionId = key;
+                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+                    loadCurrentSessionChat();
+                    renderSidebarList();
+                    closeSidebar();
+                });
 
-    conversationHistory.push({ role:'user', content: text||(image?'Lihat dan ceritakan isi gambar ini.':''), image: image||null });
-    if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
+                historyList.appendChild(item);
+            });
+        }
 
-    const loadId = appendLoading();
+        openHistoryBtn.addEventListener("click", () => {
+            renderSidebarList();
+            sidebarOverlay.style.display = "block";
+            setTimeout(() => { historySidebar.style.right = "0"; }, 10);
+        });
 
-    try {
-        const { response, badge } = await sendToAI(text, image, conversationHistory);
-        removeLoading(loadId);
-        appendMsg(response, null, 'bot', badge);
-        saveChat(response, null, 'bot', badge);
-        conversationHistory.push({ role:'assistant', content:response });
-        if (conversationHistory.length > MAX_HISTORY) conversationHistory = conversationHistory.slice(-MAX_HISTORY);
-    } catch(err) {
-        removeLoading(loadId);
-        appendMsg('❌ '+err.message, null, 'bot', null);
-        conversationHistory.pop();
-    }
-});
+        function closeSidebar() {
+            historySidebar.style.right = "calc(-1 * var(--sidebar-width))";
+            setTimeout(() => { sidebarOverlay.style.display = "none"; }, 300);
+        }
 
-// ═══════════════════════════════════════════════
-// SYSTEM PROMPT — pakai dari /api/config (folder prompt/)
-// ═══════════════════════════════════════════════
-function buildSystemPrompt() {
-    const wib = new Date().toLocaleString('id-ID', { dateStyle:'full', timeStyle:'medium', timeZone:'Asia/Jakarta' });
-    const base = _systemPromptBase || 'Kamu adalah XREZZKY AI, asisten cerdas XREZZKY OFFICIAL STORE.\nBahasa: Indonesia informal (bro/kak).';
-    return `${base}
+        closeHistoryBtn.addEventListener("click", closeSidebar);
+        sidebarOverlay.addEventListener("click", closeSidebar);
 
-Waktu sekarang (WIB): ${wib}
-Kamu BISA melihat dan menganalisis foto/gambar yang dikirim user. Jika ada foto, analisis isinya secara detail. JANGAN bilang tidak bisa lihat gambar.`;
-}
+        newChatBtn.addEventListener("click", () => {
+            createNewSession();
+            loadCurrentSessionChat();
+            renderSidebarList();
+            closeSidebar();
+        });
 
-// ═══════════════════════════════════════════════
-// SEND TO AI — sistem dari test API yang sudah terbukti jalan
-// ═══════════════════════════════════════════════
-async function sendToAI(text, imageB64, history) {
-    const hasImg    = !!(imageB64?.includes(','));
-    const sysprompt = buildSystemPrompt();
+        // --- SISTEM INPUT FOTO ---
+        uploadBtn.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", function() {
+            const file = this.files[0];
+            if (!file) return;
 
-    // Ada foto → OpenRouter vision langsung
-    if (hasImg) {
-        const keys = getAllKeys('openrouter');
-        if (!keys.length) throw new Error('Tidak ada OpenRouter key di Vercel env');
-        for (const key of keys) {
-            for (const model of OR_VISION_MODELS) {
-                try {
-                    const result = await callOpenRouter(key, model, sysprompt, text, imageB64, history);
-                    return { response: result, badge: `openrouter · ${model}` };
-                } catch(e) {
-                    console.warn('[or-vision]', model, e.message?.slice(0,60));
-                    if (!isRateLimit(e)) break;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedBase64Image = e.target.result;
+                imgElementPreview.src = selectedBase64Image;
+                previewBar.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        cancelImgBtn.addEventListener("click", () => {
+            selectedBase64Image = null;
+            fileInput.value = "";
+            previewBar.style.display = "none";
+        });
+
+        clearChatBtn.addEventListener("click", () => {
+            if(confirm("Hapus obrolan aktif saat ini?")) {
+                let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+                delete sessions[currentSessionId];
+                localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+                
+                const remainingKeys = Object.keys(sessions);
+                if(remainingKeys.length > 0) {
+                    currentSessionId = remainingKeys[0];
+                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+                } else {
+                    createNewSession();
                 }
+                loadCurrentSessionChat();
+                renderSidebarList();
             }
-        }
-        throw new Error('Semua model vision gagal');
-    }
+        });
 
-    // Teks → Gemini streaming dulu
-    const geminiKeys = getAllKeys('gemini');
-    for (const key of geminiKeys) {
-        for (const model of GEMINI_MODELS) {
+        // --- PROSES SUBMIT CHAT ---
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const textMessage = userInput.value.trim();
+            if (!textMessage && !selectedBase64Image) return;
+
+            const currentText = textMessage;
+            const currentImage = selectedBase64Image;
+
+            userInput.value = "";
+            selectedBase64Image = null;
+            fileInput.value = "";
+            previewBar.style.display = "none";
+
+            appendMessage(currentText, currentImage, "user");
+            saveChatToSession(currentText, currentImage, "user");
+
+            const loadingId = appendLoadingIndicator();
+
             try {
-                let response = '';
-                for await (const chunk of streamGemini(key, model, history, text||'Halo', null, sysprompt, false)) {
-                    response += chunk;
+                const response = await fetch(BACKEND_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_message: currentText,
+                        user_image: currentImage,
+                        user_id: currentSessionId
+                    })
+                });
+
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                removeLoadingIndicator(loadingId);
+
+                if (data.response) {
+                    appendMessage(data.response, null, "bot");
+                    saveChatToSession(data.response, null, "bot");
+                } else {
+                    appendMessage("Maaf, sistem XREZZ AI sedang dikonfigurasi.", null, "bot");
                 }
-                if (response) return { response, badge: `gemini · ${model}` };
-            } catch(e) {
-                console.warn('[gemini]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e)) break;
+            } catch (error) {
+                removeLoadingIndicator(loadingId);
+                appendMessage("Gagal terhubung ke server XREZZKY. Periksa jaringan Anda.", null, "bot");
             }
-        }
-    }
+        });
 
-    // Fallback Groq
-    const groqKeys = getAllKeys('groq');
-    for (const key of groqKeys) {
-        for (const model of GROQ_MODELS) {
-            try {
-                const result = await callGroq(key, model, sysprompt, text||'Halo', history);
-                return { response: result, badge: `groq · ${model}` };
-            } catch(e) {
-                console.warn('[groq]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e)) break;
+        function appendMessage(text, imageBase64, sender) {
+            const row = document.createElement("div");
+            row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
+
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble");
+
+            if (imageBase64) {
+                const img = document.createElement("img");
+                img.src = imageBase64;
+                img.classList.add("chat-img");
+                
+                // PASANG EVENT KLIK AGAR BISA ZOOM FOTO (NEW)
+                img.addEventListener("click", () => {
+                    openImageModal(imageBase64);
+                });
+                
+                bubble.appendChild(img);
             }
-        }
-    }
-
-    // Fallback OpenRouter teks
-    const orKeys = getAllKeys('openrouter');
-    for (const key of orKeys) {
-        for (const model of OR_TEXT_MODELS) {
-            try {
-                const result = await callOpenRouter(key, model, sysprompt, text||'Halo', null, history);
-                return { response: result, badge: `openrouter · ${model}` };
-            } catch(e) {
-                console.warn('[or-text]', model, e.message?.slice(0,60));
-                if (!isRateLimit(e)) break;
+            if (text) {
+                const textNode = document.createElement("span");
+                textNode.textContent = text;
+                bubble.appendChild(textNode);
             }
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-    }
 
-    throw new Error('Semua provider gagal. Cek API key di Vercel env.');
-}
-
-function isRateLimit(e) {
-    return e?.status === 429 || /rate|quota|limit|exhausted|too.many/i.test(e?.message||'');
-}
-
-// ═══════════════════════════════════════════════
-// GEMINI STREAMING — dari test API
-// ═══════════════════════════════════════════════
-function buildGeminiContents(history, userText, userImage) {
-    const contents = [];
-    for (const m of history) {
-        const parts = [];
-        if (m.image) {
-            try {
-                const split = m.image.split(',');
-                const mime = split[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
-                parts.push({ inline_data: { data: split[1], mime_type: mime } });
-            } catch {}
+        function appendLoadingIndicator() {
+            const id = "load-" + Date.now();
+            const row = document.createElement("div");
+            row.id = id;
+            row.classList.add("message-row", "bot-row");
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble", "loading-bubble");
+            bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Mengetik...`;
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return id;
         }
-        if (m.content && m.content !== '(foto)') parts.push({ text: m.content });
-        else if (!m.image) parts.push({ text: m.content || '' });
-        if (parts.length) contents.push({ role: m.role==='assistant'?'model':'user', parts });
-    }
-    const latestParts = [];
-    if (userImage) {
-        try {
-            const split = userImage.split(',');
-            const mime = split[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
-            latestParts.push({ inline_data: { data: split[1], mime_type: mime } });
-        } catch {}
-    }
-    latestParts.push({ text: userText || 'Halo' });
-    contents.push({ role: 'user', parts: latestParts });
-    return contents;
-}
 
-async function* streamGemini(apiKey, model, history, userText, userImage, systemPrompt, useSearch) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
-    const body = {
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: buildGeminiContents(history, userText, userImage),
-        generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
-    };
-    if (useSearch) body.tools = [{ google_search: {} }];
-    const resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    if (!resp.ok) {
-        const err = await resp.text(); let msg = err.slice(0,150);
-        try { msg = JSON.parse(err)?.error?.message || msg; } catch {}
-        const e = new Error(`Gemini ${resp.status}: ${msg}`); e.status = resp.status; throw e;
-    }
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream:true });
-        const lines = buffer.split('\n'); buffer = lines.pop() ?? '';
-        for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const raw = line.slice(6).trim();
-            if (!raw || raw==='[DONE]') continue;
-            try {
-                const chunk = JSON.parse(raw);
-                const t = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (t) yield t;
-            } catch {}
+        function removeLoadingIndicator(id) {
+            const element = document.getElementById(id);
+            if (element) element.remove();
         }
-    }
-}
 
-// ═══════════════════════════════════════════════
-// GROQ — dari test API
-// ═══════════════════════════════════════════════
-async function callGroq(apiKey, model, systemPrompt, userText, history) {
-    const msgs = [{ role:'system', content:systemPrompt }];
-    if (history) for (const m of history) msgs.push({ role:m.role==='assistant'?'assistant':'user', content:m.content||'' });
-    msgs.push({ role:'user', content: userText||'Halo' });
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages:msgs, max_tokens:1024 })
-    });
-    if (!resp.ok) {
-        const err = await resp.text(); let msg = err.slice(0,150);
-        try { msg = JSON.parse(err)?.error?.message||msg; } catch {}
-        const e = new Error(`Groq ${resp.status}: ${msg}`); e.status = resp.status; throw e;
-    }
-    return (await resp.json()).choices[0].message.content;
-}
+        function saveChatToSession(text, image, sender) {
+            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
+            if (!sessions[currentSessionId]) return;
 
-// ═══════════════════════════════════════════════
-// OPENROUTER — dari test API, TEKS DULU baru gambar
-// ═══════════════════════════════════════════════
-async function callOpenRouter(apiKey, model, systemPrompt, userText, userImage, history) {
-    const msgs = [{ role:'system', content:systemPrompt }];
-    if (history) {
-        for (const m of history.slice(0,-1)) msgs.push({ role:m.role==='assistant'?'assistant':'user', content:m.content||'' });
-    }
-    const hasImg = !!(userImage?.includes(','));
-    let userContent = userText || 'Halo';
-    if (hasImg) {
-        try {
-            const [meta, b64] = userImage.split(',');
-            const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
-            // TEKS DULU baru gambar
-            userContent = [
-                { type:'text', text: userText||'Lihat dan ceritakan isi gambar ini secara detail.' },
-                { type:'image_url', image_url:{ url:`data:${mime};base64,${b64}` } }
-            ];
-        } catch {}
-    }
-    msgs.push({ role:'user', content:userContent });
-    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method:'POST',
-        headers:{
-            'Content-Type':'application/json',
-            'Authorization':`Bearer ${apiKey}`,
-            'HTTP-Referer':'https://xrezzky-assistant.vercel.app',
-            'X-Title':'XREZZKY OFFICIAL STORE'
-        },
-        body: JSON.stringify({ model, messages:msgs, max_tokens:2048 })
-    });
-    if (!resp.ok) {
-        const err = await resp.text(); let msg = err.slice(0,150);
-        try { msg = JSON.parse(err)?.error?.message||msg; } catch {}
-        const e = new Error(`OpenRouter ${resp.status}: ${msg}`); e.status = resp.status; throw e;
-    }
-    const data = await resp.json();
-    const result = data.choices?.[0]?.message?.content;
-    if (!result) throw new Error('Response kosong');
-    return result;
-}
+            if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
+                sessions[currentSessionId].title = text; 
+            }
 
-// ═══════════════════════════════════════════════
-// MARKDOWN
-// ═══════════════════════════════════════════════
-function renderMarkdown(text) {
-    if (!text) return '';
-    let t = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    t = t.replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>');
-    t = t.replace(/`([^`]+)`/g,'<code>$1</code>');
-    t = t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-    t = t.replace(/\*(.+?)\*/g,'<em>$1</em>');
-    t = t.replace(/^### (.+)$/gm,'<b style="font-size:14px;display:block;margin-top:4px">$1</b>');
-    t = t.replace(/^## (.+)$/gm, '<b style="font-size:15px;display:block;margin-top:4px">$1</b>');
-    t = t.replace(/^# (.+)$/gm,  '<b style="font-size:16px;display:block;margin-top:4px">$1</b>');
-    t = t.replace(/^---$/gm,'<hr style="border-color:#334155;margin:6px 0">');
-    t = t.replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-    t = t.replace(/\n/g,'<br>');
-    return t;
-}
-
-// ═══════════════════════════════════════════════
-// DOM HELPERS
-// ═══════════════════════════════════════════════
-function appendMsg(text, imageB64, sender, badge) {
-    const chat = document.getElementById('chatContainer');
-    const row  = document.createElement('div');
-    row.className = 'message-row '+(sender==='user'?'user-row':'bot-row');
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-
-    if (badge && sender==='bot') {
-        const p = badge.split('·')[0].trim();
-        const b = document.createElement('div');
-        b.className = `provider-badge badge-${p}`;
-        b.textContent = badge;
-        bubble.appendChild(b);
-    }
-    if (imageB64) {
-        const img = document.createElement('img');
-        img.src=imageB64; img.className='chat-img';
-        img.onclick=()=>openModal(imageB64);
-        bubble.appendChild(img);
-    }
-    if (text) {
-        const el = document.createElement('div');
-        if (sender==='bot') el.innerHTML = renderMarkdown(text);
-        else el.textContent = text;
-        bubble.appendChild(el);
-    }
-    row.appendChild(bubble);
-    chat.appendChild(row);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function appendLoading() {
-    const id = 'load-'+Date.now();
-    const chat = document.getElementById('chatContainer');
-    const row  = document.createElement('div');
-    row.id=id; row.className='message-row bot-row';
-    const b = document.createElement('div');
-    b.className='bubble loading-bubble';
-    b.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Mengetik...';
-    row.appendChild(b); chat.appendChild(row);
-    chat.scrollTop = chat.scrollHeight;
-    return id;
-}
-function removeLoading(id) { document.getElementById(id)?.remove(); }
-</script>
+            sessions[currentSessionId].chats.push({ text, image, sender });
+            sessions[currentSessionId].timestamp = Date.now();
+            
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+        }
+    </script>
 </body>
 </html>
