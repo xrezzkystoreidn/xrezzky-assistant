@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>XREZZKY ASSISTANT - Official Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -46,7 +46,7 @@
             flex-direction: column;
             flex-shrink: 0;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 25;
+            z-index: 30;
         }
 
         .sidebar-header {
@@ -145,6 +145,15 @@
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
             z-index: 20;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        /* Penyesuaian layout area chat karena header & input sekarang fixed */
+        @media (min-width: 1025px) {
+            .chat-header { left: var(--sidebar-width); }
         }
 
         .brand-info {
@@ -216,6 +225,8 @@
             flex-direction: column;
             gap: 24px;
             scroll-behavior: smooth;
+            margin-top: 60px; /* Jarak aman dari header fixed */
+            margin-bottom: 90px; /* Jarak aman agar gelembung chat terakhir tidak tertutup input bar */
         }
 
         .message-feed-wrapper {
@@ -234,7 +245,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             animation: fadeIn 0.5s ease;
         }
         .welcome-avatar {
@@ -252,13 +263,13 @@
             box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
         }
         .welcome-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             margin-bottom: 8px;
             color: var(--text-main);
         }
         .welcome-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             max-width: 450px;
             line-height: 1.5;
@@ -329,9 +340,12 @@
 
         /* --- PREVIEW BAR GAMBAR --- */
         .preview-bar {
+            position: fixed;
+            bottom: 84px;
+            left: 50%;
+            transform: translateX(-50%);
             max-width: 760px;
-            width: calc(100% - 48px);
-            margin: 0 auto;
+            width: calc(100% - 32px);
             background-color: #1e293b;
             padding: 10px 16px;
             display: none;
@@ -339,8 +353,8 @@
             justify-content: space-between;
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            margin-bottom: 8px;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            z-index: 18;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
         }
 
         .preview-container {
@@ -361,17 +375,25 @@
             color: var(--text-muted);
         }
 
-        /* --- BAR INPUT BAWAH FIXED --- */
+        /* --- KUNCI TOTAL INPUT BAR BAWAH (LOCKED POSITION MOBILE FIX) --- */
         .chat-form-wrapper {
-            background-color: transparent;
-            padding: 0 24px 24px 24px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, var(--bg-main) 80%, transparent);
+            padding: 10px 24px 20px 24px;
+            z-index: 20;
+        }
+
+        @media (min-width: 1025px) {
+            .chat-form-wrapper { left: var(--sidebar-width); }
         }
 
         .chat-form {
             max-width: 800px;
             width: 100%;
             margin: 0 auto;
-            position: relative;
         }
 
         .modern-input-bar {
@@ -384,7 +406,7 @@
             gap: 8px;
             width: 100%;
             min-height: 54px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         .modern-input-bar input {
@@ -402,7 +424,7 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 18px;
+            font-size: 19px;
             cursor: pointer;
             width: 42px;
             height: 42px;
@@ -434,7 +456,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
-            z-index: 22;
+            z-index: 25;
             display: none;
         }
 
@@ -502,7 +524,6 @@
                 left: calc(-1 * var(--sidebar-width));
                 top: 0;
                 border-right: none;
-                border-left: 1px solid var(--border-color);
                 height: 100%;
                 transition: transform 0.3s ease;
                 transform: translateX(0); 
@@ -517,13 +538,14 @@
         }
 
         @media (max-width: 640px) {
-            .chat-container { padding: 16px; }
-            .chat-form-wrapper { padding: 0 12px 12px 12px; }
+            .chat-container { padding: 16px; margin-bottom: 76px; }
+            .chat-form-wrapper { padding: 6px 12px 12px 12px; }
             .bubble { max-width: 88%; font-size: 14px; padding: 12px 14px; }
             .chat-header { padding: 0 16px; }
-            .welcome-title { font-size: 18px; }
-            .modern-input-bar { padding: 4px 6px 4px 12px; min-height: 50px; }
-            .bar-btn { width: 38px; height: 38px; font-size: 16px; }
+            .welcome-title { font-size: 17px; }
+            .modern-input-bar { padding: 4px 6px 4px 12px; min-height: 48px; }
+            .bar-btn { width: 36px; height: 36px; font-size: 17px; }
+            .preview-bar { bottom: 70px; width: calc(100% - 24px); }
         }
     </style>
 </head>
@@ -624,7 +646,7 @@
         let selectedBase64Image = null;
         let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
 
-        // --- MANAJEMEN VOICE INPUT (SPEECH TO TEXT) ---
+        // --- VOICE INPUT SPEECH RECOGNITION ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isRecording = false;
@@ -671,7 +693,7 @@
             if (!recognition) return;
 
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak(new SynthesisUtterance(""));
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
             }
 
             if (isRecording) {
@@ -682,7 +704,7 @@
             }
         });
 
-        // RE-FIX KAMUS FILTER AGAR SUARA AI TIDAK MENGEJA KATA GAUL SINGKATAN
+        // FILTER BAHASA SLANG AGAR INTANASI TIDAK KAKU SAAT TEXT-TO-SPEECH
         function filterSlangToFormalText(text) {
             let clean = text;
             const slangMap = {
@@ -715,7 +737,7 @@
             return clean;
         }
 
-        // OUTPUT SUARA TEXT TO SPEECH YANG FASIH DI HP (KUNCI BAHASA INDONESIA)
+        // OUTPUT SUARA SANGAT SMOOTH MIRIP REAL HUMAN ASSISTANT (CEWE SYSTEM MODULATION)
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); 
@@ -725,8 +747,8 @@
 
                 const utterance = new SpeechSynthesisUtterance(parsedText);
                 utterance.lang = 'id-ID'; 
-                utterance.rate = 1.0; 
-                utterance.pitch = 1.0; 
+                utterance.rate = 1.05; // Sedikit dinaikkan ritmenya agar natural tidak kaku robotik
+                utterance.pitch = 1.05; // Modulasi nada ceria mirip aslinya
 
                 const voices = window.speechSynthesis.getVoices();
                 const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
@@ -742,7 +764,7 @@
             window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
         }
 
-        // --- FUNGSI DETEKSI WAKTU USER ---
+        // --- DETEKSI WAKTU ---
         function getDynamicGreeting() {
             const hours = new Date().getHours();
             let waktu = "Malam"; 
@@ -798,7 +820,7 @@
         closeHistoryBtn.addEventListener("click", closeSidebar);
         sidebarOverlay.addEventListener("click", closeSidebar);
 
-        // --- MANAJEMEN SESI ---
+        // --- SESSIONS MANAGER ---
         window.addEventListener("DOMContentLoaded", () => {
             if (!currentSessionId) createNewSession();
             loadCurrentSessionChat();
@@ -903,7 +925,7 @@
             }
         });
 
-        // --- SUBMIT CHAT ---
+        // --- SUBMIT HANDLING ---
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const textMessage = userInput.value.trim();
