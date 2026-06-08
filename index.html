@@ -360,7 +360,7 @@
             color: var(--text-muted);
         }
 
-        /* --- BAR INPUT BAWAH --- */
+        /* --- BAR INPUT BAWAH FIXED FIX --- */
         .chat-form-wrapper {
             background-color: transparent;
             padding: 0 24px 24px 24px;
@@ -578,7 +578,7 @@
                         <i class="fa-solid fa-microphone"></i>
                     </button>
                     <input type="text" id="userInput" placeholder="Tanyakan hal yang ingin Anda ketahui..." autocomplete="off">
-                    <button type="submit" class="bar-btn send-btn-active" id="sendBtn">
+                    <button type="submit" class="bar-btn send-btn-active" id="sendBtn" title="Kirim Pesan">
                         <i class="fas fa-arrow-up"></i>
                     </button>
                 </div>
@@ -623,7 +623,7 @@
         let selectedBase64Image = null;
         let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
 
-        // --- PENGATURAN SUARA JALAN OTOMATIS DAN SUBMIT (SPEECH RECOGNITION) ---
+        // --- MANAJEMEN VOICE INPUT (SPEECH TO TEXT) ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isRecording = false;
@@ -656,10 +656,10 @@
                 const speechToText = event.results[0][0].transcript;
                 if (speechToText.trim() !== "") {
                     userInput.value = speechToText;
-                    // TRICK: Kasih jeda sedikit lalu langsung auto-submit kirim chat!
+                    // FIX: Selesai ngomong langsung otomatis submit kirim!
                     setTimeout(() => {
                         chatForm.requestSubmit(); 
-                    }, 400);
+                    }, 300);
                 }
             };
         } else {
@@ -670,9 +670,9 @@
             e.preventDefault();
             if (!recognition) return;
 
-            // Buka proteksi audio browser mobile saat tombol ditekan
+            // Buka gerbang audio mobile browser
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak(new SynthesisUtterance(""));
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
             }
 
             if (isRecording) {
@@ -683,17 +683,58 @@
             }
         });
 
-        // Fungsi Text-To-Speech (AI Berbicara Membaca Jawaban Teks)
+        // FIX: KAMUS TRANSLATE GAUL (Mencegah AI Mengeja Singkatan Teks Kaku)
+        function filterSlangToFormalText(text) {
+            let clean = text;
+            const slangMap = {
+                "\\bgw\\b": "gua",
+                "\\bgua\\b": "gua",
+                "\\bga\\b": "nggak",
+                "\\bgak\\b": "nggak",
+                "\\bndak\\b": "nggak",
+                "\\bdn\\b": "dan",
+                "\\bdll\\b": "dan lain-lain",
+                "\\bbtw\\b": "by the way",
+                "\\baja\\b": "aja",
+                "\\bjg\\b": "juga",
+                "\\bdgn\\b": "dengan",
+                "\\bkrn\\b": "karena",
+                "\\bknp\\b": "kenapa",
+                "\\butk\\b": "untuk",
+                "\\bLu\\b": "lu",
+                "\\blo\\b": "lu",
+                "\\belo\\b": "lu",
+                "\\bkm\\b": "kamu",
+                "\\bmks\\b": "makasih",
+                "\\bthx\\b": "terima kasih",
+                "\\bttg\\b": "tentang",
+                "\\bXREZZKY\\b": "X-Rezki",
+                "\\bAI\\b": "A-I"
+            };
+
+            for (let key in slangMap) {
+                let regex = new RegExp(key, "gi");
+                clean = clean.replace(regex, slangMap[key]);
+            }
+            return clean;
+        }
+
+        // FIX: OUTPUT SUARA TEXT TO SPEECH DI INPUT OPTIMALISASI
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); 
                 
-                const cleanText = text.replace(/[*#_`~\-]/g, ''); 
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'id-ID'; 
-                utterance.rate = 1.0; 
-                utterance.pitch = 1.0;
+                // Hilangkan simbol markdown pembacaan teks kaku
+                let parsedText = text.replace(/[*#_`~\-]/g, ''); 
+                // Masukkan filter translasi kamus gaul
+                parsedText = filterSlangToFormalText(parsedText);
 
+                const utterance = new SpeechSynthesisUtterance(parsedText);
+                utterance.lang = 'id-ID'; 
+                utterance.rate = 1.0; // Kecepatan normal pas manusia ngomong
+                utterance.pitch = 1.0; 
+
+                // Cari list suara sistem lokal bahasa Indonesia agar natural tidak cempreng robot
                 const voices = window.speechSynthesis.getVoices();
                 const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
                 if (idVoice) utterance.voice = idVoice;
@@ -714,7 +755,7 @@
             else if (hours >= 11 && hours < 15) waktu = "Siang ☀️";
             else if (hours >= 15 && hours < 18) waktu = "Sore 🌅";
             else waktu = "Malam 🌙";
-            return `Halo, Selamat ${waktu}. Ada yang bisa saya bantu hari ini?`;
+            return `Halo Bro, Selamat ${waktu}. Ada yang bisa dibantu dengan XREZZKY AI hari ini?`;
         }
 
         // --- MODAL ZOOM FOTO ---
@@ -746,7 +787,6 @@
             }
         }
 
-        // Unblock suara otomatis pada interaksi pertama user di layar
         document.body.addEventListener("click", () => {
             if ('speechSynthesis' in window && window.speechSynthesis.speaking === false) {
                 window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
@@ -790,7 +830,7 @@
                 welcomeDiv.innerHTML = `
                     <div class="welcome-avatar">X</div>
                     <div class="welcome-title">${getDynamicGreeting()}</div>
-                    <div class="welcome-subtitle">Tanyakan hal apa pun yang ingin Anda ketahui. Saya di sini siap mendengarkan dan membantu Anda.</div>
+                    <div class="welcome-subtitle">Tanyakan apa saja tentang produk digital, layanan toko, atau navigasi link di XREZZKY.</div>
                 `;
                 messageFeedWrapper.appendChild(welcomeDiv);
             } else {
