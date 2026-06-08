@@ -151,7 +151,6 @@
             right: 0;
         }
 
-        /* Penyesuaian layout area chat karena header & input sekarang fixed */
         @media (min-width: 1025px) {
             .chat-header { left: var(--sidebar-width); }
         }
@@ -225,8 +224,8 @@
             flex-direction: column;
             gap: 24px;
             scroll-behavior: smooth;
-            margin-top: 60px; /* Jarak aman dari header fixed */
-            margin-bottom: 90px; /* Jarak aman agar gelembung chat terakhir tidak tertutup input bar */
+            margin-top: 60px; 
+            margin-bottom: 100px; 
         }
 
         .message-feed-wrapper {
@@ -291,6 +290,9 @@
             word-break: break-word;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             white-space: pre-wrap; 
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .user-row .bubble {
@@ -305,23 +307,43 @@
             color: var(--text-main);
             border-bottom-left-radius: 4px;
             border: 1px solid var(--border-color);
-            position: relative;
+        }
+
+        /* JAM PER-PESAN */
+        .msg-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            align-self: flex-end;
+            margin-top: 6px;
+            user-select: none;
+        }
+        .user-row .msg-time {
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .speak-bubble-btn {
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
             color: var(--text-muted);
             cursor: pointer;
             font-size: 12px;
-            margin-top: 8px;
-            display: flex;
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: color 0.2s;
+            width: max-content;
+            transition: all 0.2s;
         }
         .speak-bubble-btn:hover {
-            color: var(--bg-bubble-user);
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .speak-bubble-btn.playing {
+            color: #ef4444;
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
 
         .chat-img {
@@ -375,7 +397,7 @@
             color: var(--text-muted);
         }
 
-        /* --- KUNCI TOTAL INPUT BAR BAWAH (LOCKED POSITION MOBILE FIX) --- */
+        /* --- INPUT BAR BAWAH FIXED --- */
         .chat-form-wrapper {
             position: fixed;
             bottom: 0;
@@ -538,7 +560,7 @@
         }
 
         @media (max-width: 640px) {
-            .chat-container { padding: 16px; margin-bottom: 76px; }
+            .chat-container { padding: 16px; margin-bottom: 86px; }
             .chat-form-wrapper { padding: 6px 12px 12px 12px; }
             .bubble { max-width: 88%; font-size: 14px; padding: 12px 14px; }
             .chat-header { padding: 0 16px; }
@@ -645,8 +667,9 @@
 
         let selectedBase64Image = null;
         let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+        let activeSpeakerBtn = null; 
 
-        // --- VOICE INPUT SPEECH RECOGNITION ---
+        // --- MANAJEMEN VOICE INPUT (SPEECH TO TEXT) ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isRecording = false;
@@ -688,12 +711,15 @@
             micBtn.style.display = "none"; 
         }
 
+        // Klik Mic: Jika sedang merekam maka matikan, jika mati maka mulai merekam
         micBtn.addEventListener("click", (e) => {
             e.preventDefault();
             if (!recognition) return;
 
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+            // Stop pemutar suara jika ada yang berbunyi
+            if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                resetSpeakerButtons();
             }
 
             if (isRecording) {
@@ -704,7 +730,7 @@
             }
         });
 
-        // FILTER BAHASA SLANG AGAR INTANASI TIDAK KAKU SAAT TEXT-TO-SPEECH
+        // KAMUS GAUL AGAR SUARA NYAMBUNG GAK KAKU
         function filterSlangToFormalText(text) {
             let clean = text;
             const slangMap = {
@@ -737,34 +763,61 @@
             return clean;
         }
 
-        // OUTPUT SUARA SANGAT SMOOTH MIRIP REAL HUMAN ASSISTANT (CEWE SYSTEM MODULATION)
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
-                
-                let parsedText = text.replace(/[*#_`~\-]/g, ''); 
-                parsedText = filterSlangToFormalText(parsedText);
+        function resetSpeakerButtons() {
+            const btns = document.querySelectorAll(".speak-bubble-btn");
+            btns.forEach(btn => {
+                btn.classList.remove("playing");
+                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengarkan`;
+            });
+            activeSpeakerBtn = null;
+        }
 
-                const utterance = new SpeechSynthesisUtterance(parsedText);
-                utterance.lang = 'id-ID'; 
-                utterance.rate = 1.05; // Sedikit dinaikkan ritmenya agar natural tidak kaku robotik
-                utterance.pitch = 1.05; // Modulasi nada ceria mirip aslinya
+        // TEXT TO SPEECH SANGAT SMOOTH DAN BISA DI-STOP / PLAY
+        function toggleSpeakText(text, buttonElement) {
+            if (!('speechSynthesis' in window)) return;
 
-                const voices = window.speechSynthesis.getVoices();
-                const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-                if (idVoice) {
-                    utterance.voice = idVoice;
-                }
-
-                window.speechSynthesis.speak(utterance);
+            if (window.speechSynthesis.speaking && activeSpeakerBtn === buttonElement) {
+                window.speechSynthesis.cancel();
+                resetSpeakerButtons();
+                return;
             }
+
+            window.speechSynthesis.cancel();
+            resetSpeakerButtons();
+
+            let parsedText = text.replace(/[*#_`~\-]/g, ''); 
+            parsedText = filterSlangToFormalText(parsedText);
+
+            const utterance = new SpeechSynthesisUtterance(parsedText);
+            utterance.lang = 'id-ID'; 
+            utterance.rate = 1.05; 
+            utterance.pitch = 1.05; 
+
+            const voices = window.speechSynthesis.getVoices();
+            const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+            if (idVoice) utterance.voice = idVoice;
+
+            utterance.onstart = () => {
+                activeSpeakerBtn = buttonElement;
+                buttonElement.classList.add("playing");
+                buttonElement.innerHTML = `<i class="fa-solid fa-circle-stop"></i> Hentikan`;
+            };
+
+            utterance.onend = () => {
+                resetSpeakerButtons();
+            };
+
+            utterance.onerror = () => {
+                resetSpeakerButtons();
+            };
+
+            window.speechSynthesis.speak(utterance);
         }
 
         if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
             window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
         }
 
-        // --- DETEKSI WAKTU ---
         function getDynamicGreeting() {
             const hours = new Date().getHours();
             let waktu = "Malam"; 
@@ -775,7 +828,14 @@
             return `Halo Bro, Selamat ${waktu}. Ada yang bisa dibantu dengan XREZZKY AI hari ini?`;
         }
 
-        // --- MODAL ZOOM FOTO ---
+        // --- SCROLL TO BOTTOM SYSTEM FIX ---
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 50);
+        }
+
+        // --- MODAL FOTO ---
         function openImageModal(src) {
             modalImgTarget.src = src;
             imageModal.style.display = "flex";
@@ -795,7 +855,7 @@
             if(e.target !== modalImgTarget && e.target !== closeModalBtn) closeImageModal();
         });
 
-        // --- MANAJEMEN SIDEBAR ---
+        // --- SIDEBAR ---
         function openSidebar() {
             renderSidebarList();
             if (window.innerWidth <= 1024) {
@@ -803,12 +863,6 @@
                 sidebarOverlay.style.display = "block";
             }
         }
-
-        document.body.addEventListener("click", () => {
-            if ('speechSynthesis' in window && window.speechSynthesis.speaking === false) {
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-            }
-        }, { once: true });
 
         function closeSidebar() {
             historySidebar.classList.remove("sidebar-open");
@@ -820,7 +874,7 @@
         closeHistoryBtn.addEventListener("click", closeSidebar);
         sidebarOverlay.addEventListener("click", closeSidebar);
 
-        // --- SESSIONS MANAGER ---
+        // --- MANAJEMEN SESI ---
         window.addEventListener("DOMContentLoaded", () => {
             if (!currentSessionId) createNewSession();
             loadCurrentSessionChat();
@@ -836,6 +890,7 @@
         }
 
         function loadCurrentSessionChat() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             messageFeedWrapper.innerHTML = "";
             let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
             let currentData = sessions[currentSessionId];
@@ -852,10 +907,10 @@
                 messageFeedWrapper.appendChild(welcomeDiv);
             } else {
                 currentData.chats.forEach(item => {
-                    appendMessage(item.text, item.image, item.sender, false); 
+                    appendMessage(item.text, item.image, item.sender, item.timeStr); 
                 });
             }
-            setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
+            scrollToBottom();
         }
 
         function renderSidebarList() {
@@ -914,6 +969,7 @@
 
         clearChatBtn.addEventListener("click", () => {
             if(confirm("Hapus obrolan aktif saat ini?")) {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
                 delete sessions[currentSessionId];
                 localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
@@ -937,13 +993,17 @@
             const currentText = textMessage;
             const currentImage = selectedBase64Image;
 
+            // Generate jam kirim secara real-time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
             userInput.value = "";
             selectedBase64Image = null;
             fileInput.value = "";
             previewBar.style.display = "none";
 
-            appendMessage(currentText, currentImage, "user", false);
-            saveChatToSession(currentText, currentImage, "user");
+            appendMessage(currentText, currentImage, "user", timeStr);
+            saveChatToSession(currentText, currentImage, "user", timeStr);
 
             const loadingId = appendLoadingIndicator();
 
@@ -962,19 +1022,24 @@
                 const data = await response.json();
                 removeLoadingIndicator(loadingId);
 
+                const botNow = new Date();
+                const botTimeStr = botNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
                 if (data.response) {
-                    appendMessage(data.response, null, "bot", true); 
-                    saveChatToSession(data.response, null, "bot");
+                    appendMessage(data.response, null, "bot", botTimeStr); 
+                    saveChatToSession(data.response, null, "bot", botTimeStr);
                 } else {
-                    appendMessage("Maaf, sistem XREZZKY AI sedang tidak merespons.", null, "bot", false);
+                    appendMessage("Maaf, sistem XREZZKY AI sedang tidak merespons.", null, "bot", botTimeStr);
                 }
             } catch (error) {
                 removeLoadingIndicator(loadingId);
-                appendMessage("Gagal terhubung ke server. Periksa jaringan Anda.", null, "bot", false);
+                const errNow = new Date();
+                const errTimeStr = errNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                appendMessage("Gagal terhubung ke server. Periksa jaringan Anda.", null, "bot", errTimeStr);
             }
         });
 
-        function appendMessage(text, imageBase64, sender, shouldSpeak) {
+        function appendMessage(text, imageBase64, sender, timeStr) {
             const row = document.createElement("div");
             row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
 
@@ -997,17 +1062,20 @@
                     const speakBtn = document.createElement("button");
                     speakBtn.className = "speak-bubble-btn";
                     speakBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengarkan`;
-                    speakBtn.addEventListener("click", () => speakText(text));
+                    speakBtn.addEventListener("click", () => toggleSpeakText(text, speakBtn));
                     bubble.appendChild(speakBtn);
-
-                    if (shouldSpeak) {
-                        speakText(text);
-                    }
                 }
             }
+
+            // Tambahkan komponen jam di kanan bawah bubble
+            const timeContainer = document.createElement("span");
+            timeContainer.className = "msg-time";
+            timeContainer.textContent = timeStr || "00.00";
+            bubble.appendChild(timeContainer);
+
             row.appendChild(bubble);
             messageFeedWrapper.appendChild(row);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            scrollToBottom();
         }
 
         function appendLoadingIndicator() {
@@ -1020,7 +1088,7 @@
             bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Berpikir...`;
             row.appendChild(bubble);
             messageFeedWrapper.appendChild(row);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            scrollToBottom();
             return id;
         }
 
@@ -1029,13 +1097,13 @@
             if (element) element.remove();
         }
 
-        function saveChatToSession(text, image, sender) {
+        function saveChatToSession(text, image, sender, timeStr) {
             let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
             if (!sessions[currentSessionId]) return;
             if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
                 sessions[currentSessionId].title = text; 
             }
-            sessions[currentSessionId].chats.push({ text, image, sender });
+            sessions[currentSessionId].chats.push({ text, image, sender, timeStr });
             sessions[currentSessionId].timestamp = Date.now();
             localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
         }
