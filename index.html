@@ -3,1110 +3,786 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>XREZZKY ASSISTANT - Official Chat</title>
+    <title>XREZZKY ASSISTANT</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    
     <style>
         :root {
             --bg-main: #0b0f17;
             --bg-chat: #131a26;
             --bg-bubble-user: #2563eb;
-            --bg-bubble-bot: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --sidebar-width: 280px;
+            --bg-bubble-bot: #1a2235;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --text-dim: #94a3b8;
+            --border: #1e2d45;
+            --accent: #2563eb;
+            --accent2: #38bdf8;
+            --sidebar-w: 272px;
+            --radius: 20px;
         }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; }
+        html, body { height:100%; overflow:hidden; }
+        body { background:var(--bg-main); color:var(--text-main); display:flex; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width:var(--sidebar-w); height:100%; background:var(--bg-chat);
+            border-right:1px solid var(--border); display:flex; flex-direction:column;
+            flex-shrink:0; z-index:30; transition:transform .28s cubic-bezier(.4,0,.2,1);
         }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+        .sidebar-top {
+            height:60px; padding:0 16px; display:flex; align-items:center;
+            justify-content:space-between; border-bottom:1px solid var(--border); flex-shrink:0;
         }
-
-        /* --- SIDEBAR UTAMA --- */
-        .history-sidebar {
-            width: var(--sidebar-width);
-            height: 100%;
-            background-color: var(--bg-chat);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 30;
-        }
-
-        .sidebar-header {
-            padding: 16px;
-            height: 60px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sidebar-header h2 {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
+        .sidebar-top h2 { font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--text-dim); text-transform:uppercase; }
         .new-chat-btn {
-            background-color: var(--bg-bubble-user);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            margin: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: opacity 0.2s;
+            margin:12px 14px; padding:11px 14px; background:var(--accent); color:#fff;
+            border:none; border-radius:12px; font-size:13px; font-weight:600;
+            cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;
+            transition:opacity .2s; letter-spacing:.01em;
         }
-        .new-chat-btn:hover {
-            opacity: 0.9;
-        }
-
-        .history-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 12px 16px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        .new-chat-btn:hover { opacity:.88; }
+        .history-list { flex:1; overflow-y:auto; padding:6px 10px 16px; display:flex; flex-direction:column; gap:4px; }
         .history-item {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            transition: background 0.2s;
+            padding:10px 12px; border-radius:10px; cursor:pointer;
+            display:flex; align-items:center; gap:8px; transition:background .15s;
+            border:1px solid transparent;
         }
-        .history-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .history-item.active-session {
-            border-color: var(--bg-bubble-user);
-            background-color: rgba(37, 99, 235, 0.08);
-        }
+        .history-item:hover { background:rgba(255,255,255,.04); }
+        .history-item.active { background:rgba(37,99,235,.1); border-color:rgba(37,99,235,.35); }
+        .hi-info { flex:1; overflow:hidden; min-width:0; }
+        .hi-title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-main); }
+        .hi-time { font-size:10px; color:var(--text-muted); margin-top:2px; }
+        .hi-edit { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:5px 7px; border-radius:6px; font-size:11px; flex-shrink:0; transition:all .15s; opacity:0; }
+        .history-item:hover .hi-edit { opacity:1; }
+        .hi-edit:hover { background:rgba(255,255,255,.08); color:var(--text-main); }
+        .sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:25; display:none; }
 
-        .history-item .title {
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-main);
-        }
+        /* ── MAIN AREA ── */
+        .main { flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden; position:relative; }
 
-        .history-item .time {
-            font-size: 10px;
-            color: var(--text-muted);
+        /* ── HEADER ── */
+        .header {
+            height:60px; background:var(--bg-chat); border-bottom:1px solid var(--border);
+            padding:0 20px; display:flex; align-items:center; gap:10px; flex-shrink:0; z-index:20;
         }
+        #menuBtn { display:none; }
+        .hdr-avatar {
+            width:34px; height:34px; border-radius:50%; flex-shrink:0; overflow:hidden;
+            background:linear-gradient(135deg,#2563eb,#1d4ed8);
+            display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;
+        }
+        .hdr-brand h1 { font-size:13px; font-weight:700; letter-spacing:.01em; }
+        .hdr-brand p { font-size:10px; color:#22c55e; display:flex; align-items:center; gap:3px; margin-top:1px; }
+        .hdr-widgets { display:flex; gap:8px; margin-left:auto; margin-right:10px; }
+        .widget {
+            display:flex; align-items:center; gap:6px; padding:4px 11px;
+            background:rgba(255,255,255,.03); border:1px solid var(--border);
+            border-radius:20px; font-size:11px; color:var(--text-dim); white-space:nowrap;
+        }
+        .widget i { color:var(--accent2); font-size:10px; }
+        .hdr-actions { display:flex; gap:2px; }
+        .hdr-btn {
+            background:none; border:none; color:var(--text-muted); font-size:16px;
+            cursor:pointer; width:36px; height:36px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center; transition:all .15s;
+        }
+        .hdr-btn:hover { background:rgba(255,255,255,.06); color:var(--text-main); }
 
-        /* --- KONTEN CHAT UTAMA --- */
-        .main-chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            position: relative;
-            background-color: var(--bg-main);
-        }
+        /* ── CHAT FEED ── */
+        .feed-wrap { flex:1; overflow-y:auto; padding:24px 20px; display:flex; flex-direction:column; }
+        .feed { max-width:760px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:6px; padding-bottom:8px; }
 
-        /* --- HEADER CHAT --- */
-        .chat-header {
-            height: 60px;
-            background-color: var(--bg-chat);
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 20;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+        /* ── WELCOME ── */
+        .welcome { display:flex; flex-direction:column; align-items:center; text-align:center; padding:60px 20px 40px; animation:fadeUp .4s ease; }
+        .w-logo {
+            width:64px; height:64px; border-radius:20px; margin-bottom:20px;
+            background:linear-gradient(135deg,#2563eb,#1d4ed8);
+            display:flex; align-items:center; justify-content:center;
+            font-size:26px; font-weight:800; color:#fff;
+            box-shadow:0 8px 24px rgba(37,99,235,.3);
         }
+        .w-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+        .w-sub { font-size:13px; color:var(--text-muted); max-width:380px; line-height:1.65; }
 
-        @media (min-width: 1025px) {
-            .chat-header { left: var(--sidebar-width); }
-        }
+        /* ── DATE SEPARATOR ── */
+        .date-sep { display:flex; align-items:center; gap:10px; margin:10px 0 4px; }
+        .date-sep span { font-size:10px; color:var(--text-muted); white-space:nowrap; }
+        .date-sep::before, .date-sep::after { content:''; flex:1; height:1px; background:var(--border); }
 
-        .brand-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        /* ── MESSAGES ── */
+        .msg-row { display:flex; align-items:flex-end; gap:8px; }
+        .msg-row.user { flex-direction:row-reverse; }
+        .msg-row.bot { flex-direction:row; }
 
-        #menuToggleBtn {
-            display: none;
-        }
+        
 
-        .avatar {
-            width: 36px;
-            height: 36px;
-            background-color: #2563eb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .brand-name h1 {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .brand-name p {
-            font-size: 11px;
-            color: #22c55e;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .header-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            transition: background 0.2s;
-        }
-        .header-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        /* --- AREA VIEWPORT CHAT --- */
-        .chat-container {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            scroll-behavior: smooth;
-            margin-top: 60px; 
-            margin-bottom: 100px; 
-        }
-
-        .message-feed-wrapper {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        /* Sapaan Awal Melayang */
-        .welcome-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-            animation: fadeIn 0.5s ease;
-        }
-        .welcome-avatar {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
-        }
-        .welcome-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-        .welcome-subtitle {
-            font-size: 13px;
-            color: var(--text-muted);
-            max-width: 450px;
-            line-height: 1.5;
-        }
-
-        .message-row {
-            display: flex;
-            width: 100%;
-        }
-        .message-row.user-row { justify-content: flex-end; }
-        .message-row.bot-row { justify-content: flex-start; }
+        .bubble-wrap { display:flex; flex-direction:column; max-width:80%; }
+        .msg-row.user .bubble-wrap { align-items:flex-end; }
+        .msg-row.bot .bubble-wrap { align-items:flex-start; }
 
         .bubble {
-            max-width: 85%;
-            padding: 14px 18px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.6;
-            word-break: break-word;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            white-space: pre-wrap; 
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            padding:12px 16px; border-radius:18px; font-size:14px;
+            line-height:1.7; word-break:break-word; position:relative;
+        }
+        .msg-row.user .bubble {
+            background:var(--accent); color:#fff;
+            border-bottom-right-radius:4px;
+        }
+        .msg-row.bot .bubble {
+            background:var(--bg-bubble-bot); color:var(--text-main);
+            border-bottom-left-radius:4px; border:1px solid var(--border);
         }
 
-        .user-row .bubble {
-            background-color: var(--bg-bubble-user);
-            color: white;
-            border-bottom-right-radius: 4px;
-            white-space: normal;
+        /* ── MARKDOWN ── */
+        .md-body { white-space:pre-wrap; }
+        .md-body strong { font-weight:600; }
+        .md-body em { font-style:italic; opacity:.9; }
+        .md-body code {
+            background:rgba(0,0,0,.3); padding:1px 6px; border-radius:5px;
+            font-family:'Fira Mono','Courier New',monospace; font-size:12.5px; color:#7dd3fc;
+        }
+        .md-body pre {
+            background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:10px;
+            padding:12px 14px; margin:8px 0; overflow-x:auto;
+        }
+        .md-body pre code { background:none; padding:0; color:#a5f3fc; }
+        .md-body ul, .md-body ol { padding-left:20px; margin:6px 0; }
+        .md-body li { margin:3px 0; }
+        .md-body h1 { font-size:17px; font-weight:700; margin:10px 0 4px; }
+        .md-body h2 { font-size:15px; font-weight:700; margin:8px 0 4px; }
+        .md-body h3 { font-size:14px; font-weight:600; margin:6px 0 3px; }
+        .md-body a { color:#60a5fa; text-decoration:underline; }
+        .md-body hr { border:none; border-top:1px solid var(--border); margin:10px 0; }
+        .md-body blockquote {
+            border-left:3px solid var(--accent); padding-left:12px;
+            margin:6px 0; color:var(--text-dim); font-style:italic;
         }
 
-        .bot-row .bubble {
-            background-color: var(--bg-bubble-bot);
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-            border: 1px solid var(--border-color);
-        }
+        /* ── BUBBLE FOOTER ── */
+        .bubble-footer { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
+        .msg-time { font-size:10px; color:var(--text-muted); }
+        .msg-row.user .msg-time { color:rgba(255,255,255,.5); }
 
-        /* JAM PER-PESAN */
-        .msg-time {
-            font-size: 10px;
-            color: var(--text-muted);
-            align-self: flex-end;
-            margin-top: 6px;
-            user-select: none;
+        .action-btn {
+            background:none; border:1px solid var(--border); color:var(--text-muted);
+            font-size:11px; padding:4px 10px; border-radius:14px; cursor:pointer;
+            display:inline-flex; align-items:center; gap:5px; transition:all .15s;
         }
-        .user-row .msg-time {
-            color: rgba(255, 255, 255, 0.7);
-        }
+        .action-btn:hover { background:rgba(255,255,255,.07); color:var(--text-main); }
+        .action-btn.copied { color:#22c55e; border-color:#22c55e; }
+        .action-btn.playing { color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
 
-        .speak-bubble-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 10px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            width: max-content;
-            transition: all 0.2s;
+        /* ── THINKING ── */
+        .thinking { display:flex; align-items:center; gap:10px; padding:12px 16px; }
+        .dot-wave { display:flex; gap:4px; }
+        .dot-wave span {
+            width:7px; height:7px; border-radius:50%; background:var(--text-muted);
+            animation:wave 1.2s ease-in-out infinite;
         }
-        .speak-bubble-btn:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .speak-bubble-btn.playing {
-            color: #ef4444;
-            border-color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-        }
+        .dot-wave span:nth-child(2) { animation-delay:.15s; }
+        .dot-wave span:nth-child(3) { animation-delay:.3s; }
+        @keyframes wave { 0%,60%,100% { transform:translateY(0); opacity:.4; } 30% { transform:translateY(-6px); opacity:1; } }
 
-        .chat-img {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            display: block;
-            object-fit: cover;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .chat-img:hover {
-            opacity: 0.9;
-        }
+        /* ── CHAT IMG ── */
+        .chat-img { max-width:100%; max-height:220px; border-radius:12px; display:block; margin-bottom:8px; object-fit:cover; cursor:pointer; transition:opacity .15s; }
+        .chat-img:hover { opacity:.88; }
 
-        /* --- PREVIEW BAR GAMBAR --- */
+        /* ── PREVIEW BAR ── */
         .preview-bar {
-            position: fixed;
-            bottom: 84px;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 760px;
-            width: calc(100% - 32px);
-            background-color: #1e293b;
-            padding: 10px 16px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            z-index: 18;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+            background:var(--bg-chat); border-top:1px solid var(--border);
+            padding:8px 20px; display:none; align-items:center; justify-content:space-between; flex-shrink:0;
+        }
+        .preview-inner { display:flex; align-items:center; gap:10px; }
+        .preview-thumb { width:40px; height:40px; border-radius:8px; object-fit:cover; }
+        .preview-label { font-size:12px; color:var(--text-muted); }
+        .preview-cancel { background:none; border:none; color:#ef4444; cursor:pointer; font-size:16px; padding:4px; }
+
+        /* ── INPUT BAR ── */
+        .input-wrap {
+            padding:10px 20px calc(10px + env(safe-area-inset-bottom));
+            background:var(--bg-main); border-top:1px solid var(--border); flex-shrink:0;
+        }
+        .input-inner { max-width:760px; margin:0 auto; }
+        .input-bar {
+            display:flex; align-items:center; background:var(--bg-chat);
+            border:1px solid var(--border); border-radius:26px;
+            padding:5px 6px 5px 14px; gap:6px; min-height:50px; align-items:flex-end;
+            box-shadow:0 2px 16px rgba(0,0,0,.25); transition:border-color .2s;
+        }
+        .input-bar:focus-within { border-color:rgba(37,99,235,.5); }
+        .input-bar textarea {
+            flex:1; background:none; border:none; color:var(--text-main);
+            font-size:14px; outline:none; min-width:0; resize:none;
+            max-height:160px; overflow-y:auto; line-height:1.5;
+            padding:6px 0; font-family:'Inter',sans-serif;
+            scrollbar-width:none;
+        }
+        .input-bar textarea::-webkit-scrollbar { display:none; }
+        .input-bar textarea::placeholder { color:var(--text-muted); }
+        .ibar-btn {
+            background:none; border:none; color:var(--text-muted); font-size:17px;
+            cursor:pointer; width:38px; height:38px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            transition:all .15s; flex-shrink:0;
+        }
+        .ibar-btn:hover { background:rgba(255,255,255,.06); color:var(--text-main); }
+        .ibar-btn.send { background:var(--accent); color:#fff; }
+        .ibar-btn.send:hover { opacity:.88; }
+        .ibar-btn.recording { color:#ef4444; background:rgba(239,68,68,.12); animation:pulse 1.5s infinite; }
+
+        /* ── IMAGE MODAL ── */
+        .img-modal { position:fixed; inset:0; background:rgba(0,0,0,.93); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+        .img-modal img { max-width:100%; max-height:88vh; border-radius:10px; transform:scale(.93); transition:transform .22s ease; }
+        .img-modal.open img { transform:scale(1); }
+        .img-modal-close {
+            position:absolute; top:16px; right:16px; width:40px; height:40px;
+            border-radius:50%; background:rgba(255,255,255,.1); border:none;
+            color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
         }
 
-        .preview-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+        .msg-in { animation:fadeUp .22s ease; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width:1024px) {
+            .sidebar { position:fixed; left:0; top:0; height:100%; transform:translateX(-100%); box-shadow:4px 0 20px rgba(0,0,0,.4); }
+            .sidebar.open { transform:translateX(0); }
+            #menuBtn { display:flex; }
+            #openHistBtn { display:none; }
+            .hdr-widgets { display:none; }
         }
-
-        .preview-img {
-            width: 44px;
-            height: 44px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .preview-text {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        /* --- INPUT BAR BAWAH FIXED --- */
-        .chat-form-wrapper {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, var(--bg-main) 80%, transparent);
-            padding: 10px 24px 20px 24px;
-            z-index: 20;
-        }
-
-        @media (min-width: 1025px) {
-            .chat-form-wrapper { left: var(--sidebar-width); }
-        }
-
-        .chat-form {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .modern-input-bar {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-chat);
-            border: 1px solid var(--border-color);
-            border-radius: 28px;
-            padding: 6px 8px 6px 16px;
-            gap: 8px;
-            width: 100%;
-            min-height: 54px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .modern-input-bar input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 15px;
-            outline: none;
-            height: 100%;
-            padding: 0 4px;
-        }
-
-        .bar-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 19px;
-            cursor: pointer;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s, color 0.2s;
-            flex-shrink: 0;
-        }
-        .bar-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        .mic-recording {
-            color: #ef4444 !important;
-            background-color: rgba(239, 68, 68, 0.15);
-            animation: pulse 1.5s infinite;
-        }
-
-        .send-btn-active {
-            color: white !important;
-            background-color: var(--bg-bubble-user);
-        }
-
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 25;
-            display: none;
-        }
-
-        .loading-bubble {
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* --- MODAL ZOOM FOTO --- */
-        .image-modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.95);
-            z-index: 100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .modal-img-content {
-            max-width: 100%;
-            max-height: 85vh;
-            border-radius: 12px;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.7);
-            object-fit: contain;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
-        /* --- RESPONSIVE DESIGN --- */
-        @media (max-width: 1024px) {
-            .history-sidebar {
-                position: fixed;
-                left: calc(-1 * var(--sidebar-width));
-                top: 0;
-                border-right: none;
-                height: 100%;
-                transition: transform 0.3s ease;
-                transform: translateX(0); 
-            }
-
-            .history-sidebar.sidebar-open {
-                transform: translateX(var(--sidebar-width));
-            }
-
-            #menuToggleBtn { display: flex; }
-            #openHistoryBtn { display: none; }
-        }
-
-        @media (max-width: 640px) {
-            .chat-container { padding: 16px; margin-bottom: 86px; }
-            .chat-form-wrapper { padding: 6px 12px 12px 12px; }
-            .bubble { max-width: 88%; font-size: 14px; padding: 12px 14px; }
-            .chat-header { padding: 0 16px; }
-            .welcome-title { font-size: 17px; }
-            .modern-input-bar { padding: 4px 6px 4px 12px; min-height: 48px; }
-            .bar-btn { width: 36px; height: 36px; font-size: 17px; }
-            .preview-bar { bottom: 70px; width: calc(100% - 24px); }
+        @media (max-width:600px) {
+            .feed-wrap { padding:16px 12px; }
+            .bubble { font-size:14px; padding:11px 14px; }
+            .bubble-wrap { max-width:88%; }
+            .input-wrap { padding:8px 12px calc(8px + env(safe-area-inset-bottom)); }
+            .header { padding:0 14px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="history-sidebar" id="historySidebar">
-        <div class="sidebar-header">
-            <h2>Riwayat Percakapan</h2>
-            <button class="header-btn" id="closeHistoryBtn"><i class="fas fa-times"></i></button>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <h2>Riwayat</h2>
+        <button class="hdr-btn" id="closeSideBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
+    <div class="history-list" id="historyList"></div>
+</div>
+<div class="sidebar-overlay" id="overlay"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- HEADER -->
+    <div class="header">
+        <button class="hdr-btn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+        <div class="hdr-avatar">X</div>
+        <div class="hdr-brand">
+            <h1>XREZZKY AI</h1>
+            <p><i class="fas fa-circle" style="font-size:5px"></i> Sistem Aktif</p>
         </div>
-        <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
-        <div class="history-list" id="historyList"></div>
+        <div class="hdr-widgets">
+            <div class="widget"><i class="fa-regular fa-calendar-days"></i><span id="wDate">-</span></div>
+            <div class="widget"><i class="fa-solid fa-cloud-sun" id="wIcon"></i><span id="wText">-</span></div>
+        </div>
+        <div class="hdr-actions">
+            <button class="hdr-btn" id="openHistBtn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left"></i></button>
+            <button class="hdr-btn" id="clearBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
+        </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- FEED -->
+    <div class="feed-wrap" id="feedWrap">
+        <div class="feed" id="feed"></div>
+    </div>
 
-    <div class="main-chat-area">
-        <div class="chat-header">
-            <div class="brand-info">
-                <button class="header-btn" id="menuToggleBtn" title="Menu"><i class="fa-solid fa-bars"></i></button>
-                <div class="avatar">X</div>
-                <div class="brand-name">
-                    <h1>XREZZKY AI</h1>
-                    <p><i class="fas fa-circle" style="font-size: 7px;"></i> Sistem Aktif</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="header-btn" id="openHistoryBtn" title="Riwayat Chat"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                <button class="header-btn" id="clearChatBtn" title="Hapus Sesi"><i class="fas fa-trash-can"></i></button>
-            </div>
+    <!-- PREVIEW -->
+    <div class="preview-bar" id="previewBar">
+        <div class="preview-inner">
+            <img src="" id="previewThumb" class="preview-thumb" alt="">
+            <span class="preview-label">Gambar siap dikirim</span>
         </div>
+        <button class="preview-cancel" id="cancelImg"><i class="fas fa-times"></i></button>
+    </div>
 
-        <div class="chat-container" id="chatContainer">
-            <div class="message-feed-wrapper" id="messageFeedWrapper"></div>
-        </div>
-
-        <div class="preview-bar" id="previewBar">
-            <div class="preview-container">
-                <img src="" id="imgElementPreview" class="preview-img">
-                <span class="preview-text">Gambar siap dikirim...</span>
-            </div>
-            <i class="fas fa-times" id="cancelImgBtn" style="color: #ef4444; cursor: pointer;"></i>
-        </div>
-
-        <div class="chat-form-wrapper">
-            <form class="chat-form" id="chatForm">
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                <div class="modern-input-bar">
-                    <button type="button" class="bar-btn" id="uploadBtn" title="Kirim Foto">
-                        <i class="fa-regular fa-image"></i>
-                    </button>
-                    <button type="button" class="bar-btn" id="micBtn" title="Bicara (VN)">
-                        <i class="fa-solid fa-microphone"></i>
-                    </button>
-                    <input type="text" id="userInput" placeholder="Ketik pesan atau gunakan mic..." autocomplete="off">
-                    <button type="submit" class="bar-btn send-btn-active" id="sendBtn" title="Kirim Pesan">
-                        <i class="fas fa-arrow-up"></i>
-                    </button>
+    <!-- INPUT -->
+    <div class="input-wrap">
+        <div class="input-inner">
+            <form id="chatForm">
+                <input type="file" id="fileInput" accept="image/*" style="display:none">
+                <div class="input-bar">
+                    <button type="button" class="ibar-btn" id="uploadBtn" title="Kirim Foto"><i class="fa-regular fa-image"></i></button>
+                    <button type="button" class="ibar-btn" id="micBtn" title="Voice Input"><i class="fa-solid fa-microphone"></i></button>
+                    <textarea id="msgInput" placeholder="Ketik pesan..." autocomplete="off" rows="1"></textarea>
+                    <button type="submit" class="ibar-btn send"><i class="fas fa-arrow-up"></i></button>
                 </div>
             </form>
         </div>
     </div>
+</div>
 
-    <div class="image-modal" id="imageModal">
-        <button class="modal-close-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
-        <img src="" id="modalImgTarget" class="modal-img-content">
-    </div>
+<!-- IMAGE MODAL -->
+<div class="img-modal" id="imgModal">
+    <button class="img-modal-close" id="closeModal"><i class="fas fa-times"></i></button>
+    <img src="" id="modalImg" alt="">
+</div>
 
-    <script>
-        const BACKEND_API_URL = "https://xrezzky-assistant.vercel.app/api/chat";
-        const SESSIONS_STORAGE_KEY = "xrezzky_sessions";
-        const CURRENT_SESSION_KEY = "xrezzky_current_id";
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const API_URL    = "https://xrezzky-assistant.vercel.app/api/chat";
+const SK         = "xrezzky_sessions";
+const CK         = "xrezzky_cur";
 
-        const chatContainer = document.getElementById("chatContainer");
-        const messageFeedWrapper = document.getElementById("messageFeedWrapper");
-        const chatForm = document.getElementById("chatForm");
-        const userInput = document.getElementById("userInput");
-        const fileInput = document.getElementById("fileInput");
-        const uploadBtn = document.getElementById("uploadBtn");
-        const micBtn = document.getElementById("micBtn");
-        const previewBar = document.getElementById("previewBar");
-        const imgElementPreview = document.getElementById("imgElementPreview");
-        const cancelImgBtn = document.getElementById("cancelImgBtn");
-        const clearChatBtn = document.getElementById("clearChatBtn");
+// ── ELEMENTS ────────────────────────────────────────────────────────────────
+const feed       = document.getElementById("feed");
+const feedWrap   = document.getElementById("feedWrap");
+const chatForm   = document.getElementById("chatForm");
+const msgInput   = document.getElementById("msgInput");
+const fileInput  = document.getElementById("fileInput");
+const uploadBtn  = document.getElementById("uploadBtn");
+const micBtn     = document.getElementById("micBtn");
+const previewBar = document.getElementById("previewBar");
+const previewTh  = document.getElementById("previewThumb");
+const cancelImg  = document.getElementById("cancelImg");
+const clearBtn   = document.getElementById("clearBtn");
+const menuBtn    = document.getElementById("menuBtn");
+const openHistBtn= document.getElementById("openHistBtn");
+const closeSideB = document.getElementById("closeSideBtn");
+const overlay    = document.getElementById("overlay");
+const sidebar    = document.getElementById("sidebar");
+const histList   = document.getElementById("historyList");
+const newChatBtn = document.getElementById("newChatBtn");
+const imgModal   = document.getElementById("imgModal");
+const closeModal = document.getElementById("closeModal");
+const modalImg   = document.getElementById("modalImg");
+const wDate      = document.getElementById("wDate");
+const wText      = document.getElementById("wText");
+const wIcon      = document.getElementById("wIcon");
 
-        const openHistoryBtn = document.getElementById("openHistoryBtn");
-        const menuToggleBtn = document.getElementById("menuToggleBtn");
-        const closeHistoryBtn = document.getElementById("closeHistoryBtn");
-        const sidebarOverlay = document.getElementById("sidebarOverlay");
-        const historySidebar = document.getElementById("historySidebar");
-        const historyList = document.getElementById("historyList");
-        const newChatBtn = document.getElementById("newChatBtn");
+let image64      = null;
+let curSess      = localStorage.getItem(CK);
+let activeTTS    = null;
+let lastDate     = null;
 
-        const imageModal = document.getElementById("imageModal");
-        const closeModalBtn = document.getElementById("closeModalBtn");
-        const modalImgTarget = document.getElementById("modalImgTarget");
-
-        let selectedBase64Image = null;
-        let currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY);
-        let activeSpeakerBtn = null; 
-
-        // --- MANAJEMEN VOICE INPUT (SPEECH TO TEXT) ---
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-        let isRecording = false;
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'id-ID'; 
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isRecording = true;
-                micBtn.classList.add("mic-recording");
-                userInput.placeholder = "Mendengarkan suara Anda...";
-            };
-
-            recognition.onend = () => {
-                isRecording = false;
-                micBtn.classList.remove("mic-recording");
-                userInput.placeholder = "Ketik pesan atau gunakan mic...";
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Mic Error:", event.error);
-                isRecording = false;
-                micBtn.classList.remove("mic-recording");
-            };
-
-            recognition.onresult = (event) => {
-                const speechToText = event.results[0][0].transcript;
-                if (speechToText.trim() !== "") {
-                    userInput.value = speechToText;
-                    setTimeout(() => {
-                        chatForm.requestSubmit(); 
-                    }, 300);
-                }
-            };
-        } else {
-            micBtn.style.display = "none"; 
-        }
-
-        // Klik Mic: Jika sedang merekam maka matikan, jika mati maka mulai merekam
-        micBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (!recognition) return;
-
-            // Stop pemutar suara jika ada yang berbunyi
-            if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                resetSpeakerButtons();
-            }
-
-            if (isRecording) {
-                recognition.stop();
-            } else {
-                userInput.value = "";
-                recognition.start();
-            }
-        });
-
-        // KAMUS GAUL AGAR SUARA NYAMBUNG GAK KAKU
-        function filterSlangToFormalText(text) {
-            let clean = text;
-            const slangMap = {
-                "\\bgw\\b": "gua",
-                "\\bgua\\b": "gua",
-                "\\bga\\b": "nggak",
-                "\\bgak\\b": "nggak",
-                "\\bdn\\b": "dan",
-                "\\bdll\\b": "dan lain-lain",
-                "\\bbtw\\b": "by the way",
-                "\\baja\\b": "aja",
-                "\\bjg\\b": "juga",
-                "\\bdgn\\b": "dengan",
-                "\\bkrn\\b": "karena",
-                "\\bknp\\b": "kenapa",
-                "\\butk\\b": "untuk",
-                "\\bLu\\b": "lu",
-                "\\blo\\b": "lu",
-                "\\bmks\\b": "makasih",
-                "\\bthx\\b": "terima kasih",
-                "\\bttg\\b": "tentang",
-                "\\bXREZZKY\\b": "X-Rezki",
-                "\\bAI\\b": "A-I"
-            };
-
-            for (let key in slangMap) {
-                let regex = new RegExp(key, "gi");
-                clean = clean.replace(regex, slangMap[key]);
-            }
-            return clean;
-        }
-
-        function resetSpeakerButtons() {
-            const btns = document.querySelectorAll(".speak-bubble-btn");
-            btns.forEach(btn => {
-                btn.classList.remove("playing");
-                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengarkan`;
-            });
-            activeSpeakerBtn = null;
-        }
-
-        // TEXT TO SPEECH SANGAT SMOOTH DAN BISA DI-STOP / PLAY
-        function toggleSpeakText(text, buttonElement) {
-            if (!('speechSynthesis' in window)) return;
-
-            if (window.speechSynthesis.speaking && activeSpeakerBtn === buttonElement) {
-                window.speechSynthesis.cancel();
-                resetSpeakerButtons();
-                return;
-            }
-
-            window.speechSynthesis.cancel();
-            resetSpeakerButtons();
-
-            let parsedText = text.replace(/[*#_`~\-]/g, ''); 
-            parsedText = filterSlangToFormalText(parsedText);
-
-            const utterance = new SpeechSynthesisUtterance(parsedText);
-            utterance.lang = 'id-ID'; 
-            utterance.rate = 1.05; 
-            utterance.pitch = 1.05; 
-
-            const voices = window.speechSynthesis.getVoices();
-            const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-            if (idVoice) utterance.voice = idVoice;
-
-            utterance.onstart = () => {
-                activeSpeakerBtn = buttonElement;
-                buttonElement.classList.add("playing");
-                buttonElement.innerHTML = `<i class="fa-solid fa-circle-stop"></i> Hentikan`;
-            };
-
-            utterance.onend = () => {
-                resetSpeakerButtons();
-            };
-
-            utterance.onerror = () => {
-                resetSpeakerButtons();
-            };
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-        }
-
-        function getDynamicGreeting() {
-            const hours = new Date().getHours();
-            let waktu = "Malam"; 
-            if (hours >= 4 && hours < 11) waktu = "Pagi ✨";
-            else if (hours >= 11 && hours < 15) waktu = "Siang ☀️";
-            else if (hours >= 15 && hours < 18) waktu = "Sore 🌅";
-            else waktu = "Malam 🌙";
-            return `Halo Bro, Selamat ${waktu}. Ada yang bisa dibantu dengan XREZZKY AI hari ini?`;
-        }
-
-        // --- SCROLL TO BOTTOM SYSTEM FIX ---
-        function scrollToBottom() {
-            setTimeout(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 50);
-        }
-
-        // --- MODAL FOTO ---
-        function openImageModal(src) {
-            modalImgTarget.src = src;
-            imageModal.style.display = "flex";
-            setTimeout(() => { modalImgTarget.style.transform = "scale(1)"; }, 50);
-        }
-
-        function closeImageModal() {
-            modalImgTarget.style.transform = "scale(0.9)";
-            setTimeout(() => {
-                imageModal.style.display = "none";
-                modalImgTarget.src = "";
-            }, 200);
-        }
-
-        closeModalBtn.addEventListener("click", closeImageModal);
-        imageModal.addEventListener("click", (e) => {
-            if(e.target !== modalImgTarget && e.target !== closeModalBtn) closeImageModal();
-        });
-
-        // --- SIDEBAR ---
-        function openSidebar() {
-            renderSidebarList();
-            if (window.innerWidth <= 1024) {
-                historySidebar.classList.add("sidebar-open");
-                sidebarOverlay.style.display = "block";
-            }
-        }
-
-        function closeSidebar() {
-            historySidebar.classList.remove("sidebar-open");
-            sidebarOverlay.style.display = "none";
-        }
-
-        menuToggleBtn.addEventListener("click", openSidebar);
-        openHistoryBtn.addEventListener("click", openSidebar);
-        closeHistoryBtn.addEventListener("click", closeSidebar);
-        sidebarOverlay.addEventListener("click", closeSidebar);
-
-        // --- MANAJEMEN SESI ---
-        window.addEventListener("DOMContentLoaded", () => {
-            if (!currentSessionId) createNewSession();
-            loadCurrentSessionChat();
-            renderSidebarList();
-        });
-
-        function createNewSession() {
-            currentSessionId = "session_" + Date.now();
-            localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            sessions[currentSessionId] = { title: "Obrolan Baru", timestamp: Date.now(), chats: [] };
-            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-        }
-
-        function loadCurrentSessionChat() {
-            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-            messageFeedWrapper.innerHTML = "";
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            let currentData = sessions[currentSessionId];
-
-            if (!currentData || currentData.chats.length === 0) {
-                const welcomeDiv = document.createElement("div");
-                welcomeDiv.className = "welcome-container";
-                welcomeDiv.id = "welcomeGreetingBox";
-                welcomeDiv.innerHTML = `
-                    <div class="welcome-avatar">X</div>
-                    <div class="welcome-title">${getDynamicGreeting()}</div>
-                    <div class="welcome-subtitle">Tanyakan apa saja tentang produk digital, layanan toko, atau navigasi link di XREZZKY.</div>
-                `;
-                messageFeedWrapper.appendChild(welcomeDiv);
-            } else {
-                currentData.chats.forEach(item => {
-                    appendMessage(item.text, item.image, item.sender, item.timeStr); 
-                });
-            }
-            scrollToBottom();
-        }
-
-        function renderSidebarList() {
-            historyList.innerHTML = "";
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            let sortedKeys = Object.keys(sessions).sort((a,b) => sessions[b].timestamp - sessions[a].timestamp);
-
-            if(sortedKeys.length === 0) {
-                historyList.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:20px;">Belum ada riwayat.</p>`;
-                return;
-            }
-
-            sortedKeys.forEach(key => {
-                const session = sessions[key];
-                const item = document.createElement("div");
-                item.classList.add("history-item");
-                if (key === currentSessionId) item.classList.add("active-session");
-                const dateStr = new Date(session.timestamp).toLocaleDateString('id-ID', {hour: '2-digit', minute:'2-digit'});
-                item.innerHTML = `<div class="title">${session.title}</div><div class="time">${dateStr}</div>`;
-                item.addEventListener("click", () => {
-                    currentSessionId = key;
-                    localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
-                    loadCurrentSessionChat();
-                    renderSidebarList();
-                    closeSidebar();
-                });
-                historyList.appendChild(item);
-            });
-        }
-
-        newChatBtn.addEventListener("click", () => {
-            createNewSession();
-            loadCurrentSessionChat();
-            renderSidebarList();
-            closeSidebar();
-        });
-
-        uploadBtn.addEventListener("click", () => fileInput.click());
-        fileInput.addEventListener("change", function() {
-            const file = this.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedBase64Image = e.target.result;
-                imgElementPreview.src = selectedBase64Image;
-                previewBar.style.display = "flex";
-            };
-            reader.readAsDataURL(file);
-        });
-
-        cancelImgBtn.addEventListener("click", () => {
-            selectedBase64Image = null;
-            fileInput.value = "";
-            previewBar.style.display = "none";
-        });
-
-        clearChatBtn.addEventListener("click", () => {
-            if(confirm("Hapus obrolan aktif saat ini?")) {
-                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-                let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-                delete sessions[currentSessionId];
-                localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-                const remainingKeys = Object.keys(sessions);
-                if(remainingKeys.length > 0) currentSessionId = remainingKeys[0];
-                else createNewSession();
-                loadCurrentSessionChat();
-                renderSidebarList();
-            }
-        });
-
-        // --- SUBMIT HANDLING ---
-        chatForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const textMessage = userInput.value.trim();
-            if (!textMessage && !selectedBase64Image) return;
-
-            const welcomeGreetingBox = document.getElementById("welcomeGreetingBox");
-            if (welcomeGreetingBox) welcomeGreetingBox.remove();
-
-            const currentText = textMessage;
-            const currentImage = selectedBase64Image;
-
-            // Generate jam kirim secara real-time
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-            userInput.value = "";
-            selectedBase64Image = null;
-            fileInput.value = "";
-            previewBar.style.display = "none";
-
-            appendMessage(currentText, currentImage, "user", timeStr);
-            saveChatToSession(currentText, currentImage, "user", timeStr);
-
-            const loadingId = appendLoadingIndicator();
-
+// ── WIDGETS ─────────────────────────────────────────────────────────────────
+function updateWidgets() {
+    const now = new Date();
+    wDate.textContent = now.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    const h = now.getHours();
+    let icon = "fa-cloud-sun", label = "Cerah";
+    if (h >= 18 || h < 5) { icon = "fa-cloud-moon"; label = "Malam"; }
+    else if (h >= 11 && h <= 14) { icon = "fa-sun"; label = "Terik"; }
+    else if (h >= 15) { icon = "fa-cloud-sun"; label = "Sore"; }
+    wIcon.className = `fa-solid ${icon}`;
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async p => {
             try {
-                const response = await fetch(BACKEND_API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_message: currentText,
-                        user_image: currentImage,
-                        user_id: currentSessionId
-                    })
-                });
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+                const d = await r.json();
+                const k = d.address.city || d.address.town || d.address.state || "Indonesia";
+                wText.textContent = `${k} · ${label}`;
+            } catch { wText.textContent = `Indonesia · ${label}`; }
+        }, () => { wText.textContent = `Indonesia · ${label}`; }, { timeout: 5000 });
+    } else { wText.textContent = `Indonesia · ${label}`; }
+}
+updateWidgets();
+setInterval(updateWidgets, 60000);
 
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                removeLoadingIndicator(loadingId);
+// ── MARKDOWN PARSER ──────────────────────────────────────────────────────────
+function md(text) {
+    let t = text
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        // code block
+        .replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) => `<pre><code>${code.trim()}</code></pre>`)
+        // inline code
+        .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+        // bold+italic
+        .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.+?)\*/g, "<em>$1</em>")
+        // headings
+        .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+        .replace(/^## (.+)$/gm,  "<h2>$1</h2>")
+        .replace(/^# (.+)$/gm,   "<h1>$1</h1>")
+        // hr
+        .replace(/^---+$/gm, "<hr>")
+        // blockquote
+        .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
+        // lists
+        .replace(/^[\*\-] (.+)$/gm, "<li>$1</li>")
+        .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
+        .replace(/(<li>[\s\S]+?<\/li>)(?=\n|$)/g, m => `<ul>${m}</ul>`)
+        // linebreak
+        .replace(/\n/g, "<br>");
+    return t;
+}
 
-                const botNow = new Date();
-                const botTimeStr = botNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+// ── SESSION ──────────────────────────────────────────────────────────────────
+const getSess = () => JSON.parse(localStorage.getItem(SK)) || {};
+const savSess = d => localStorage.setItem(SK, JSON.stringify(d));
 
-                if (data.response) {
-                    appendMessage(data.response, null, "bot", botTimeStr); 
-                    saveChatToSession(data.response, null, "bot", botTimeStr);
-                } else {
-                    appendMessage("Maaf, sistem XREZZKY AI sedang tidak merespons.", null, "bot", botTimeStr);
-                }
-            } catch (error) {
-                removeLoadingIndicator(loadingId);
-                const errNow = new Date();
-                const errTimeStr = errNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                appendMessage("Gagal terhubung ke server. Periksa jaringan Anda.", null, "bot", errTimeStr);
-            }
+function newSession() {
+    curSess = "s_" + Date.now();
+    localStorage.setItem(CK, curSess);
+    const d = getSess(); d[curSess] = { title:"Obrolan Baru", ts:Date.now(), chats:[] }; savSess(d);
+}
+
+function loadSession() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    feed.innerHTML = "";
+    lastDate = null;
+    const d = getSess()[curSess];
+    if (!d || !d.chats.length) {
+        showWelcome();
+    } else {
+        d.chats.forEach(c => renderMsg(c.text, c.img, c.role, c.time));
+    }
+    scrollDown();
+}
+
+function saveMsg(text, img, role, time) {
+    const d = getSess();
+    if (!d[curSess]) return;
+    if (role === "user" && !d[curSess].chats.length && text) {
+        d[curSess].title = text.slice(0, 42);
+    }
+    d[curSess].chats.push({ text, img, role, time });
+    d[curSess].ts = Date.now();
+    savSess(d);
+}
+
+function showWelcome() {
+    const h = new Date().getHours();
+    const wk = h < 5 || h >= 18 ? "Malam 🌙" : h < 11 ? "Pagi ✨" : h < 15 ? "Siang ☀️" : "Sore 🌅";
+    feed.innerHTML = `
+        <div class="welcome">
+            <div class="w-logo">X</div>
+            <div class="w-title">Selamat ${wk}, Bro!</div>
+            <div class="w-sub">Tanyakan apa saja tentang produk, layanan, atau navigasi di XREZZKY OFFICIAL STORE.</div>
+        </div>`;
+}
+
+// ── SIDEBAR ──────────────────────────────────────────────────────────────────
+const openSide  = () => { renderHist(); sidebar.classList.add("open"); overlay.style.display = "block"; };
+const closeSide = () => { sidebar.classList.remove("open"); overlay.style.display = "none"; };
+menuBtn.addEventListener("click", openSide);
+openHistBtn.addEventListener("click", openSide);
+closeSideB.addEventListener("click", closeSide);
+overlay.addEventListener("click", closeSide);
+
+function renderHist() {
+    histList.innerHTML = "";
+    const d = getSess();
+    const keys = Object.keys(d).sort((a,b) => d[b].ts - d[a].ts);
+    if (!keys.length) {
+        histList.innerHTML = `<p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px;">Belum ada riwayat.</p>`;
+        return;
+    }
+    keys.forEach(k => {
+        const s = d[k];
+        const el = document.createElement("div");
+        el.className = "history-item" + (k === curSess ? " active" : "");
+        el.innerHTML = `
+            <div class="hi-info">
+                <div class="hi-title">${escHtml(s.title)}</div>
+                <div class="hi-time">${new Date(s.ts).toLocaleDateString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+            <button class="hi-edit" title="Ganti Nama"><i class="fa-solid fa-pen"></i></button>`;
+        el.addEventListener("click", () => { curSess = k; localStorage.setItem(CK,k); loadSession(); renderHist(); closeSide(); });
+        el.querySelector(".hi-edit").addEventListener("click", e => {
+            e.stopPropagation();
+            const t = prompt("Nama baru:", s.title);
+            if (t?.trim()) { const all=getSess(); all[k].title=t.trim(); savSess(all); renderHist(); }
         });
+        histList.appendChild(el);
+    });
+}
 
-        function appendMessage(text, imageBase64, sender, timeStr) {
-            const row = document.createElement("div");
-            row.classList.add("message-row", sender === "user" ? "user-row" : "bot-row");
+newChatBtn.addEventListener("click", () => { newSession(); loadSession(); renderHist(); closeSide(); });
+clearBtn.addEventListener("click", () => {
+    if (!confirm("Hapus obrolan ini?")) return;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    const d = getSess(); delete d[curSess]; savSess(d);
+    const rem = Object.keys(getSess());
+    if (rem.length) curSess = rem[0]; else newSession();
+    localStorage.setItem(CK, curSess);
+    loadSession(); renderHist();
+});
 
-            const bubble = document.createElement("div");
-            bubble.classList.add("bubble");
+// ── SCROLL ───────────────────────────────────────────────────────────────────
+function scrollDown() { requestAnimationFrame(() => { feedWrap.scrollTop = feedWrap.scrollHeight; }); }
 
-            if (imageBase64) {
-                const img = document.createElement("img");
-                img.src = imageBase64;
-                img.classList.add("chat-img");
-                img.addEventListener("click", () => { openImageModal(imageBase64); });
-                bubble.appendChild(img);
-            }
-            if (text) {
-                const textContainer = document.createElement("div");
-                textContainer.textContent = text;
-                bubble.appendChild(textContainer);
+// ── DATE SEPARATOR ───────────────────────────────────────────────────────────
+function maybeDateSep(time) {
+    const today = new Date().toDateString();
+    const d = new Date().toDateString();
+    if (d !== lastDate) {
+        lastDate = d;
+        const sep = document.createElement("div");
+        sep.className = "date-sep";
+        sep.innerHTML = `<span>Hari ini</span>`;
+        feed.appendChild(sep);
+    }
+}
 
-                if (sender === "bot") {
-                    const speakBtn = document.createElement("button");
-                    speakBtn.className = "speak-bubble-btn";
-                    speakBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengarkan`;
-                    speakBtn.addEventListener("click", () => toggleSpeakText(text, speakBtn));
-                    bubble.appendChild(speakBtn);
-                }
-            }
+// ── RENDER MESSAGE ───────────────────────────────────────────────────────────
+function renderMsg(text, img64, role, time) {
+    maybeDateSep(time);
 
-            // Tambahkan komponen jam di kanan bawah bubble
-            const timeContainer = document.createElement("span");
-            timeContainer.className = "msg-time";
-            timeContainer.textContent = timeStr || "00.00";
-            bubble.appendChild(timeContainer);
+    const row = document.createElement("div");
+    row.className = `msg-row ${role} msg-in`;
 
-            row.appendChild(bubble);
-            messageFeedWrapper.appendChild(row);
-            scrollToBottom();
-        }
+    const wrap = document.createElement("div");
+    wrap.className = "bubble-wrap";
 
-        function appendLoadingIndicator() {
-            const id = "load-" + Date.now();
-            const row = document.createElement("div");
-            row.id = id;
-            row.classList.add("message-row", "bot-row");
-            const bubble = document.createElement("div");
-            bubble.classList.add("bubble", "loading-bubble");
-            bubble.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Berpikir...`;
-            row.appendChild(bubble);
-            messageFeedWrapper.appendChild(row);
-            scrollToBottom();
-            return id;
-        }
+    const bub = document.createElement("div");
+    bub.className = "bubble";
 
-        function removeLoadingIndicator(id) {
-            const element = document.getElementById(id);
-            if (element) element.remove();
-        }
+    // Image
+    if (img64) {
+        const im = document.createElement("img");
+        im.src = img64; im.className = "chat-img";
+        im.addEventListener("click", () => openImgModal(img64));
+        bub.appendChild(im);
+    }
 
-        function saveChatToSession(text, image, sender, timeStr) {
-            let sessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || {};
-            if (!sessions[currentSessionId]) return;
-            if (sender === "user" && sessions[currentSessionId].chats.length === 0 && text) {
-                sessions[currentSessionId].title = text; 
-            }
-            sessions[currentSessionId].chats.push({ text, image, sender, timeStr });
-            sessions[currentSessionId].timestamp = Date.now();
-            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-        }
-    </script>
+    // Text
+    if (text) {
+        const td = document.createElement("div");
+        td.className = "md-body";
+        if (role === "bot") td.innerHTML = md(text); else td.textContent = text;
+        bub.appendChild(td);
+    }
+
+    wrap.appendChild(bub);
+
+    // Footer
+    const foot = document.createElement("div");
+    foot.className = "bubble-footer";
+
+    const tm = document.createElement("span");
+    tm.className = "msg-time";
+    tm.textContent = time || nowTime();
+    foot.appendChild(tm);
+
+    if (role === "bot" && text) {
+        // Copy button
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "action-btn";
+        copyBtn.innerHTML = `<i class="fa-regular fa-copy"></i> Salin`;
+        copyBtn.addEventListener("click", () => {
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.classList.add("copied");
+                copyBtn.innerHTML = `<i class="fa-solid fa-check"></i> Disalin`;
+                setTimeout(() => { copyBtn.classList.remove("copied"); copyBtn.innerHTML = `<i class="fa-regular fa-copy"></i> Salin`; }, 2000);
+            });
+        });
+        foot.appendChild(copyBtn);
+
+        // TTS button
+        const ttsBtn = document.createElement("button");
+        ttsBtn.className = "action-btn";
+        ttsBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengar`;
+        ttsBtn.addEventListener("click", () => toggleTTS(text, ttsBtn));
+        foot.appendChild(ttsBtn);
+    }
+
+    wrap.appendChild(foot);
+    row.appendChild(wrap);
+    feed.appendChild(row);
+    scrollDown();
+}
+
+// ── TTS ──────────────────────────────────────────────────────────────────────
+function cleanForTTS(raw) {
+    return raw
+        .replace(/```[\s\S]*?```/g, "")      // hapus code block
+        .replace(/`[^`]+`/g, "")             // hapus inline code
+        .replace(/[*#_~\-]+/g, "")           // hapus markdown symbol
+        .replace(/https?:\/\/\S+/g, "link")  // ganti URL
+        .replace(/\s{2,}/g, " ")
+        .trim();
+}
+
+function resetTTS() {
+    document.querySelectorAll(".action-btn.playing").forEach(b => {
+        b.classList.remove("playing");
+        b.innerHTML = `<i class="fa-solid fa-volume-high"></i> Dengar`;
+    });
+    activeTTS = null;
+}
+
+function toggleTTS(text, btn) {
+    if (!window.speechSynthesis) return;
+    if (activeTTS === btn) {
+        window.speechSynthesis.cancel(); resetTTS(); return;
+    }
+    window.speechSynthesis.cancel(); resetTTS();
+
+    const utt = new SpeechSynthesisUtterance(cleanForTTS(text));
+    utt.lang    = "id-ID";
+    utt.rate    = 1.12;
+    utt.pitch   = 1.05;
+    utt.volume  = 1;
+
+    // Pilih suara paling natural (Google ID diprioritaskan)
+    const allVoices = window.speechSynthesis.getVoices();
+    const bestVoice =
+        allVoices.find(v => v.name.includes("Google") && (v.lang==="id-ID"||v.lang==="id")) ||
+        allVoices.find(v => v.lang==="id-ID") ||
+        allVoices.find(v => v.lang.startsWith("id"));
+    if (bestVoice) utt.voice = bestVoice;
+
+    utt.onstart = () => { activeTTS = btn; btn.classList.add("playing"); btn.innerHTML = `<i class="fa-solid fa-circle-stop"></i> Stop`; };
+    utt.onend = utt.onerror = resetTTS;
+    window.speechSynthesis.speak(utt);
+}
+
+if (window.speechSynthesis?.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// ── IMAGE MODAL ──────────────────────────────────────────────────────────────
+function openImgModal(src) {
+    modalImg.src = src; imgModal.style.display = "flex";
+    setTimeout(() => imgModal.classList.add("open"), 30);
+}
+function closeImgModal() {
+    imgModal.classList.remove("open");
+    setTimeout(() => { imgModal.style.display = "none"; modalImg.src = ""; }, 220);
+}
+closeModal.addEventListener("click", closeImgModal);
+imgModal.addEventListener("click", e => { if (e.target === imgModal) closeImgModal(); });
+
+// ── IMAGE UPLOAD ─────────────────────────────────────────────────────────────
+uploadBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", function () {
+    const f = this.files[0]; if (!f) return;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    const url = URL.createObjectURL(f);
+    img.onload = () => {
+        const MAX = 1024;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w=MAX; } else { w=Math.round(w*MAX/h); h=MAX; } }
+        canvas.width=w; canvas.height=h;
+        ctx.drawImage(img,0,0,w,h);
+        image64 = canvas.toDataURL("image/jpeg", 0.82);
+        previewTh.src = image64; previewBar.style.display = "flex";
+        URL.revokeObjectURL(url);
+    };
+    img.src = url;
+});
+cancelImg.addEventListener("click", () => { image64 = null; fileInput.value = ""; previewBar.style.display = "none"; });
+
+// ── VOICE INPUT ───────────────────────────────────────────────────────────────
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null, isRec = false;
+if (SR) {
+    recog = new SR();
+    recog.lang = "id-ID"; recog.interimResults = false;
+    recog.onstart  = () => { isRec=true; micBtn.classList.add("recording"); msgInput.setAttribute("placeholder","Mendengarkan..."); };
+    recog.onend    = () => { isRec=false; micBtn.classList.remove("recording"); msgInput.setAttribute("placeholder","Ketik pesan..."); };
+    recog.onerror  = () => { isRec=false; micBtn.classList.remove("recording"); };
+    recog.onresult = e => {
+        const t = e.results[0][0].transcript;
+        if (t.trim()) { msgInput.value = t; setTimeout(() => chatForm.requestSubmit(), 300); }
+    };
+} else { micBtn.style.display = "none"; }
+
+micBtn.addEventListener("click", e => {
+    e.preventDefault(); if (!recog) return;
+    window.speechSynthesis?.cancel(); resetTTS();
+    if (isRec) { recog.stop(); }
+    else { msgInput.value=""; msgInput.style.height="auto"; recog.start(); }
+});
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+msgInput.addEventListener("input", function() {
+    this.style.height = "auto";
+    this.style.height = Math.min(this.scrollHeight, 160) + "px";
+});
+msgInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); }
+});
+
+chatForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const text = msgInput.value.trim();
+    const img  = image64;
+    if (!text && !img) return;
+
+    // hapus welcome
+    feed.querySelector(".welcome")?.remove();
+
+    const time = nowTime();
+    msgInput.value = ""; msgInput.style.height = "auto"; image64 = null; fileInput.value = ""; previewBar.style.display = "none";
+
+    renderMsg(text, img, "user", time);
+    saveMsg(text, img, "user", time);
+    renderHist();
+
+    // thinking
+    const tid = "t_" + Date.now();
+    const trow = document.createElement("div");
+    trow.id = tid; trow.className = "msg-row bot msg-in";
+    trow.innerHTML = `<div class="bubble-wrap"><div class="bubble thinking"><div class="dot-wave"><span></span><span></span><span></span></div><span class="thinking-text" style="font-size:13px;color:var(--text-muted)">Berpikir...</span></div></div>`;
+    // Rotasi teks thinking
+    const thinkTexts = ["Berpikir...", "Mengetik...", "Memuat..."];
+    let thinkIdx = 0;
+    const thinkInterval = setInterval(() => {
+        thinkIdx = (thinkIdx + 1) % thinkTexts.length;
+        const el = document.querySelector(`#${tid} .thinking-text`);
+        if (el) el.textContent = thinkTexts[thinkIdx];
+        else clearInterval(thinkInterval);
+    }, 900);
+    feed.appendChild(trow); scrollDown();
+
+    try {
+        const res  = await fetch(API_URL, {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ user_message:text, user_image:img, user_id:curSess })
+        });
+        clearInterval(thinkInterval);
+        document.getElementById(tid)?.remove();
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const bt   = nowTime();
+        const rep  = data.response || "Maaf, tidak ada respons dari AI.";
+        renderMsg(rep, null, "bot", bt);
+        saveMsg(rep, null, "bot", bt);
+        renderHist();
+    } catch (err) {
+        clearInterval(thinkInterval);
+        document.getElementById(tid)?.remove();
+        const bt = nowTime();
+        renderMsg("Gagal terhubung ke server. Periksa koneksi kamu ya.", null, "bot", bt);
+    }
+});
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function nowTime() { return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.'); }
+function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+    if (!curSess) newSession();
+    loadSession();
+    renderHist();
+});
+</script>
 </body>
 </html>
