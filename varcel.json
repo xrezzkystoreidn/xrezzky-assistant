@@ -1,15 +1,61 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
+  "name": "xrezzky-ai",
+  "buildCommand": "",
+  "outputDirectory": "public",
+  "functions": {
+    "api/chat.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 60,
+      "memory": 512
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
+    },
+    {
+      "src": "/admin",
+      "dest": "/public/admin.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/public/admin.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN" }
+      ]
+    }
+  ],
+  "env": {
+    "FIREBASE_PROJECT_ID":    "@firebase_project_id",
+    "FIREBASE_CLIENT_EMAIL":  "@firebase_client_email",
+    "FIREBASE_PRIVATE_KEY":   "@firebase_private_key",
+    "FIREBASE_DATABASE_URL":  "@firebase_database_url",
+    "OPENROUTER_API_KEY_1":   "@openrouter_api_key_1",
+    "OPENROUTER_API_KEY_2":   "@openrouter_api_key_2",
+    "OPENROUTER_API_KEY_3":   "@openrouter_api_key_3",
+    "GROQ_API_KEY_1":         "@groq_api_key_1",
+    "GROQ_API_KEY_2":         "@groq_api_key_2",
+    "GOOGLE_SEARCH_API_KEY":  "@google_search_api_key",
+    "GOOGLE_SEARCH_CX":       "@google_search_cx"
+  }
 }
