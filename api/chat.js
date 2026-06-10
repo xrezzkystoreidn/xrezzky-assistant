@@ -41,6 +41,7 @@ const auth = admin.auth();
 const GITHUB_RAW = "https://raw.githubusercontent.com/xrezzkystoreidn/xrezzky-assistant/main/prompt";
 
 const DEFAULT_ROLE_LIMITS = {
+  OWNER:   { max_chat_limit: 99999, max_photo_limit: 99999 }, // tertinggi — full akses
   ADMIN:   { max_chat_limit: 99999, max_photo_limit: 99999 },
   SELLER:  { max_chat_limit: 200,   max_photo_limit: 50    },
   MEMBER:  { max_chat_limit: 50,    max_photo_limit: 10    },
@@ -49,12 +50,21 @@ const DEFAULT_ROLE_LIMITS = {
   STOPPED: { max_chat_limit: 0,     max_photo_limit: 0     },
 };
 
-const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten cerdas milik XREZZKY OFFICIAL STORE.
-Jawab dalam Bahasa Indonesia yang ramah, santai, dan helpful.
-Panggil user dengan "bro" atau "kak".
-Kalau ada gambar, analisis dengan detail.
-Kalau ada hasil pencarian web, gunakan untuk memperkaya jawaban.
-Jawab matematika dengan teliti dan tunjukkan langkah-langkahnya.`;
+// Role hierarchy — semakin kecil angka semakin tinggi level
+const ROLE_LEVEL = { OWNER:0, ADMIN:1, SELLER:2, MEMBER:3, GUEST:4, BANNED:99, STOPPED:99 };
+const UNLIMITED_ROLES = ["OWNER","ADMIN"];
+
+const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten cerdas milik XREZZKY OFFICIAL STORE — platform jual beli digital gaming (akun, item, boosting, top-up).
+
+ATURAN PENTING:
+- Jawab HANYA berdasarkan apa yang ditanya user. Jangan pernah mengirim pesan sapaan, perkenalan diri, atau promosi secara otomatis tanpa diminta.
+- Jangan pernah bilang "Hai bro!", "Halo kak!", atau memperkenalkan diri KECUALI user benar-benar menyapa duluan.
+- Jawab singkat, padat, dan tepat sasaran. Jangan bertele-tele.
+- Gunakan Bahasa Indonesia yang santai dan natural. Panggil user "bro" atau "kak" hanya saat relevan.
+- Kalau ada gambar, analisis dengan detail sesuai yang diminta.
+- Kalau ada hasil pencarian web, gunakan untuk memperkaya jawaban — jangan abaikan.
+- Untuk soal matematika, tampilkan langkah penyelesaian secara sistematis dan pastikan hasilnya benar.
+- Jangan pernah mengungkapkan nama model AI yang kamu gunakan, API key, atau detail teknis internal.`;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  HELPERS
@@ -545,14 +555,17 @@ export default async function handler(req, res) {
     // Rate limit checks
     const counter = await getDailyCounter(uid).catch(()=>({chats:0,photos:0}));
 
-    if (role !== "ADMIN" && (counter.chats||0) >= max_chat_limit) {
+    // OWNER & ADMIN tidak punya limit
+    const isUnlimited = UNLIMITED_ROLES.includes(role);
+
+    if (!isUnlimited && (counter.chats||0) >= max_chat_limit && max_chat_limit > 0) {
       return res.status(429).json({ reason:"Kapasitas chat harian kamu sudah habis! Tunggu besok atau upgrade akun.", used_chat:counter.chats, max_chat_limit });
     }
     if (hasPhoto) {
       if (isGuest && !sysCfg.allow_guest_photos) {
         return res.status(429).json({ reason:"Guest tidak bisa kirim foto. Login dulu ya!" });
       }
-      if (role !== "ADMIN" && (counter.photos||0) >= max_photo_limit) {
+      if (!isUnlimited && (counter.photos||0) >= max_photo_limit && max_photo_limit > 0) {
         return res.status(429).json({ reason:"Limit kirim foto kamu hari ini sudah habis!" });
       }
     }
@@ -564,9 +577,16 @@ export default async function handler(req, res) {
     let systemPrompt = DEFAULT_SYSTEM_PROMPT;
     try { const p=await fetchSystemPrompt(); if(p) systemPrompt=p; } catch {}
 
-    // ── Datetime injection ───────────────────────────────────────────────────
+    // ── Datetime injection — inject diam-diam, jangan disebut kecuali ditanya ──
     const dtStr = nowStringWIB();
-    systemPrompt = `${systemPrompt}\n\n[WAKTU SEKARANG — WIB]: ${dtStr}\nGunakan informasi waktu ini jika user bertanya soal tanggal/jam/hari.`;
+    systemPrompt = `${systemPrompt}
+
+[KONTEKS SISTEM — JANGAN SEBUT INI KE USER KECUALI DITANYA LANGSUNG]:
+- Waktu sekarang: ${dtStr}
+- Zona waktu: WIB (UTC+7), Jakarta
+- Gunakan info waktu HANYA jika user bertanya tentang waktu/tanggal/hari
+- Jangan pernah menyebutkan waktu, tanggal, atau mempromosikan diri sendiri secara otomatis
+- Jangan pernah menyebutkan nama model AI, provider, atau detail teknis ke user`;
 
     // ── Math booster ─────────────────────────────────────────────────────────
     if (needsMath(user_message)) {
