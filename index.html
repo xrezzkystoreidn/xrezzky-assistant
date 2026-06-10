@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
-<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -97,6 +96,41 @@ body{background:var(--bg);color:var(--text);display:flex}
 
 /* Limit warning */
 .limit-bar{margin:0 14px;padding:7px 13px;border-radius:var(--radius-sm);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);font-size:11px;color:var(--gold);display:none;align-items:center;gap:7px;flex-shrink:0}
+
+/* Auth Modal Mod */
+.auth-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.auth-box {
+  background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius);
+  padding: 24px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  animation: fadeUp 0.3s ease;
+}
+.auth-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; color: var(--text); }
+.auth-group { margin-bottom: 12px; position: relative; }
+.auth-group label { display: block; font-size: 11px; color: var(--sub); margin-bottom: 5px; font-weight: 500; }
+.auth-group input {
+  width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border2);
+  padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text); font-size: 13px; outline: none;
+}
+.auth-group input:focus { border-color: var(--accent); }
+.auth-submit {
+  width: 100%; background: var(--accent); color: #fff; border: none; padding: 10px;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity 0.15s;
+}
+.auth-submit:hover { opacity: 0.9; }
+.auth-switch { text-align: center; font-size: 12px; color: var(--sub); margin-top: 14px; }
+.auth-switch span { color: var(--cyan); cursor: pointer; font-weight: 600; text-decoration: underline; }
+.auth-forgot { display: block; text-align: right; font-size: 11px; color: var(--cyan); cursor: pointer; margin-top: 4px; }
+.auth-google-btn {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border2); color: var(--text);
+  padding: 9px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: background 0.15s;
+}
+.auth-google-btn:hover { background: rgba(255,255,255,0.1); }
+.auth-close { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; float: right; margin-top: -6px; }
+.auth-close:hover { color: var(--red); }
 
 /* ── FEED ── */
 .feed-wrap{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column}
@@ -220,7 +254,6 @@ body{background:var(--bg);color:var(--text);display:flex}
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sb-top">
     <h2>Riwayat</h2>
@@ -232,7 +265,7 @@ body{background:var(--bg);color:var(--text);display:flex}
       <div class="up-name" id="upName">Guest</div>
       <div class="up-role role-GUEST" id="upRole"><i class="fa-solid fa-circle-user" style="font-size:8px"></i> GUEST</div>
     </div>
-    <button class="up-btn" id="authBtn" title="Login"><i class="fab fa-google"></i></button>
+    <button class="up-btn" id="authBtn" title="Login / Register"><i class="fa-solid fa-right-to-bracket"></i></button>
   </div>
   <div class="quota-wrap" id="quotaWrap">
     <div class="quota-row"><span>💬 Chat</span><span id="qChatTxt">0/10</span></div>
@@ -246,7 +279,6 @@ body{background:var(--bg);color:var(--text);display:flex}
 </div>
 <div class="overlay" id="overlay"></div>
 
-<!-- MAIN -->
 <div class="main">
   <div class="header">
     <button class="hbtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
@@ -266,12 +298,11 @@ body{background:var(--bg);color:var(--text);display:flex}
   </div>
 
   <div class="login-banner" id="loginBanner">
-    <i class="fab fa-google"></i>
-    <div><strong style="color:var(--text)">Login Google</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
-    <button class="lb-btn" id="loginBannerBtn">Login</button>
+    <i class="fa-solid fa-user-lock"></i>
+    <div><strong style="color:var(--text)">Masuk Akun</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
+    <button class="lb-btn" id="loginBannerBtn">Login / Daftar</button>
   </div>
 
-  <!-- API Status bar - shown only when connection fails -->
   <div id="apiStatus" style="display:none;margin:6px 14px 0;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:11px;color:#ef4444;display:none;align-items:center;gap:8px;flex-shrink:0">
     <i class="fa-solid fa-circle-exclamation"></i>
     <span id="apiStatusMsg">API tidak terhubung</span>
@@ -305,7 +336,34 @@ body{background:var(--bg);color:var(--text);display:flex}
   </div>
 </div>
 
-<!-- IMAGE MODAL -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-box">
+    <button class="auth-close" id="closeAuthBtn"><i class="fas fa-times"></i></button>
+    <h3 id="authTitle">Masuk</h3>
+    <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <div class="auth-group" id="nameGroup" style="display:none;">
+        <label>Nama Pengguna</label>
+        <input type="text" id="authName" placeholder="Masukkan nama kamu">
+      </div>
+      <div class="auth-group">
+        <label>Email</label>
+        <input type="email" id="authEmail" required placeholder="nama@gmail.com">
+      </div>
+      <div class="auth-group" id="passGroup">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="Minimal 6 karakter">
+        <span class="auth-forgot" id="forgotBtn" onclick="handleForgotPassword()">Lupa Password?</span>
+      </div>
+      <button type="submit" class="auth-submit" id="authSubmitBtn">Masuk</button>
+    </form>
+    <div class="auth-switch" id="authSwitch">
+      Belum punya akun? <span onclick="switchAuthMode('register')">Daftar</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:14px 0 4px"><hr style="flex:1;border:none;border-top:1px solid var(--border2)"><span style="font-size:10px;color:var(--muted)">ATAU</span><hr style="flex:1;border:none;border-top:1px solid var(--border2)"></div>
+    <button class="auth-google-btn" onclick="doGoogleLogin()"><i class="fab fa-google" style="color:var(--red)"></i> Masuk dengan Google</button>
+  </div>
+</div>
+
 <div class="img-modal" id="imgModal">
   <button class="img-modal-x" id="closeModal"><i class="fas fa-times"></i></button>
   <img src="" id="modalImg" alt="">
@@ -328,15 +386,8 @@ firebase.initializeApp(FB_CFG);
 const fbAuth = firebase.auth();
 const fbDb   = firebase.database();
 
-// ═══════════════════════════════════════════════
-//  CONFIG — GANTI SESUAI DOMAIN VERCEL KAMU
-// ═══════════════════════════════════════════════
-// Kalau buka dari Vercel langsung → pakai "/api/chat"
-// Kalau test di Acode/local → pakai URL full Vercel kamu
-const VERCEL_URL = "https://xrezzky-storeid.vercel.app"; // domain Vercel kamu
-const API_URL    = (location.hostname === "localhost" || location.protocol === "file:")
-  ? VERCEL_URL + "/api/chat"   // test lokal / Acode → absolute URL
-  : "/api/chat";               // di Vercel sendiri → relative URL
+const VERCEL_URL = "https://xrezzky-storeid.vercel.app";
+const API_URL    = (location.hostname === "localhost" || location.protocol === "file:") ? VERCEL_URL + "/api/chat" : "/api/chat";
 const SK      = "xrk_sess";
 const CK      = "xrk_cur";
 const THINK   = ["Berpikir...","Mengetik...","Mencari info...","Menyusun jawaban..."];
@@ -354,6 +405,7 @@ let isBusy    = false;
 let usedChat  = 0, usedPhoto = 0, maxChat = 10, maxPhoto = 0;
 let userRole  = "GUEST";
 let sysSettings = {};
+let authMode  = "login"; // login, register
 
 // ═══════════════════════════════════════════════
 //  ELEMENTS
@@ -385,37 +437,110 @@ const authBtn     = document.getElementById("authBtn");
 const limitBar    = document.getElementById("limitBar");
 const limitMsg    = document.getElementById("limitMsg");
 
+// Auth Elements
+const authModal    = document.getElementById("authModal");
+const closeAuthBtn = document.getElementById("closeAuthBtn");
+const authTitle    = document.getElementById("authTitle");
+const nameGroup    = document.getElementById("nameGroup");
+const passGroup    = document.getElementById("passGroup");
+const authSubmitBtn= document.getElementById("authSubmitBtn");
+const authSwitch   = document.getElementById("authSwitch");
+const forgotBtn    = document.getElementById("forgotBtn");
+
 // ═══════════════════════════════════════════════
-//  FIREBASE AUTH
+//  FIREBASE AUTH & PROFILE
 // ═══════════════════════════════════════════════
 fbAuth.onAuthStateChanged(async user => {
   fbUser = user;
   if (user) {
     idToken = await user.getIdToken();
     const ava = document.getElementById("upAva");
-    ava.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : (user.displayName?.[0]||"U").toUpperCase();
+    ava.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
     document.getElementById("upName").textContent = user.displayName || user.email?.split("@")[0] || "User";
     loginBanner.style.display = "none";
     authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
     authBtn.title = "Logout";
+    closeAuthModal();
   } else {
     idToken = null;
     document.getElementById("upAva").textContent = "G";
     document.getElementById("upName").textContent = "Guest";
     loginBanner.style.display = "flex";
-    authBtn.innerHTML = `<i class="fab fa-google"></i>`;
-    authBtn.title = "Login";
+    authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i>`;
+    authBtn.title = "Login / Daftar";
   }
-  // Load system settings then init session
   await loadSysSettings();
   await initSession();
 });
 
-function doLogin()  { fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(console.error); }
-function doLogout() { fbAuth.signOut(); }
-authBtn.addEventListener("click", () => fbUser ? doLogout() : doLogin());
-loginBannerBtn.addEventListener("click", doLogin);
-loginBanner.addEventListener("click", doLogin);
+// ═══════════════════════════════════════════════
+//  ALUR AUTH MODAL (EMAIL & PASSWORD)
+// ═══════════════════════════════════════════════
+function openAuthModal() { authModal.style.display = "flex"; switchAuthMode("login"); }
+function closeAuthModal() { authModal.style.display = "none"; document.getElementById("authForm").reset(); }
+
+closeAuthBtn.addEventListener("click", closeAuthModal);
+authBtn.addEventListener("click", () => fbUser ? fbAuth.signOut() : openAuthModal());
+loginBannerBtn.addEventListener("click", openAuthModal);
+loginBanner.addEventListener("click", openAuthModal);
+
+function switchAuthMode(mode) {
+  authMode = mode;
+  if (mode === "login") {
+    authTitle.textContent = "Masuk Akun";
+    nameGroup.style.display = "none";
+    passGroup.style.display = "block";
+    authSubmitBtn.textContent = "Masuk";
+    authSwitch.innerHTML = `Belum punya akun? <span onclick="switchAuthMode('register')">Daftar</span>`;
+  } else if (mode === "register") {
+    authTitle.textContent = "Daftar Akun Baru";
+    nameGroup.style.display = "block";
+    passGroup.style.display = "block";
+    authSubmitBtn.textContent = "Daftar";
+    authSwitch.innerHTML = `Sudah punya akun? <span onclick="switchAuthMode('login')">Masuk</span>`;
+  }
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const name = document.getElementById("authName").value.trim();
+
+  if (!email || !password) return;
+
+  try {
+    if (authMode === "login") {
+      await fbAuth.signInWithEmailAndPassword(email, password);
+    } else if (authMode === "register") {
+      if (password.length < 6) { alert("Password minimal 6 karakter!"); return; }
+      const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
+      if (name) {
+        await cred.user.updateProfile({ displayName: name });
+      }
+    }
+  } catch (err) {
+    alert("Gagal: " + err.message);
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById("authEmail").value.trim();
+  if (!email) {
+    alert("Ketik alamat email kamu di kolom input terlebih dahulu!");
+    return;
+  }
+  try {
+    await fbAuth.sendPasswordResetEmail(email);
+    alert("Email reset password telah dikirim! Periksa kotak masuk/spam Gmail kamu.");
+  } catch (err) {
+    alert("Gagal mengirim email reset: " + err.message);
+  }
+}
+
+function doGoogleLogin() {
+  fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => alert(err.message));
+}
 
 // ═══════════════════════════════════════════════
 //  LOAD SYSTEM SETTINGS FROM FIREBASE
@@ -437,7 +562,6 @@ async function initSession(newSess = false) {
     savLocalSess(curSess, "Obrolan Baru");
   }
 
-  // Read user config from Firebase
   if (fbUser) {
     try {
       const snap = await fbDb.ref(`users_config/${fbUser.uid}`).once("value");
@@ -447,26 +571,17 @@ async function initSession(newSess = false) {
         maxChat   = cfg.max_chat_limit  ?? 50;
         maxPhoto  = cfg.max_photo_limit ?? 5;
       } else {
-        // Auto-create user config
         userRole = "MEMBER"; maxChat = 50; maxPhoto = 5;
         await fbDb.ref(`users_config/${fbUser.uid}`).set({
           role: "MEMBER", max_chat_limit: maxChat, max_photo_limit: maxPhoto,
-          name: fbUser.displayName||"", email: fbUser.email||"",
+          name: fbUser.displayName || fbUser.email.split("@")[0], email: fbUser.email || "",
           created_at: Date.now(),
         });
       }
-      // Check if banned/stopped
-      if (userRole === "BANNED") {
-        showLimitWarn("Akun kamu telah dibanned oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      }
-      if (userRole === "STOPPED") {
-        showLimitWarn("Akun kamu dihentikan sementara oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      }
+      if (userRole === "BANNED") { showLimitWarn("Akun kamu telah dibanned oleh Admin."); maxChat = 0; maxPhoto = 0; }
+      if (userRole === "STOPPED") { showLimitWarn("Akun kamu dihentikan sementara oleh Admin."); maxChat = 0; maxPhoto = 0; }
     } catch { userRole="MEMBER"; maxChat=50; maxPhoto=5; }
 
-    // Read today's usage
     const today = todayKey();
     try {
       const snap = await fbDb.ref(`daily_usage/${fbUser.uid}/${today}`).once("value");
@@ -475,16 +590,13 @@ async function initSession(newSess = false) {
       usedPhoto = d.photos || 0;
     } catch { usedChat=0; usedPhoto=0; }
   } else {
-    // Guest limits from system settings
     userRole = "GUEST";
     maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
     maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
-    // Check login_required flag
     if (sysSettings.login_required) {
       maxChat = 0; maxPhoto = 0;
       showLimitWarn("Kamu harus login untuk menggunakan XREZZKY AI.");
     }
-    // Guest usage tracked by session (localStorage)
     const gu = JSON.parse(localStorage.getItem("xrk_guest_usage_" + todayKey()) || "{}");
     usedChat  = gu.chats  || 0;
     usedPhoto = gu.photos || 0;
@@ -534,8 +646,7 @@ function showLimitWarn(msg) {
 // ═══════════════════════════════════════════════
 function updateWidgets() {
   const now = new Date();
-  document.getElementById("wDate").textContent =
-    now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  document.getElementById("wDate").textContent = now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
   const h = now.getHours();
   const wi = document.getElementById("wIcon");
   let icon="fa-cloud-sun", label="Siang";
@@ -752,7 +863,7 @@ function mkBtn(html) {
 }
 
 // ═══════════════════════════════════════════════
-//  STREAMING RENDER (word-by-word)
+//  STREAMING RENDER
 // ═══════════════════════════════════════════════
 async function streamRender(fullText, bub) {
   const td = document.createElement("div"); td.className="md";
@@ -799,9 +910,6 @@ function toggleTTS(text, btn) {
   utt.onend = utt.onerror = resetTTS;
   window.speechSynthesis.speak(utt);
 }
-window.speechSynthesis?.getVoices?.();
-if (window.speechSynthesis?.onvoiceschanged!==undefined)
-  window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
 
 // ═══════════════════════════════════════════════
 //  IMAGE MODAL
@@ -858,7 +966,7 @@ msgInput.addEventListener("keydown", e=>{ if(e.key==="Enter"&&!e.shiftKey){e.pre
 sendBtn.addEventListener("click", doSend);
 
 // ═══════════════════════════════════════════════
-//  SEND
+//  SEND MESSAGES
 // ═══════════════════════════════════════════════
 async function doSend() {
   if (isBusy) return;
@@ -866,30 +974,11 @@ async function doSend() {
   const img  = image64;
   if (!text && !img) return;
 
-  // Check maintenance mode
-  if (sysSettings.maintenance_mode) {
-    showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
-    return;
-  }
-  // Check login_required
-  if (sysSettings.login_required && !fbUser) {
-    showLimitWarn("Kamu harus login untuk menggunakan fitur ini.");
-    return;
-  }
-  // Check chat limit
-  if (usedChat >= maxChat) {
-    showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak.");
-    return;
-  }
-  // Check photo limit
-  if (img && !fbUser && !sysSettings.allow_guest_photos) {
-    showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!");
-    return;
-  }
-  if (img && usedPhoto >= maxPhoto && maxPhoto > 0) {
-    showLimitWarn("Limit kirim foto kamu hari ini sudah habis!");
-    return;
-  }
+  if (sysSettings.maintenance_mode) { showLimitWarn("Sistem sedang maintenance. Coba lagi nanti."); return; }
+  if (sysSettings.login_required && !fbUser) { showLimitWarn("Kamu harus login untuk menggunakan fitur ini."); return; }
+  if (usedChat >= maxChat) { showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak."); return; }
+  if (img && !fbUser && !sysSettings.allow_guest_photos) { showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!"); return; }
+  if (img && usedPhoto >= maxPhoto && maxPhoto > 0) { showLimitWarn("Limit kirim foto kamu hari ini sudah habis!"); return; }
 
   isBusy = true;
   feed.querySelector(".welcome")?.remove();
@@ -902,7 +991,6 @@ async function doSend() {
   saveLocalMsg(text, img, "user", time);
   renderHist();
 
-  // Thinking
   const tid = "t_" + Date.now();
   const trow = document.createElement("div");
   trow.id=tid; trow.className="msg-row bot msg-in";
@@ -930,9 +1018,7 @@ async function doSend() {
     document.getElementById(tid)?.remove();
 
     if (r.status===429) {
-      const err=await r.json();
-      showLimitWarn(err.reason||"Limit kamu sudah habis.");
-      isBusy=false; return;
+      const err=await r.json(); showLimitWarn(err.reason||"Limit kamu sudah habis."); isBusy=false; return;
     }
     if (!r.ok) throw new Error("HTTP "+r.status);
 
@@ -940,12 +1026,10 @@ async function doSend() {
     const rep  = data.response || "Maaf, tidak ada respons.";
     const bt   = nowTime();
 
-    // Update local quota counter
     usedChat++;
     if (img) usedPhoto++;
     updateQuotaBar();
 
-    // Update guest usage in localStorage
     if (!fbUser) {
       const key = "xrk_guest_usage_" + todayKey();
       const gu  = JSON.parse(localStorage.getItem(key)||"{}");
@@ -954,17 +1038,14 @@ async function doSend() {
       localStorage.setItem(key, JSON.stringify(gu));
     }
 
-    // Build bot row with streaming
     maybeDateSep();
     const row  = document.createElement("div"); row.className="msg-row bot msg-in";
     const wrap = document.createElement("div"); wrap.className="bwrap";
     const bub  = document.createElement("div"); bub.className="bubble";
     wrap.appendChild(bub);
 
-    // Search badge if AI used web search
     if (data.searched) {
-      const sb = document.createElement("div");
-      sb.className="search-badge";
+      const sb = document.createElement("div"); sb.className="search-badge";
       sb.innerHTML=`<i class="fa-solid fa-magnifying-glass" style="font-size:9px"></i> Mencari di web...`;
       bub.insertBefore(sb, bub.firstChild);
     }
@@ -984,8 +1065,7 @@ async function doSend() {
     ttsBtn.addEventListener("click",()=>toggleTTS(rep,ttsBtn));
     foot.appendChild(ttsBtn);
     if (data.provider) {
-      const prov=document.createElement("span");
-      prov.style.cssText="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px";
+      const prov=document.createElement("span"); prov.style.cssText="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px";
       prov.innerHTML=`<i class="fa-solid fa-microchip"></i>${data.provider}`;
       foot.appendChild(prov);
     }
@@ -1001,24 +1081,13 @@ async function doSend() {
     clearInterval(tIv);
     document.getElementById(tid)?.remove();
     const bt = nowTime();
-    const errMsg = `❌ Gagal terhubung ke server.
-
-**Error:** ${err.message}
-**API:** ${API_URL}
-
-Pastikan:
-1. Vercel sudah di-deploy
-2. Domain di VERCEL_URL sudah benar
-3. Koneksi internet aktif`;
+    const errMsg = `❌ Gagal terhubung ke server.\n\n**Error:** ${err.message}\n**API:** ${API_URL}`;
     renderMsg(errMsg, null, "bot", bt);
     saveLocalMsg(errMsg, null, "bot", bt);
   }
   isBusy=false;
 }
 
-// ═══════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════
 function scrollDown() { requestAnimationFrame(()=>{ feedWrap.scrollTop=feedWrap.scrollHeight; }); }
 function nowTime()    { return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":","·"); }
 function esc(s)       { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -1033,34 +1102,17 @@ async function testConnection() {
   msg.textContent = "Mengecek koneksi...";
   bar.style.display = "flex";
   try {
-    const r = await fetch(API_URL.replace("/api/chat", "/api/chat") + "?action=ping", {
-      method: "GET",
-      signal: AbortSignal.timeout(5000),
-    });
+    const r = await fetch(API_URL + "?action=ping", { method: "GET", signal: AbortSignal.timeout(5000) });
     if (r.ok || r.status === 405) {
-      // 405 = Method Not Allowed → server hidup tapi method salah → OK
-      bar.style.background = "rgba(34,197,94,.08)";
-      bar.style.borderColor = "rgba(34,197,94,.25)";
-      bar.style.color = "#22c55e";
+      bar.style.background = "rgba(34,197,94,.08)"; bar.style.borderColor = "rgba(34,197,94,.25)"; bar.style.color = "#22c55e";
       msg.textContent = "✅ Server terhubung — " + API_URL;
       setTimeout(() => { bar.style.display = "none"; }, 3000);
-    } else {
-      msg.textContent = "⚠️ Server error " + r.status + " — " + API_URL;
-    }
-  } catch(e) {
-    msg.textContent = "❌ Tidak bisa reach " + API_URL + " — " + e.message;
-  }
+    } else { msg.textContent = "⚠️ Server error " + r.status + " — " + API_URL; }
+  } catch(e) { msg.textContent = "❌ Tidak bisa reach " + API_URL + " — " + e.message; }
 }
 
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
 window.addEventListener("load", () => {
-  if (!curSess) {
-    curSess="s_"+Date.now(); localStorage.setItem(CK,curSess);
-    savLocalSess(curSess,"Obrolan Baru");
-  }
-  // Auto-test connection after 2s
+  if (!curSess) { curSess="s_"+Date.now(); localStorage.setItem(CK,curSess); savLocalSess(curSess,"Obrolan Baru"); }
   setTimeout(testConnection, 2000);
 });
 </script>
