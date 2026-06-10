@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
+<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -96,41 +97,6 @@ body{background:var(--bg);color:var(--text);display:flex}
 
 /* Limit warning */
 .limit-bar{margin:0 14px;padding:7px 13px;border-radius:var(--radius-sm);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);font-size:11px;color:var(--gold);display:none;align-items:center;gap:7px;flex-shrink:0}
-
-/* Auth Modal Mod */
-.auth-modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
-  z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;
-}
-.auth-box {
-  background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius);
-  padding: 24px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  animation: fadeUp 0.3s ease;
-}
-.auth-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; color: var(--text); }
-.auth-group { margin-bottom: 12px; position: relative; }
-.auth-group label { display: block; font-size: 11px; color: var(--sub); margin-bottom: 5px; font-weight: 500; }
-.auth-group input {
-  width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border2);
-  padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text); font-size: 13px; outline: none;
-}
-.auth-group input:focus { border-color: var(--accent); }
-.auth-submit {
-  width: 100%; background: var(--accent); color: #fff; border: none; padding: 10px;
-  border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity 0.15s;
-}
-.auth-submit:hover { opacity: 0.9; }
-.auth-switch { text-align: center; font-size: 12px; color: var(--sub); margin-top: 14px; }
-.auth-switch span { color: var(--cyan); cursor: pointer; font-weight: 600; text-decoration: underline; }
-.auth-forgot { display: block; text-align: right; font-size: 11px; color: var(--cyan); cursor: pointer; margin-top: 4px; }
-.auth-google-btn {
-  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border2); color: var(--text);
-  padding: 9px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: background 0.15s;
-}
-.auth-google-btn:hover { background: rgba(255,255,255,0.1); }
-.auth-close { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; float: right; margin-top: -6px; }
-.auth-close:hover { color: var(--red); }
 
 /* ── FEED ── */
 .feed-wrap{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column}
@@ -250,10 +216,47 @@ body{background:var(--bg);color:var(--text);display:flex}
   .bwrap{max-width:90%}
   .input-wrap{padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
 }
+
+/* ── AUTH MODAL ────────────────────────────────── */
+#authModal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
+#authModal.open{display:flex}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 0 48px rgba(37,99,235,.15)}
+.auth-head{padding:22px 24px 0;text-align:center}
+.auth-logo{width:52px;height:52px;border-radius:14px;margin:0 auto 14px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff;box-shadow:0 0 20px rgba(37,99,235,.4)}
+.auth-head h2{font-size:18px;font-weight:800;margin-bottom:4px}
+.auth-head p{font-size:12px;color:var(--sub);margin-bottom:0}
+.auth-tabs{display:flex;margin:16px 24px 0;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;gap:3px}
+.auth-tab{flex:1;padding:7px;border:none;background:none;border-radius:8px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .15s}
+.auth-tab.active{background:var(--accent);color:#fff}
+.auth-body{padding:18px 24px 22px;display:flex;flex-direction:column;gap:11px}
+.auth-field{display:flex;flex-direction:column;gap:5px}
+.auth-field label{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em}
+.auth-input{padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;transition:border-color .15s;width:100%}
+.auth-input:focus{border-color:rgba(37,99,235,.5);background:rgba(37,99,235,.05)}
+.auth-input::placeholder{color:var(--muted)}
+.auth-pw-wrap{position:relative}
+.auth-pw-wrap .auth-input{padding-right:40px}
+.auth-pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px}
+.auth-btn{padding:12px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.google-btn{padding:11px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:9px}
+.google-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(37,99,235,.4)}
+.google-btn img{width:18px;height:18px}
+.auth-msg{font-size:12px;text-align:center;padding:8px 12px;border-radius:var(--radius-sm);display:none}
+.auth-msg.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+.auth-msg.ok {background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.25); color:var(--green)}
+.auth-footer{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 24px 18px;font-size:12px;color:var(--muted)}
+.auth-link{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
+.auth-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;cursor:pointer;transition:all .15s}
+.auth-close:hover{background:rgba(239,68,68,.15);color:var(--red)}
 </style>
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sb-top">
     <h2>Riwayat</h2>
@@ -265,7 +268,7 @@ body{background:var(--bg);color:var(--text);display:flex}
       <div class="up-name" id="upName">Guest</div>
       <div class="up-role role-GUEST" id="upRole"><i class="fa-solid fa-circle-user" style="font-size:8px"></i> GUEST</div>
     </div>
-    <button class="up-btn" id="authBtn" title="Login / Register"><i class="fa-solid fa-right-to-bracket"></i></button>
+    <button class="up-btn" id="authBtn" title="Login / Logout"><i class="fab fa-google"></i></button>
   </div>
   <div class="quota-wrap" id="quotaWrap">
     <div class="quota-row"><span>💬 Chat</span><span id="qChatTxt">0/10</span></div>
@@ -279,6 +282,7 @@ body{background:var(--bg);color:var(--text);display:flex}
 </div>
 <div class="overlay" id="overlay"></div>
 
+<!-- MAIN -->
 <div class="main">
   <div class="header">
     <button class="hbtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
@@ -298,11 +302,12 @@ body{background:var(--bg);color:var(--text);display:flex}
   </div>
 
   <div class="login-banner" id="loginBanner">
-    <i class="fa-solid fa-user-lock"></i>
-    <div><strong style="color:var(--text)">Masuk Akun</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
-    <button class="lb-btn" id="loginBannerBtn">Login / Daftar</button>
+    <i class="fa-solid fa-lock" style="font-size:13px"></i>
+    <div><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
+    <button class="lb-btn" id="loginBannerBtn" onclick="openAuthModal()">Login</button>
   </div>
 
+  <!-- API Status bar - shown only when connection fails -->
   <div id="apiStatus" style="display:none;margin:6px 14px 0;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:11px;color:#ef4444;display:none;align-items:center;gap:8px;flex-shrink:0">
     <i class="fa-solid fa-circle-exclamation"></i>
     <span id="apiStatusMsg">API tidak terhubung</span>
@@ -336,34 +341,7 @@ body{background:var(--bg);color:var(--text);display:flex}
   </div>
 </div>
 
-<div class="auth-modal" id="authModal">
-  <div class="auth-box">
-    <button class="auth-close" id="closeAuthBtn"><i class="fas fa-times"></i></button>
-    <h3 id="authTitle">Masuk</h3>
-    <form id="authForm" onsubmit="handleAuthSubmit(event)">
-      <div class="auth-group" id="nameGroup" style="display:none;">
-        <label>Nama Pengguna</label>
-        <input type="text" id="authName" placeholder="Masukkan nama kamu">
-      </div>
-      <div class="auth-group">
-        <label>Email</label>
-        <input type="email" id="authEmail" required placeholder="nama@gmail.com">
-      </div>
-      <div class="auth-group" id="passGroup">
-        <label>Password</label>
-        <input type="password" id="authPassword" placeholder="Minimal 6 karakter">
-        <span class="auth-forgot" id="forgotBtn" onclick="handleForgotPassword()">Lupa Password?</span>
-      </div>
-      <button type="submit" class="auth-submit" id="authSubmitBtn">Masuk</button>
-    </form>
-    <div class="auth-switch" id="authSwitch">
-      Belum punya akun? <span onclick="switchAuthMode('register')">Daftar</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;margin:14px 0 4px"><hr style="flex:1;border:none;border-top:1px solid var(--border2)"><span style="font-size:10px;color:var(--muted)">ATAU</span><hr style="flex:1;border:none;border-top:1px solid var(--border2)"></div>
-    <button class="auth-google-btn" onclick="doGoogleLogin()"><i class="fab fa-google" style="color:var(--red)"></i> Masuk dengan Google</button>
-  </div>
-</div>
-
+<!-- IMAGE MODAL -->
 <div class="img-modal" id="imgModal">
   <button class="img-modal-x" id="closeModal"><i class="fas fa-times"></i></button>
   <img src="" id="modalImg" alt="">
@@ -386,8 +364,15 @@ firebase.initializeApp(FB_CFG);
 const fbAuth = firebase.auth();
 const fbDb   = firebase.database();
 
-const VERCEL_URL = "https://xrezzky-storeid.vercel.app";
-const API_URL    = (location.hostname === "localhost" || location.protocol === "file:") ? VERCEL_URL + "/api/chat" : "/api/chat";
+// ═══════════════════════════════════════════════
+//  CONFIG — GANTI SESUAI DOMAIN VERCEL KAMU
+// ═══════════════════════════════════════════════
+// Kalau buka dari Vercel langsung → pakai "/api/chat"
+// Kalau test di Acode/local → pakai URL full Vercel kamu
+const VERCEL_URL = "https://xrezzky-storeid.vercel.app"; // domain Vercel kamu
+const API_URL    = (location.hostname === "localhost" || location.protocol === "file:")
+  ? VERCEL_URL + "/api/chat"   // test lokal / Acode → absolute URL
+  : "/api/chat";               // di Vercel sendiri → relative URL
 const SK      = "xrk_sess";
 const CK      = "xrk_cur";
 const THINK   = ["Berpikir...","Mengetik...","Mencari info...","Menyusun jawaban..."];
@@ -405,7 +390,6 @@ let isBusy    = false;
 let usedChat  = 0, usedPhoto = 0, maxChat = 10, maxPhoto = 0;
 let userRole  = "GUEST";
 let sysSettings = {};
-let authMode  = "login"; // login, register
 
 // ═══════════════════════════════════════════════
 //  ELEMENTS
@@ -437,110 +421,212 @@ const authBtn     = document.getElementById("authBtn");
 const limitBar    = document.getElementById("limitBar");
 const limitMsg    = document.getElementById("limitMsg");
 
-// Auth Elements
-const authModal    = document.getElementById("authModal");
-const closeAuthBtn = document.getElementById("closeAuthBtn");
-const authTitle    = document.getElementById("authTitle");
-const nameGroup    = document.getElementById("nameGroup");
-const passGroup    = document.getElementById("passGroup");
-const authSubmitBtn= document.getElementById("authSubmitBtn");
-const authSwitch   = document.getElementById("authSwitch");
-const forgotBtn    = document.getElementById("forgotBtn");
-
 // ═══════════════════════════════════════════════
-//  FIREBASE AUTH & PROFILE
+//  FIREBASE AUTH — Google + Email/Password + Reset
 // ═══════════════════════════════════════════════
 fbAuth.onAuthStateChanged(async user => {
   fbUser = user;
   if (user) {
-    idToken = await user.getIdToken();
+    idToken = await user.getIdToken(true);
+    // Update sidebar avatar & name
     const ava = document.getElementById("upAva");
-    ava.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
-    document.getElementById("upName").textContent = user.displayName || user.email?.split("@")[0] || "User";
-    loginBanner.style.display = "none";
+    if (user.photoURL) {
+      ava.innerHTML = `<img src="${user.photoURL}" alt="">`;
+    } else {
+      ava.textContent = (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
+    }
+    document.getElementById("upName").textContent =
+      user.displayName || user.email?.split("@")[0] || "User";
+    loginBanner.style.display  = "none";
     authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
-    authBtn.title = "Logout";
+    authBtn.title     = "Logout";
+    // Close modal if open
     closeAuthModal();
   } else {
     idToken = null;
-    document.getElementById("upAva").textContent = "G";
+    document.getElementById("upAva").textContent  = "G";
     document.getElementById("upName").textContent = "Guest";
     loginBanner.style.display = "flex";
     authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i>`;
-    authBtn.title = "Login / Daftar";
+    authBtn.title     = "Login";
   }
   await loadSysSettings();
   await initSession();
 });
 
-// ═══════════════════════════════════════════════
-//  ALUR AUTH MODAL (EMAIL & PASSWORD)
-// ═══════════════════════════════════════════════
-function openAuthModal() { authModal.style.display = "flex"; switchAuthMode("login"); }
-function closeAuthModal() { authModal.style.display = "none"; document.getElementById("authForm").reset(); }
-
-closeAuthBtn.addEventListener("click", closeAuthModal);
-authBtn.addEventListener("click", () => fbUser ? fbAuth.signOut() : openAuthModal());
-loginBannerBtn.addEventListener("click", openAuthModal);
-loginBanner.addEventListener("click", openAuthModal);
-
-function switchAuthMode(mode) {
-  authMode = mode;
-  if (mode === "login") {
-    authTitle.textContent = "Masuk Akun";
-    nameGroup.style.display = "none";
-    passGroup.style.display = "block";
-    authSubmitBtn.textContent = "Masuk";
-    authSwitch.innerHTML = `Belum punya akun? <span onclick="switchAuthMode('register')">Daftar</span>`;
-  } else if (mode === "register") {
-    authTitle.textContent = "Daftar Akun Baru";
-    nameGroup.style.display = "block";
-    passGroup.style.display = "block";
-    authSubmitBtn.textContent = "Daftar";
-    authSwitch.innerHTML = `Sudah punya akun? <span onclick="switchAuthMode('login')">Masuk</span>`;
-  }
+// ── Auth Modal Control ────────────────────────
+function openAuthModal(tab) {
+  document.getElementById("authModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+  switchAuthTab(tab || "login");
+  showAuthMsg("", "");
+}
+function closeAuthModal() {
+  document.getElementById("authModal").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
-async function handleAuthSubmit(e) {
-  e.preventDefault();
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPassword").value;
-  const name = document.getElementById("authName").value.trim();
+function switchAuthTab(tab) {
+  ["login","register","reset"].forEach(t => {
+    document.getElementById("form" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? "flex" : "none";
+    document.getElementById("tab"  + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle("active", t === tab);
+  });
+  showAuthMsg("", "");
+}
 
-  if (!email || !password) return;
+function showAuthMsg(msg, type) {
+  const el = document.getElementById("authMsg");
+  if (!msg) { el.style.display = "none"; return; }
+  el.textContent    = msg;
+  el.className      = "auth-msg " + type;
+  el.style.display  = "block";
+}
 
-  try {
-    if (authMode === "login") {
-      await fbAuth.signInWithEmailAndPassword(email, password);
-    } else if (authMode === "register") {
-      if (password.length < 6) { alert("Password minimal 6 karakter!"); return; }
-      const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
-      if (name) {
-        await cred.user.updateProfile({ displayName: name });
+function setAuthLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) btn.innerHTML = `<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>`;
+}
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const isHidden = inp.type === "password";
+  inp.type = isHidden ? "text" : "password";
+  btn.innerHTML = isHidden
+    ? `<i class="fa-solid fa-eye-slash"></i>`
+    : `<i class="fa-solid fa-eye"></i>`;
+}
+
+// ── Google Login ──────────────────────────────
+function doGoogleLogin() {
+  showAuthMsg("Membuka popup Google...", "ok");
+  fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e => {
+      if (e.code !== "auth/popup-closed-by-user") {
+        showAuthMsg("Gagal login Google: " + e.message, "err");
+      } else {
+        showAuthMsg("", "");
       }
-    }
-  } catch (err) {
-    alert("Gagal: " + err.message);
+    });
+}
+
+// ── Email Login ───────────────────────────────
+async function doEmailLogin() {
+  const email = document.getElementById("loginEmail")?.value?.trim();
+  const pass  = document.getElementById("loginPass")?.value;
+  if (!email || !pass) { showAuthMsg("Email dan password wajib diisi.", "err"); return; }
+
+  setAuthLoading("btnLogin", true);
+  showAuthMsg("", "");
+  try {
+    await fbAuth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged will handle the rest
+  } catch(e) {
+    const msgs = {
+      "auth/user-not-found":     "Email tidak ditemukan. Coba daftar dulu.",
+      "auth/wrong-password":     "Password salah. Coba lagi atau reset password.",
+      "auth/invalid-email":      "Format email tidak valid.",
+      "auth/too-many-requests":  "Terlalu banyak percobaan. Coba lagi nanti.",
+      "auth/invalid-credential": "Email atau password salah.",
+    };
+    showAuthMsg(msgs[e.code] || "Login gagal: " + e.message, "err");
+  } finally {
+    setAuthLoading("btnLogin", false);
+    document.getElementById("btnLogin").innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Masuk`;
   }
 }
 
-async function handleForgotPassword() {
-  const email = document.getElementById("authEmail").value.trim();
-  if (!email) {
-    alert("Ketik alamat email kamu di kolom input terlebih dahulu!");
-    return;
+// ── Email Register ────────────────────────────
+async function doEmailRegister() {
+  const name  = document.getElementById("regName")?.value?.trim();
+  const email = document.getElementById("regEmail")?.value?.trim();
+  const pass  = document.getElementById("regPass")?.value;
+  const pass2 = document.getElementById("regPass2")?.value;
+
+  if (!name)              { showAuthMsg("Nama wajib diisi.", "err"); return; }
+  if (!email)             { showAuthMsg("Email wajib diisi.", "err"); return; }
+  if (pass.length < 6)    { showAuthMsg("Password minimal 6 karakter.", "err"); return; }
+  if (pass !== pass2)     { showAuthMsg("Password tidak cocok.", "err"); return; }
+
+  setAuthLoading("btnRegister", true);
+  showAuthMsg("", "");
+  try {
+    const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
+    // Update display name
+    await cred.user.updateProfile({ displayName: name });
+    // Reload user so displayName propagates
+    await cred.user.reload();
+    showAuthMsg("Akun berhasil dibuat! Kamu sudah masuk. 🎉", "ok");
+    // onAuthStateChanged will fire automatically
+  } catch(e) {
+    const msgs = {
+      "auth/email-already-in-use": "Email sudah terdaftar. Coba login.",
+      "auth/invalid-email":        "Format email tidak valid.",
+      "auth/weak-password":        "Password terlalu lemah. Gunakan min. 6 karakter.",
+    };
+    showAuthMsg(msgs[e.code] || "Daftar gagal: " + e.message, "err");
+  } finally {
+    setAuthLoading("btnRegister", false);
+    document.getElementById("btnRegister").innerHTML = `<i class="fa-solid fa-user-plus"></i> Buat Akun`;
   }
+}
+
+// ── Reset Password ────────────────────────────
+async function doResetPassword() {
+  const email = document.getElementById("resetEmail")?.value?.trim();
+  if (!email) { showAuthMsg("Masukkan email kamu.", "err"); return; }
+
+  setAuthLoading("btnReset", true);
+  showAuthMsg("", "");
   try {
     await fbAuth.sendPasswordResetEmail(email);
-    alert("Email reset password telah dikirim! Periksa kotak masuk/spam Gmail kamu.");
-  } catch (err) {
-    alert("Gagal mengirim email reset: " + err.message);
+    showAuthMsg("Link reset dikirim ke " + email + " — cek inbox/spam kamu! 📧", "ok");
+    document.getElementById("resetEmail").value = "";
+  } catch(e) {
+    const msgs = {
+      "auth/user-not-found": "Email tidak terdaftar.",
+      "auth/invalid-email":  "Format email tidak valid.",
+    };
+    showAuthMsg(msgs[e.code] || "Gagal kirim email: " + e.message, "err");
+  } finally {
+    setAuthLoading("btnReset", false);
+    document.getElementById("btnReset").innerHTML = `<i class="fa-solid fa-envelope"></i> Kirim Link Reset`;
   }
 }
 
-function doGoogleLogin() {
-  fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => alert(err.message));
-}
+// ── Auth button & banner wiring ───────────────
+authBtn.addEventListener("click", () => {
+  if (fbUser) {
+    if (confirm("Logout dari XREZZKY AI?")) fbAuth.signOut();
+  } else {
+    openAuthModal("login");
+  }
+});
+loginBannerBtn.addEventListener("click", () => openAuthModal("login"));
+loginBanner.addEventListener("click",    () => openAuthModal("login"));
+
+// Enter key support in auth forms
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const modal = document.getElementById("authModal");
+  if (!modal?.classList.contains("open")) return;
+  const activeTab = document.querySelector(".auth-tab.active")?.id;
+  if (activeTab === "tabLogin")    doEmailLogin();
+  if (activeTab === "tabRegister") doEmailRegister();
+  if (activeTab === "tabReset")    doResetPassword();
+});
+
+// Close modal on backdrop click
+document.getElementById("authModal")?.addEventListener("click", function(e) {
+  if (e.target === this) closeAuthModal();
+});
+
+// Add CSS keyframe for spinner
+const spinStyle = document.createElement("style");
+spinStyle.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
+document.head.appendChild(spinStyle);
 
 // ═══════════════════════════════════════════════
 //  LOAD SYSTEM SETTINGS FROM FIREBASE
@@ -562,6 +648,7 @@ async function initSession(newSess = false) {
     savLocalSess(curSess, "Obrolan Baru");
   }
 
+  // Read user config from Firebase
   if (fbUser) {
     try {
       const snap = await fbDb.ref(`users_config/${fbUser.uid}`).once("value");
@@ -571,17 +658,26 @@ async function initSession(newSess = false) {
         maxChat   = cfg.max_chat_limit  ?? 50;
         maxPhoto  = cfg.max_photo_limit ?? 5;
       } else {
+        // Auto-create user config
         userRole = "MEMBER"; maxChat = 50; maxPhoto = 5;
         await fbDb.ref(`users_config/${fbUser.uid}`).set({
           role: "MEMBER", max_chat_limit: maxChat, max_photo_limit: maxPhoto,
-          name: fbUser.displayName || fbUser.email.split("@")[0], email: fbUser.email || "",
+          name: fbUser.displayName||"", email: fbUser.email||"",
           created_at: Date.now(),
         });
       }
-      if (userRole === "BANNED") { showLimitWarn("Akun kamu telah dibanned oleh Admin."); maxChat = 0; maxPhoto = 0; }
-      if (userRole === "STOPPED") { showLimitWarn("Akun kamu dihentikan sementara oleh Admin."); maxChat = 0; maxPhoto = 0; }
+      // Check if banned/stopped
+      if (userRole === "BANNED") {
+        showLimitWarn("Akun kamu telah dibanned oleh Admin.");
+        maxChat = 0; maxPhoto = 0;
+      }
+      if (userRole === "STOPPED") {
+        showLimitWarn("Akun kamu dihentikan sementara oleh Admin.");
+        maxChat = 0; maxPhoto = 0;
+      }
     } catch { userRole="MEMBER"; maxChat=50; maxPhoto=5; }
 
+    // Read today's usage
     const today = todayKey();
     try {
       const snap = await fbDb.ref(`daily_usage/${fbUser.uid}/${today}`).once("value");
@@ -590,13 +686,16 @@ async function initSession(newSess = false) {
       usedPhoto = d.photos || 0;
     } catch { usedChat=0; usedPhoto=0; }
   } else {
+    // Guest limits from system settings
     userRole = "GUEST";
     maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
     maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
+    // Check login_required flag
     if (sysSettings.login_required) {
       maxChat = 0; maxPhoto = 0;
       showLimitWarn("Kamu harus login untuk menggunakan XREZZKY AI.");
     }
+    // Guest usage tracked by session (localStorage)
     const gu = JSON.parse(localStorage.getItem("xrk_guest_usage_" + todayKey()) || "{}");
     usedChat  = gu.chats  || 0;
     usedPhoto = gu.photos || 0;
@@ -646,7 +745,8 @@ function showLimitWarn(msg) {
 // ═══════════════════════════════════════════════
 function updateWidgets() {
   const now = new Date();
-  document.getElementById("wDate").textContent = now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  document.getElementById("wDate").textContent =
+    now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
   const h = now.getHours();
   const wi = document.getElementById("wIcon");
   let icon="fa-cloud-sun", label="Siang";
@@ -863,7 +963,7 @@ function mkBtn(html) {
 }
 
 // ═══════════════════════════════════════════════
-//  STREAMING RENDER
+//  STREAMING RENDER (word-by-word)
 // ═══════════════════════════════════════════════
 async function streamRender(fullText, bub) {
   const td = document.createElement("div"); td.className="md";
@@ -910,6 +1010,9 @@ function toggleTTS(text, btn) {
   utt.onend = utt.onerror = resetTTS;
   window.speechSynthesis.speak(utt);
 }
+window.speechSynthesis?.getVoices?.();
+if (window.speechSynthesis?.onvoiceschanged!==undefined)
+  window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
 
 // ═══════════════════════════════════════════════
 //  IMAGE MODAL
@@ -966,7 +1069,7 @@ msgInput.addEventListener("keydown", e=>{ if(e.key==="Enter"&&!e.shiftKey){e.pre
 sendBtn.addEventListener("click", doSend);
 
 // ═══════════════════════════════════════════════
-//  SEND MESSAGES
+//  SEND
 // ═══════════════════════════════════════════════
 async function doSend() {
   if (isBusy) return;
@@ -974,11 +1077,30 @@ async function doSend() {
   const img  = image64;
   if (!text && !img) return;
 
-  if (sysSettings.maintenance_mode) { showLimitWarn("Sistem sedang maintenance. Coba lagi nanti."); return; }
-  if (sysSettings.login_required && !fbUser) { showLimitWarn("Kamu harus login untuk menggunakan fitur ini."); return; }
-  if (usedChat >= maxChat) { showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak."); return; }
-  if (img && !fbUser && !sysSettings.allow_guest_photos) { showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!"); return; }
-  if (img && usedPhoto >= maxPhoto && maxPhoto > 0) { showLimitWarn("Limit kirim foto kamu hari ini sudah habis!"); return; }
+  // Check maintenance mode
+  if (sysSettings.maintenance_mode) {
+    showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
+    return;
+  }
+  // Check login_required
+  if (sysSettings.login_required && !fbUser) {
+    showLimitWarn("Kamu harus login untuk menggunakan fitur ini.");
+    return;
+  }
+  // Check chat limit
+  if (usedChat >= maxChat) {
+    showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak.");
+    return;
+  }
+  // Check photo limit
+  if (img && !fbUser && !sysSettings.allow_guest_photos) {
+    showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!");
+    return;
+  }
+  if (img && usedPhoto >= maxPhoto && maxPhoto > 0) {
+    showLimitWarn("Limit kirim foto kamu hari ini sudah habis!");
+    return;
+  }
 
   isBusy = true;
   feed.querySelector(".welcome")?.remove();
@@ -991,6 +1113,7 @@ async function doSend() {
   saveLocalMsg(text, img, "user", time);
   renderHist();
 
+  // Thinking
   const tid = "t_" + Date.now();
   const trow = document.createElement("div");
   trow.id=tid; trow.className="msg-row bot msg-in";
@@ -1018,7 +1141,9 @@ async function doSend() {
     document.getElementById(tid)?.remove();
 
     if (r.status===429) {
-      const err=await r.json(); showLimitWarn(err.reason||"Limit kamu sudah habis."); isBusy=false; return;
+      const err=await r.json();
+      showLimitWarn(err.reason||"Limit kamu sudah habis.");
+      isBusy=false; return;
     }
     if (!r.ok) throw new Error("HTTP "+r.status);
 
@@ -1026,10 +1151,12 @@ async function doSend() {
     const rep  = data.response || "Maaf, tidak ada respons.";
     const bt   = nowTime();
 
+    // Update local quota counter
     usedChat++;
     if (img) usedPhoto++;
     updateQuotaBar();
 
+    // Update guest usage in localStorage
     if (!fbUser) {
       const key = "xrk_guest_usage_" + todayKey();
       const gu  = JSON.parse(localStorage.getItem(key)||"{}");
@@ -1038,14 +1165,17 @@ async function doSend() {
       localStorage.setItem(key, JSON.stringify(gu));
     }
 
+    // Build bot row with streaming
     maybeDateSep();
     const row  = document.createElement("div"); row.className="msg-row bot msg-in";
     const wrap = document.createElement("div"); wrap.className="bwrap";
     const bub  = document.createElement("div"); bub.className="bubble";
     wrap.appendChild(bub);
 
+    // Search badge if AI used web search
     if (data.searched) {
-      const sb = document.createElement("div"); sb.className="search-badge";
+      const sb = document.createElement("div");
+      sb.className="search-badge";
       sb.innerHTML=`<i class="fa-solid fa-magnifying-glass" style="font-size:9px"></i> Mencari di web...`;
       bub.insertBefore(sb, bub.firstChild);
     }
@@ -1065,7 +1195,8 @@ async function doSend() {
     ttsBtn.addEventListener("click",()=>toggleTTS(rep,ttsBtn));
     foot.appendChild(ttsBtn);
     if (data.provider) {
-      const prov=document.createElement("span"); prov.style.cssText="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px";
+      const prov=document.createElement("span");
+      prov.style.cssText="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px";
       prov.innerHTML=`<i class="fa-solid fa-microchip"></i>${data.provider}`;
       foot.appendChild(prov);
     }
@@ -1081,13 +1212,24 @@ async function doSend() {
     clearInterval(tIv);
     document.getElementById(tid)?.remove();
     const bt = nowTime();
-    const errMsg = `❌ Gagal terhubung ke server.\n\n**Error:** ${err.message}\n**API:** ${API_URL}`;
+    const errMsg = `❌ Gagal terhubung ke server.
+
+**Error:** ${err.message}
+**API:** ${API_URL}
+
+Pastikan:
+1. Vercel sudah di-deploy
+2. Domain di VERCEL_URL sudah benar
+3. Koneksi internet aktif`;
     renderMsg(errMsg, null, "bot", bt);
     saveLocalMsg(errMsg, null, "bot", bt);
   }
   isBusy=false;
 }
 
+// ═══════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════
 function scrollDown() { requestAnimationFrame(()=>{ feedWrap.scrollTop=feedWrap.scrollHeight; }); }
 function nowTime()    { return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":","·"); }
 function esc(s)       { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -1102,19 +1244,138 @@ async function testConnection() {
   msg.textContent = "Mengecek koneksi...";
   bar.style.display = "flex";
   try {
-    const r = await fetch(API_URL + "?action=ping", { method: "GET", signal: AbortSignal.timeout(5000) });
+    const r = await fetch(API_URL.replace("/api/chat", "/api/chat") + "?action=ping", {
+      method: "GET",
+      signal: AbortSignal.timeout(5000),
+    });
     if (r.ok || r.status === 405) {
-      bar.style.background = "rgba(34,197,94,.08)"; bar.style.borderColor = "rgba(34,197,94,.25)"; bar.style.color = "#22c55e";
+      // 405 = Method Not Allowed → server hidup tapi method salah → OK
+      bar.style.background = "rgba(34,197,94,.08)";
+      bar.style.borderColor = "rgba(34,197,94,.25)";
+      bar.style.color = "#22c55e";
       msg.textContent = "✅ Server terhubung — " + API_URL;
       setTimeout(() => { bar.style.display = "none"; }, 3000);
-    } else { msg.textContent = "⚠️ Server error " + r.status + " — " + API_URL; }
-  } catch(e) { msg.textContent = "❌ Tidak bisa reach " + API_URL + " — " + e.message; }
+    } else {
+      msg.textContent = "⚠️ Server error " + r.status + " — " + API_URL;
+    }
+  } catch(e) {
+    msg.textContent = "❌ Tidak bisa reach " + API_URL + " — " + e.message;
+  }
 }
 
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
 window.addEventListener("load", () => {
-  if (!curSess) { curSess="s_"+Date.now(); localStorage.setItem(CK,curSess); savLocalSess(curSess,"Obrolan Baru"); }
+  if (!curSess) {
+    curSess="s_"+Date.now(); localStorage.setItem(CK,curSess);
+    savLocalSess(curSess,"Obrolan Baru");
+  }
+  // Auto-test connection after 2s
   setTimeout(testConnection, 2000);
 });
 </script>
+
+<!-- ══ AUTH MODAL ════════════════════════════════ -->
+<div id="authModal">
+  <div class="auth-card" style="position:relative">
+    <button class="auth-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+
+    <div class="auth-head">
+      <div class="auth-logo">X</div>
+      <h2>Masuk ke XREZZKY AI</h2>
+      <p>Login untuk limit lebih banyak & riwayat tersimpan</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin"    onclick="switchAuthTab('login')">Masuk</button>
+      <button class="auth-tab"        id="tabRegister" onclick="switchAuthTab('register')">Daftar</button>
+      <button class="auth-tab"        id="tabReset"    onclick="switchAuthTab('reset')">Reset</button>
+    </div>
+
+    <!-- Alert message -->
+    <div style="padding:0 24px;margin-top:10px">
+      <div class="auth-msg" id="authMsg"></div>
+    </div>
+
+    <!-- ── LOGIN ── -->
+    <div class="auth-body" id="formLogin">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-input" id="loginEmail" placeholder="email@gmail.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="auth-pw-wrap">
+          <input type="password" class="auth-input" id="loginPass" placeholder="Password kamu" autocomplete="current-password">
+          <button class="auth-pw-eye" onclick="togglePw('loginPass',this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <button class="auth-btn" id="btnLogin" onclick="doEmailLogin()">
+        <i class="fa-solid fa-right-to-bracket"></i> Masuk
+      </button>
+      <div class="auth-divider">atau</div>
+      <button class="google-btn" onclick="doGoogleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+        Lanjutkan dengan Google
+      </button>
+    </div>
+
+    <!-- ── REGISTER ── -->
+    <div class="auth-body" id="formRegister" style="display:none">
+      <div class="auth-field">
+        <label>Nama</label>
+        <input type="text" class="auth-input" id="regName" placeholder="Nama kamu" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-input" id="regEmail" placeholder="email@gmail.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="auth-pw-wrap">
+          <input type="password" class="auth-input" id="regPass" placeholder="Min. 6 karakter" autocomplete="new-password">
+          <button class="auth-pw-eye" onclick="togglePw('regPass',this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label>Konfirmasi Password</label>
+        <div class="auth-pw-wrap">
+          <input type="password" class="auth-input" id="regPass2" placeholder="Ulangi password" autocomplete="new-password">
+          <button class="auth-pw-eye" onclick="togglePw('regPass2',this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <button class="auth-btn" id="btnRegister" onclick="doEmailRegister()">
+        <i class="fa-solid fa-user-plus"></i> Buat Akun
+      </button>
+      <div class="auth-divider">atau</div>
+      <button class="google-btn" onclick="doGoogleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+        Daftar dengan Google
+      </button>
+    </div>
+
+    <!-- ── RESET PASSWORD ── -->
+    <div class="auth-body" id="formReset" style="display:none">
+      <p style="font-size:13px;color:var(--sub);text-align:center;line-height:1.6">
+        Masukkan email kamu, kami akan kirimkan link reset password.
+      </p>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-input" id="resetEmail" placeholder="email@gmail.com" autocomplete="email">
+      </div>
+      <button class="auth-btn" id="btnReset" onclick="doResetPassword()">
+        <i class="fa-solid fa-envelope"></i> Kirim Link Reset
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      <span>Lanjut tanpa login?</span>
+      <button class="auth-link" onclick="closeAuthModal()">Lewati →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
