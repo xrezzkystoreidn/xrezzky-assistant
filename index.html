@@ -422,25 +422,43 @@ const limitBar    = document.getElementById("limitBar");
 const limitMsg    = document.getElementById("limitMsg");
 
 // ═══════════════════════════════════════════════
-//  FIREBASE AUTH — Google + Email/Password + Reset
+//  FIREBASE AUTH — Email/Password + Reset Password
 // ═══════════════════════════════════════════════
 fbAuth.onAuthStateChanged(async user => {
   fbUser = user;
   if (user) {
     idToken = await user.getIdToken(true);
-    // Update sidebar avatar & name
+
+    // ── Auto-create user di Realtime DB ──
+    try {
+      const snap = await fbDb.ref(`users_config/${user.uid}`).once("value");
+      if (!snap.exists()) {
+        // User baru → buat dengan role MEMBER
+        await fbDb.ref(`users_config/${user.uid}`).set({
+          uid:             user.uid,
+          name:            user.displayName || user.email?.split("@")[0] || "User",
+          email:           user.email || "",
+          role:            "MEMBER",
+          max_chat_limit:  50,
+          max_photo_limit: 5,
+          status:          "active",
+          created_at:      Date.now(),
+          last_login:      Date.now(),
+        });
+      } else {
+        // Update last_login saja
+        await fbDb.ref(`users_config/${user.uid}/last_login`).set(Date.now());
+      }
+    } catch(e) { console.warn("DB write:", e.message); }
+
+    // Update sidebar UI
     const ava = document.getElementById("upAva");
-    if (user.photoURL) {
-      ava.innerHTML = `<img src="${user.photoURL}" alt="">`;
-    } else {
-      ava.textContent = (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
-    }
+    ava.textContent = (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
     document.getElementById("upName").textContent =
       user.displayName || user.email?.split("@")[0] || "User";
-    loginBanner.style.display  = "none";
+    loginBanner.style.display = "none";
     authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
     authBtn.title     = "Logout";
-    // Close modal if open
     closeAuthModal();
   } else {
     idToken = null;
@@ -497,19 +515,6 @@ function togglePw(inputId, btn) {
   btn.innerHTML = isHidden
     ? `<i class="fa-solid fa-eye-slash"></i>`
     : `<i class="fa-solid fa-eye"></i>`;
-}
-
-// ── Google Login ──────────────────────────────
-function doGoogleLogin() {
-  showAuthMsg("Membuka popup Google...", "ok");
-  fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .catch(e => {
-      if (e.code !== "auth/popup-closed-by-user") {
-        showAuthMsg("Gagal login Google: " + e.message, "err");
-      } else {
-        showAuthMsg("", "");
-      }
-    });
 }
 
 // ── Email Login ───────────────────────────────
@@ -604,8 +609,8 @@ authBtn.addEventListener("click", () => {
     openAuthModal("login");
   }
 });
-loginBannerBtn.addEventListener("click", () => openAuthModal("login"));
-loginBanner.addEventListener("click",    () => openAuthModal("login"));
+loginBannerBtn.addEventListener("click", e => { e.stopPropagation(); openAuthModal("login"); });
+loginBanner.addEventListener("click", () => openAuthModal("login"));
 
 // Enter key support in auth forms
 document.addEventListener("keydown", e => {
@@ -641,6 +646,10 @@ async function loadSysSettings() {
 // ═══════════════════════════════════════════════
 //  SESSION INIT
 // ═══════════════════════════════════════════════
+// Realtime listeners refs (untuk cleanup saat logout)
+let _cfgListener = null;
+let _usageListener = null;
+
 async function initSession(newSess = false) {
   if (newSess || !curSess) {
     curSess = "s_" + Date.now();
@@ -648,61 +657,59 @@ async function initSession(newSess = false) {
     savLocalSess(curSess, "Obrolan Baru");
   }
 
-  // Read user config from Firebase
-  if (fbUser) {
-    try {
-      const snap = await fbDb.ref(`users_config/${fbUser.uid}`).once("value");
-      const cfg = snap.val();
-      if (cfg) {
-        userRole  = cfg.role  || "MEMBER";
-        maxChat   = cfg.max_chat_limit  ?? 50;
-        maxPhoto  = cfg.max_photo_limit ?? 5;
-      } else {
-        // Auto-create user config
-        userRole = "MEMBER"; maxChat = 50; maxPhoto = 5;
-        await fbDb.ref(`users_config/${fbUser.uid}`).set({
-          role: "MEMBER", max_chat_limit: maxChat, max_photo_limit: maxPhoto,
-          name: fbUser.displayName||"", email: fbUser.email||"",
-          created_at: Date.now(),
-        });
-      }
-      // Check if banned/stopped
-      if (userRole === "BANNED") {
-        showLimitWarn("Akun kamu telah dibanned oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      }
-      if (userRole === "STOPPED") {
-        showLimitWarn("Akun kamu dihentikan sementara oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      }
-    } catch { userRole="MEMBER"; maxChat=50; maxPhoto=5; }
+  // Cleanup listener lama
+  if (_cfgListener)   { fbDb.ref(_cfgListener).off(); _cfgListener=null; }
+  if (_usageListener) { fbDb.ref(_usageListener).off(); _usageListener=null; }
 
-    // Read today's usage
+  if (fbUser) {
+    const uid   = fbUser.uid;
     const today = todayKey();
-    try {
-      const snap = await fbDb.ref(`daily_usage/${fbUser.uid}/${today}`).once("value");
-      const d = snap.val() || {};
+
+    // ── Realtime listener: users_config ──────────────
+    _cfgListener = `users_config/${uid}`;
+    fbDb.ref(_cfgListener).on("value", snap => {
+      const cfg = snap.val() || {};
+      userRole = cfg.role || "MEMBER";
+      maxChat  = userRole==="ADMIN"||userRole==="OWNER" ? 99999 : (cfg.max_chat_limit  ?? 50);
+      maxPhoto = userRole==="ADMIN"||userRole==="OWNER" ? 99999 : (cfg.max_photo_limit ?? 5);
+
+      if (userRole === "BANNED") {
+        showLimitWarn("⛔ Akun kamu telah dibanned oleh Admin.");
+        maxChat = 0; maxPhoto = 0;
+      } else if (userRole === "STOPPED") {
+        showLimitWarn("⏸️ Akun kamu dihentikan sementara oleh Admin.");
+        maxChat = 0; maxPhoto = 0;
+      }
+      updateUserPanel();
+      updateQuotaBar();
+    });
+
+    // ── Realtime listener: daily_usage ───────────────
+    _usageListener = `daily_usage/${uid}/${today}`;
+    fbDb.ref(_usageListener).on("value", snap => {
+      const d  = snap.val() || {};
       usedChat  = d.chats  || 0;
       usedPhoto = d.photos || 0;
-    } catch { usedChat=0; usedPhoto=0; }
+      updateQuotaBar();
+    });
+
   } else {
-    // Guest limits from system settings
+    // Guest — ambil dari system settings
     userRole = "GUEST";
     maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
     maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
-    // Check login_required flag
     if (sysSettings.login_required) {
       maxChat = 0; maxPhoto = 0;
       showLimitWarn("Kamu harus login untuk menggunakan XREZZKY AI.");
     }
-    // Guest usage tracked by session (localStorage)
-    const gu = JSON.parse(localStorage.getItem("xrk_guest_usage_" + todayKey()) || "{}");
+    // Guest usage dari localStorage
+    const gu  = JSON.parse(localStorage.getItem("xrk_guest_usage_" + todayKey()) || "{}");
     usedChat  = gu.chats  || 0;
     usedPhoto = gu.photos || 0;
+    updateUserPanel();
+    updateQuotaBar();
   }
 
-  updateUserPanel();
-  updateQuotaBar();
   loadLocalSess();
   renderHist();
 }
@@ -1077,29 +1084,33 @@ async function doSend() {
   const img  = image64;
   if (!text && !img) return;
 
-  // Check maintenance mode
+  // Maintenance check
   if (sysSettings.maintenance_mode) {
     showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
     return;
   }
-  // Check login_required
+  // Login required check
   if (sysSettings.login_required && !fbUser) {
-    showLimitWarn("Kamu harus login untuk menggunakan fitur ini.");
+    showLimitWarn("Kamu harus login dulu untuk chat!");
+    openAuthModal("login");
     return;
   }
-  // Check chat limit
-  if (usedChat >= maxChat) {
+  // Chat limit — maxChat=0 berarti tidak ada limit (skip check)
+  if (maxChat > 0 && usedChat >= maxChat) {
     showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak.");
     return;
   }
-  // Check photo limit
-  if (img && !fbUser && !sysSettings.allow_guest_photos) {
-    showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!");
-    return;
-  }
-  if (img && usedPhoto >= maxPhoto && maxPhoto > 0) {
-    showLimitWarn("Limit kirim foto kamu hari ini sudah habis!");
-    return;
+  // Photo checks
+  if (img) {
+    if (!fbUser && !sysSettings.allow_guest_photos) {
+      showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!");
+      openAuthModal("login");
+      return;
+    }
+    if (maxPhoto > 0 && usedPhoto >= maxPhoto) {
+      showLimitWarn("Limit kirim foto kamu hari ini sudah habis!");
+      return;
+    }
   }
 
   isBusy = true;
@@ -1194,12 +1205,7 @@ async function doSend() {
     const ttsBtn=mkBtn(`<i class="fa-solid fa-volume-high"></i> Dengar`);
     ttsBtn.addEventListener("click",()=>toggleTTS(rep,ttsBtn));
     foot.appendChild(ttsBtn);
-    if (data.provider) {
-      const prov=document.createElement("span");
-      prov.style.cssText="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px";
-      prov.innerHTML=`<i class="fa-solid fa-microchip"></i>${data.provider}`;
-      foot.appendChild(prov);
-    }
+    // Provider info disembunyikan dari publik — hanya tampil di admin dashboard
     wrap.appendChild(foot);
     row.appendChild(wrap);
     feed.appendChild(row);
@@ -1212,17 +1218,8 @@ async function doSend() {
     clearInterval(tIv);
     document.getElementById(tid)?.remove();
     const bt = nowTime();
-    const errMsg = `❌ Gagal terhubung ke server.
-
-**Error:** ${err.message}
-**API:** ${API_URL}
-
-Pastikan:
-1. Vercel sudah di-deploy
-2. Domain di VERCEL_URL sudah benar
-3. Koneksi internet aktif`;
-    renderMsg(errMsg, null, "bot", bt);
-    saveLocalMsg(errMsg, null, "bot", bt);
+    renderMsg("Gagal terhubung ke server. Cek koneksi kamu ya 🙏", null, "bot", bt);
+    saveLocalMsg("Gagal terhubung ke server.", null, "bot", bt);
   }
   isBusy=false;
 }
@@ -1315,11 +1312,11 @@ window.addEventListener("load", () => {
       <button class="auth-btn" id="btnLogin" onclick="doEmailLogin()">
         <i class="fa-solid fa-right-to-bracket"></i> Masuk
       </button>
-      <div class="auth-divider">atau</div>
-      <button class="google-btn" onclick="doGoogleLogin()">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-        Lanjutkan dengan Google
-      </button>
+      <div style="text-align:center;margin-top:-2px">
+        <button onclick="switchAuthTab('reset')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;text-decoration:underline">
+          Lupa password?
+        </button>
+      </div>
     </div>
 
     <!-- ── REGISTER ── -->
@@ -1348,11 +1345,6 @@ window.addEventListener("load", () => {
       </div>
       <button class="auth-btn" id="btnRegister" onclick="doEmailRegister()">
         <i class="fa-solid fa-user-plus"></i> Buat Akun
-      </button>
-      <div class="auth-divider">atau</div>
-      <button class="google-btn" onclick="doGoogleLogin()">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-        Daftar dengan Google
       </button>
     </div>
 
