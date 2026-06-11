@@ -321,39 +321,126 @@ function buildQueue(hasImage) {
 // ═══════════════════════════════════════════════════════════════════════════
 //  FIREBASE DB HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
-async function ensureUserConfig(uid, defaultRole="MEMBER") {
+async function ensureUserConfig(uid, defaultRole="MEMBER", meta={}) {
   const ref  = db.ref(`users_config/${uid}`);
   const snap = await ref.once("value");
+
+  // Baca limit dari system_settings/role_limits jika ada
+  let roleLimits = {};
+  try {
+    const rlSnap = await db.ref("system_settings/role_limits").once("value");
+    roleLimits = rlSnap.val() || {};
+  } catch {}
+
   if (!snap.exists()) {
-    const lim = DEFAULT_ROLE_LIMITS[defaultRole];
-    const cfg = { role:defaultRole, max_chat_limit:lim.max_chat_limit, max_photo_limit:lim.max_photo_limit, created_at:now() };
-    await ref.set(cfg); return cfg;
+    const dbLim  = roleLimits[defaultRole] || {};
+    const defLim = DEFAULT_ROLE_LIMITS[defaultRole];
+    const cfg = {
+      role:            defaultRole,
+      max_chat_limit:  dbLim.max_chat_limit  ?? defLim.max_chat_limit,
+      max_photo_limit: dbLim.max_photo_limit ?? defLim.max_photo_limit,
+      name:            meta.name  || "",
+      email:           meta.email || "",
+      created_at:      now(),
+    };
+    await ref.set(cfg);
+    return cfg;
+  }
+
+  const cfg = snap.val();
+  // Kalau role_limits di DB berubah, update limit user yang belum custom
+  if (roleLimits[cfg.role] && !cfg.custom_limit) {
+    const rl = roleLimits[cfg.role];
+    await ref.update({
+      max_chat_limit:  rl.max_chat_limit,
+      max_photo_limit: rl.max_photo_limit,
+    });
+    cfg.max_chat_limit  = rl.max_chat_limit;
+    cfg.max_photo_limit = rl.max_photo_limit;
+  }
+  return cfg;
+}
+
+async function getDailyCounter(uid) {
+  const key  = todayWIB();
+  const ref  = db.ref(`daily_usage/${uid}/${key}`);
+  const snap = await ref.once("value");
+  if (!snap.exists()) {
+    await ref.set({ chats:0, photos:0, reset_at: now() });
+    return { chats:0, photos:0 };
   }
   return snap.val();
 }
 
-async function getDailyCounter(uid) {
-  const ref  = db.ref(`daily_usage/${uid}/${todayWIB()}`);
-  const snap = await ref.once("value");
-  if (!snap.exists()) { await ref.set({chats:0,photos:0}); return {chats:0,photos:0}; }
-  return snap.val();
+// ── Auto-cleanup: hapus data usage > 30 hari ──────────────────────────────────
+async function cleanupOldUsage(uid) {
+  try {
+    const cutoff = new Date(Date.now() + 7*3600000 - 30*86400000)
+      .toISOString().slice(0,10); // 30 hari lalu (WIB)
+    const snap = await db.ref(`daily_usage/${uid}`).once("value");
+    if (!snap.exists()) return;
+    const updates = {};
+    snap.forEach(child => {
+      if (child.key < cutoff) updates[child.key] = null; // delete
+    });
+    if (Object.keys(updates).length > 0) {
+      await db.ref(`daily_usage/${uid}`).update(updates);
+    }
+  } catch {}
+}
+
+// ── Cleanup guest analytics > 30 hari ────────────────────────────────────────
+async function cleanupGuestAnalytics() {
+  try {
+    const cutoff30d = Date.now() - 30*86400000;
+    const snap = await db.ref("analytics/guests").once("value");
+    if (!snap.exists()) return;
+    const updates = {};
+    snap.forEach(child => {
+      const d = child.val();
+      if ((d.last_visit||0) < cutoff30d) updates[child.key] = null;
+    });
+    if (Object.keys(updates).length > 0) {
+      await db.ref("analytics/guests").update(updates);
+    }
+  } catch {}
 }
 
 async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v||0)+1);
 }
 
-async function recordAnalytics(uid, { name, email, ip, sentPhoto }) {
-  await db.ref(`analytics/traffic/${uid}`).transaction(cur => {
-    const b = cur || { name:"", email:"", ip_address:"", first_visit:now(), total_chats_sent:0, total_photos_sent:0 };
+async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
+  // Guest → analytics/guests (terpisah, auto-delete 30 hari)
+  // User login → analytics/traffic
+  const path = isGuest
+    ? `analytics/guests/${uid}`
+    : `analytics/traffic/${uid}`;
+
+  await db.ref(path).transaction(cur => {
+    const b = cur || {
+      name:              name  || (isGuest ? "Guest" : ""),
+      email:             email || "",
+      ip_address:        ip    || "",
+      is_guest:          !!isGuest,
+      first_visit:       now(),
+      total_chats_sent:  0,
+      total_photos_sent: 0,
+    };
     b.name              = name  || b.name;
     b.email             = email || b.email;
     b.ip_address        = ip    || b.ip_address;
     b.last_visit        = now();
     b.total_chats_sent  = (b.total_chats_sent  || 0) + 1;
-    b.total_photos_sent = (b.total_photos_sent || 0) + (sentPhoto?1:0);
+    b.total_photos_sent = (b.total_photos_sent || 0) + (sentPhoto ? 1 : 0);
     return b;
   });
+
+  // Run cleanup setiap 100 request (probabilistic, biar ringan)
+  if (Math.random() < 0.01) {
+    if (!isGuest) cleanupOldUsage(uid).catch(()=>{});
+    cleanupGuestAnalytics().catch(()=>{});
+  }
 }
 
 async function pushChat(uid, sessId, role, text, hasImg) {
@@ -656,7 +743,7 @@ Coba lagi dalam beberapa detik ya 🙏`,
     }
 
     // ── Analytics ─────────────────────────────────────────────────────────────
-    try { await recordAnalytics(uid, { name:uName, email:uEmail, ip, sentPhoto:hasPhoto }); } catch {}
+    try { await recordAnalytics(uid, { name:uName, email:uEmail, ip, sentPhoto:hasPhoto, isGuest }); } catch {}
 
     // ── Read updated counter ──────────────────────────────────────────────────
     const updated = await getDailyCounter(uid).catch(()=>counter);
