@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>XREZZKY AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css" crossorigin="anonymous" media="print" onload="this.media='all'">
+<style>
+/* Icon fallback jika FA tidak load */
+.fa-solid,.fa-regular,.fa-brands,.fas,.far,.fab{font-family:"Font Awesome 6 Free","Font Awesome 6 Brands",sans-serif;font-weight:900;speak:never;font-style:normal;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased}
+</style>
 
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -257,15 +262,15 @@ body{background:var(--bg);color:var(--text);display:flex}
 <div class="sidebar" id="sidebar">
   <div class="sb-top">
     <h2>Riwayat</h2>
-    <button class="hbtn" id="closeSideBtn" style="width:28px;height:28px;font-size:13px"><i class="fas fa-times"></i></button>
+    <button class="hbtn" id="closeSideBtn" style="width:28px;height:28px;font-size:16px">✕</button>
   </div>
   <div class="user-panel" id="userPanel">
     <div class="up-ava" id="upAva">G</div>
     <div class="up-info">
       <div class="up-name" id="upName">Guest</div>
-      <div class="up-role role-GUEST" id="upRole"><i class="fa-solid fa-circle-user" style="font-size:8px"></i> GUEST</div>
+      <div class="up-role role-GUEST" id="upRole"> GUEST</div>
     </div>
-    <button class="up-btn" id="authBtn" title="Login / Logout"><i class="fab fa-google"></i></button>
+    <button class="up-btn" id="authBtn" title="Login / Logout">👤</button>
   </div>
   <div class="quota-wrap" id="quotaWrap">
     <div class="quota-row"><span>💬 Chat</span><span id="qChatTxt">0/10</span></div>
@@ -273,7 +278,7 @@ body{background:var(--bg);color:var(--text);display:flex}
     <div class="quota-row"><span>🖼️ Foto</span><span id="qPhotoTxt">0/0</span></div>
     <div class="quota-bar"><div class="quota-fill" id="qPhotoBar" style="width:0%"></div></div>
   </div>
-  <button class="new-btn" id="newChatBtn"><i class="fas fa-plus"></i> Obrolan Baru</button>
+  <button class="new-btn" id="newChatBtn">＋ Obrolan Baru</button>
   <div class="hist-label">Percakapan</div>
   <div class="hist-list" id="histList"></div>
 </div>
@@ -282,31 +287,31 @@ body{background:var(--bg);color:var(--text);display:flex}
 <!-- MAIN -->
 <div class="main">
   <div class="header">
-    <button class="hbtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+    <button class="hbtn" id="menuBtn">☰</button>
     <div class="logo-mark">X</div>
     <div class="brand">
       <h1>XREZZKY AI</h1>
       <div class="brand-status"><div class="sdot"></div><span style="font-size:10px;color:var(--sub)">Sistem Aktif</span></div>
     </div>
     <div class="hdr-mid">
-      <div class="widget"><i class="fa-regular fa-calendar-days"></i><span id="wDate">-</span></div>
-      <div class="widget"><i class="fa-solid fa-cloud-sun" id="wIcon"></i><span id="wWeather">Indonesia</span></div>
+      <div class="widget">📅<span id="wDate">-</span></div>
+      <div class="widget"><span id="wIcon">🌤️</span><span id="wWeather">Indonesia</span></div>
     </div>
     <div class="hdr-right">
-      <button class="hbtn" id="openHistBtn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left"></i></button>
-      <button class="hbtn" id="clearBtn" title="Hapus Chat"><i class="fas fa-trash-can"></i></button>
+      <button class="hbtn" id="openHistBtn" title="Riwayat">🕐</button>
+      <button class="hbtn" id="clearBtn" title="Hapus Chat">🗑️</button>
     </div>
   </div>
 
   <div class="login-banner" id="loginBanner">
-    <i class="fa-solid fa-lock" style="font-size:13px"></i>
+    🔒
     <div><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
     <button class="lb-btn" id="loginBannerBtn" onclick="openAuthModal()">Login</button>
   </div>
 
   <!-- API Status bar - shown only when connection fails -->
   <div id="apiStatus" style="display:none;margin:6px 14px 0;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:11px;color:#ef4444;display:none;align-items:center;gap:8px;flex-shrink:0">
-    <i class="fa-solid fa-circle-exclamation"></i>
+    ⚠️
     <span id="apiStatusMsg">API tidak terhubung</span>
     <button onclick="testConnection()" style="margin-left:auto;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#ef4444;padding:3px 10px;border-radius:14px;font-size:10px;cursor:pointer;font-weight:600">Cek</button>
   </div>
@@ -323,7 +328,7 @@ body{background:var(--bg);color:var(--text);display:flex}
     <button class="prev-x" id="cancelImg"><i class="fas fa-times"></i></button>
   </div>
 
-  <div class="limit-bar" id="limitBar"><i class="fa-solid fa-triangle-exclamation"></i><span id="limitMsg">-</span></div>
+  <div class="limit-bar" id="limitBar">⚠️<span id="limitMsg">-</span></div>
 
   <div class="input-wrap">
     <div class="input-inner">
@@ -340,7 +345,7 @@ body{background:var(--bg);color:var(--text);display:flex}
 
 <!-- IMAGE MODAL -->
 <div class="img-modal" id="imgModal">
-  <button class="img-modal-x" id="closeModal"><i class="fas fa-times"></i></button>
+  <button class="img-modal-x" id="closeModal">✕</button>
   <img src="" id="modalImg" alt="">
 </div>
 
@@ -454,7 +459,7 @@ fbAuth.onAuthStateChanged(async user => {
     document.getElementById("upName").textContent =
       user.displayName || user.email?.split("@")[0] || "User";
     loginBanner.style.display = "none";
-    authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
+    authBtn.innerHTML = `↩`;
     authBtn.title     = "Logout";
     closeAuthModal();
   } else {
@@ -462,7 +467,7 @@ fbAuth.onAuthStateChanged(async user => {
     document.getElementById("upAva").textContent  = "G";
     document.getElementById("upName").textContent = "Guest";
     loginBanner.style.display = "flex";
-    authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i>`;
+    authBtn.innerHTML = `👤`;
     authBtn.title     = "Login";
   }
   await loadSysSettings();
@@ -510,8 +515,8 @@ function togglePw(inputId, btn) {
   const isHidden = inp.type === "password";
   inp.type = isHidden ? "text" : "password";
   btn.innerHTML = isHidden
-    ? `<i class="fa-solid fa-eye-slash"></i>`
-    : `<i class="fa-solid fa-eye"></i>`;
+    ? `👁`
+    : `👁`;
 }
 
 // ── Email Login ───────────────────────────────
@@ -536,7 +541,7 @@ async function doEmailLogin() {
     showAuthMsg(msgs[e.code] || "Login gagal: " + e.message, "err");
   } finally {
     setAuthLoading("btnLogin", false);
-    document.getElementById("btnLogin").innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Masuk`;
+    document.getElementById("btnLogin").innerHTML = `→ Masuk`;
   }
 }
 
@@ -571,7 +576,7 @@ async function doEmailRegister() {
     showAuthMsg(msgs[e.code] || "Daftar gagal: " + e.message, "err");
   } finally {
     setAuthLoading("btnRegister", false);
-    document.getElementById("btnRegister").innerHTML = `<i class="fa-solid fa-user-plus"></i> Buat Akun`;
+    document.getElementById("btnRegister").innerHTML = `+ Buat Akun`;
   }
 }
 
@@ -594,7 +599,7 @@ async function doResetPassword() {
     showAuthMsg(msgs[e.code] || "Gagal kirim email: " + e.message, "err");
   } finally {
     setAuthLoading("btnReset", false);
-    document.getElementById("btnReset").innerHTML = `<i class="fa-solid fa-envelope"></i> Kirim Link Reset`;
+    document.getElementById("btnReset").innerHTML = `📧 Kirim Link Reset`;
   }
 }
 
@@ -719,10 +724,11 @@ function todayKey() {
 //  UI UPDATES
 // ═══════════════════════════════════════════════
 function updateUserPanel() {
+  const roleEmoji = { OWNER:"⭐", ADMIN:"👑", SELLER:"🏪", MEMBER:"✅", GUEST:"👤", BANNED:"🚫", STOPPED:"⏸️" };
   const icons = { ADMIN:"fa-crown", SELLER:"fa-store", MEMBER:"fa-user-check", GUEST:"fa-circle-user", BANNED:"fa-ban", STOPPED:"fa-pause" };
   const ri = document.getElementById("upRole");
   ri.className = `up-role role-${userRole}`;
-  ri.innerHTML = `<i class="fa-solid ${icons[userRole]||'fa-user'}" style="font-size:8px"></i> ${userRole}`;
+  ri.innerHTML = `${roleEmoji[userRole]||'👤'} ${userRole}`;ole}`;
 }
 
 function updateQuotaBar() {
@@ -753,11 +759,11 @@ function updateWidgets() {
     now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
   const h = now.getHours();
   const wi = document.getElementById("wIcon");
-  let icon="fa-cloud-sun", label="Siang";
-  if (h>=18||h<5){icon="fa-cloud-moon";label="Malam";}
-  else if (h<11){icon="fa-sun";label="Pagi";}
-  else if (h>=15){icon="fa-cloud-sun";label="Sore";}
-  wi.className = `fa-solid ${icon}`;
+  let icon="🌤️", label="Siang";
+  if (h>=18||h<5){icon="🌙";label="Malam";}
+  else if (h<11){icon="☀️";label="Pagi";}
+  else if (h>=15){icon="🌅";label="Sore";}
+  wi.textContent = icon;
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async p => {
       try {
@@ -823,7 +829,7 @@ function renderHist() {
     const s = d[k];
     const el = document.createElement("div");
     el.className = "hi" + (k===curSess?" active":"");
-    el.innerHTML = `<div class="hi-info"><div class="hi-t">${esc(s.title||"Obrolan")}</div><div class="hi-d">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus"><i class="fa-solid fa-xmark"></i></button>`;
+    el.innerHTML = `<div class="hi-info"><div class="hi-t">${esc(s.title||"Obrolan")}</div><div class="hi-d">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus">✕</button>`;
     el.addEventListener("click", () => { curSess=k; localStorage.setItem(CK,k); feed.innerHTML=""; lastDate=null; loadLocalSess(); renderHist(); closeSide(); });
     el.querySelector(".hi-del").addEventListener("click", e => {
       e.stopPropagation();
@@ -939,17 +945,17 @@ function renderMsg(text, img64, role, time) {
   foot.appendChild(tm);
 
   if (role==="bot" && text) {
-    const copyBtn = mkBtn(`<i class="fa-regular fa-copy"></i> Salin`);
+    const copyBtn = mkBtn(`📋 Salin`);
     copyBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(text).then(() => {
         copyBtn.classList.add("ok");
-        copyBtn.innerHTML = `<i class="fa-solid fa-check"></i> Disalin`;
-        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`<i class="fa-regular fa-copy"></i> Salin`;},2200);
+        copyBtn.innerHTML = `✅ Disalin`;
+        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`📋 Salin`;},2200);
       });
     });
     foot.appendChild(copyBtn);
 
-    const ttsBtn = mkBtn(`<i class="fa-solid fa-volume-high"></i> Dengar`);
+    const ttsBtn = mkBtn(`🔊 Dengar`);
     ttsBtn.addEventListener("click", () => toggleTTS(text, ttsBtn));
     foot.appendChild(ttsBtn);
   }
@@ -997,7 +1003,7 @@ function cleanTTS(raw) {
 }
 function resetTTS() {
   document.querySelectorAll(".abtn.stp").forEach(b => {
-    b.classList.remove("stp"); b.innerHTML=`<i class="fa-solid fa-volume-high"></i> Dengar`;
+    b.classList.remove("stp"); b.innerHTML=`🔊 Dengar`;
   });
   activeTTS = null;
 }
@@ -1010,7 +1016,7 @@ function toggleTTS(text, btn) {
   const vs = window.speechSynthesis.getVoices();
   const bv = vs.find(v=>v.name.includes("Google")&&v.lang.startsWith("id"))||vs.find(v=>v.lang==="id-ID");
   if (bv) utt.voice=bv;
-  utt.onstart = () => { activeTTS=btn; btn.classList.add("stp"); btn.innerHTML=`<i class="fa-solid fa-circle-stop"></i> Stop`; };
+  utt.onstart = () => { activeTTS=btn; btn.classList.add("stp"); btn.innerHTML=`⏹ Stop`; };
   utt.onend = utt.onerror = resetTTS;
   window.speechSynthesis.speak(utt);
 }
@@ -1184,22 +1190,22 @@ async function doSend() {
     if (data.searched) {
       const sb = document.createElement("div");
       sb.className="search-badge";
-      sb.innerHTML=`<i class="fa-solid fa-magnifying-glass" style="font-size:9px"></i> Mencari di web...`;
+      sb.innerHTML=`🔍 Mencari di web...`;
       bub.insertBefore(sb, bub.firstChild);
     }
 
     const foot=document.createElement("div"); foot.className="bfoot";
     const tm=document.createElement("span"); tm.className="msg-time"; tm.textContent=bt;
     foot.appendChild(tm);
-    const copyBtn=mkBtn(`<i class="fa-regular fa-copy"></i> Salin`);
+    const copyBtn=mkBtn(`📋 Salin`);
     copyBtn.addEventListener("click",()=>{
       navigator.clipboard.writeText(rep).then(()=>{
-        copyBtn.classList.add("ok"); copyBtn.innerHTML=`<i class="fa-solid fa-check"></i> Disalin`;
-        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`<i class="fa-regular fa-copy"></i> Salin`;},2200);
+        copyBtn.classList.add("ok"); copyBtn.innerHTML=`✅ Disalin`;
+        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`📋 Salin`;},2200);
       });
     });
     foot.appendChild(copyBtn);
-    const ttsBtn=mkBtn(`<i class="fa-solid fa-volume-high"></i> Dengar`);
+    const ttsBtn=mkBtn(`🔊 Dengar`);
     ttsBtn.addEventListener("click",()=>toggleTTS(rep,ttsBtn));
     foot.appendChild(ttsBtn);
     // Provider info disembunyikan dari publik — hanya tampil di admin dashboard
@@ -1273,7 +1279,7 @@ window.addEventListener("load", () => {
 <!-- ══ AUTH MODAL ════════════════════════════════ -->
 <div id="authModal">
   <div class="auth-card" style="position:relative">
-    <button class="auth-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+    <button class="auth-close" onclick="closeAuthModal()">✕</button>
 
     <div class="auth-head">
       <div class="auth-logo">X</div>
@@ -1303,11 +1309,11 @@ window.addEventListener("load", () => {
         <label>Password</label>
         <div class="auth-pw-wrap">
           <input type="password" class="auth-input" id="loginPass" placeholder="Password kamu" autocomplete="current-password">
-          <button class="auth-pw-eye" onclick="togglePw('loginPass',this)"><i class="fa-solid fa-eye"></i></button>
+          <button class="auth-pw-eye" onclick="togglePw('loginPass',this)">👁</button>
         </div>
       </div>
       <button class="auth-btn" id="btnLogin" onclick="doEmailLogin()">
-        <i class="fa-solid fa-right-to-bracket"></i> Masuk
+        → Masuk
       </button>
       <div style="text-align:center;margin-top:-2px">
         <button onclick="switchAuthTab('reset')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;text-decoration:underline">
@@ -1330,18 +1336,18 @@ window.addEventListener("load", () => {
         <label>Password</label>
         <div class="auth-pw-wrap">
           <input type="password" class="auth-input" id="regPass" placeholder="Min. 6 karakter" autocomplete="new-password">
-          <button class="auth-pw-eye" onclick="togglePw('regPass',this)"><i class="fa-solid fa-eye"></i></button>
+          <button class="auth-pw-eye" onclick="togglePw('regPass',this)">👁</button>
         </div>
       </div>
       <div class="auth-field">
         <label>Konfirmasi Password</label>
         <div class="auth-pw-wrap">
           <input type="password" class="auth-input" id="regPass2" placeholder="Ulangi password" autocomplete="new-password">
-          <button class="auth-pw-eye" onclick="togglePw('regPass2',this)"><i class="fa-solid fa-eye"></i></button>
+          <button class="auth-pw-eye" onclick="togglePw('regPass2',this)">👁</button>
         </div>
       </div>
       <button class="auth-btn" id="btnRegister" onclick="doEmailRegister()">
-        <i class="fa-solid fa-user-plus"></i> Buat Akun
+        + Buat Akun
       </button>
     </div>
 
@@ -1355,7 +1361,7 @@ window.addEventListener("load", () => {
         <input type="email" class="auth-input" id="resetEmail" placeholder="email@gmail.com" autocomplete="email">
       </div>
       <button class="auth-btn" id="btnReset" onclick="doResetPassword()">
-        <i class="fa-solid fa-envelope"></i> Kirim Link Reset
+        📧 Kirim Link Reset
       </button>
     </div>
 
