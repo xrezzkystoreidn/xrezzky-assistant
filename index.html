@@ -371,10 +371,13 @@ const fbDb   = firebase.database();
 // ═══════════════════════════════════════════════
 // Kalau buka dari Vercel langsung → pakai "/api/chat"
 // Kalau test di Acode/local → pakai URL full Vercel kamu
-const VERCEL_URL = "https://xrezzky-storeid.vercel.app"; // domain Vercel kamu
-const API_URL    = (location.hostname === "localhost" || location.protocol === "file:")
-  ? VERCEL_URL + "/api/chat"   // test lokal / Acode → absolute URL
-  : "/api/chat";               // di Vercel sendiri → relative URL
+// ── GANTI dengan domain Vercel kamu jika buka dari Acode/lokal ──
+const VERCEL_URL = "https://xrezzky-storeid.vercel.app";
+const API_URL    = (location.hostname === "localhost" ||
+                   location.protocol === "file:"     ||
+                   !location.hostname.includes("vercel.app"))
+  ? VERCEL_URL + "/api/chat"
+  : "/api/chat";
 const SK      = "xrk_sess";
 const CK      = "xrk_cur";
 const THINK   = ["Berpikir...","Mengetik...","Mencari info...","Menyusun jawaban..."];
@@ -435,14 +438,21 @@ fbAuth.onAuthStateChanged(async user => {
     try {
       const snap = await fbDb.ref(`users_config/${user.uid}`).once("value");
       if (!snap.exists()) {
-        // User baru → buat dengan role MEMBER
+        // Baca role_limits dari system_settings kalau ada
+        let chatLim = 50, photoLim = 5;
+        try {
+          const rlSnap = await fbDb.ref("system_settings/role_limits/MEMBER").once("value");
+          const rl = rlSnap.val();
+          if (rl) { chatLim = rl.max_chat_limit ?? 50; photoLim = rl.max_photo_limit ?? 5; }
+        } catch {}
+
         await fbDb.ref(`users_config/${user.uid}`).set({
           uid:             user.uid,
           name:            user.displayName || user.email?.split("@")[0] || "User",
           email:           user.email || "",
           role:            "MEMBER",
-          max_chat_limit:  50,
-          max_photo_limit: 5,
+          max_chat_limit:  chatLim,
+          max_photo_limit: photoLim,
           status:          "active",
           created_at:      Date.now(),
           last_login:      Date.now(),
@@ -464,6 +474,12 @@ fbAuth.onAuthStateChanged(async user => {
     closeAuthModal();
   } else {
     idToken = null;
+    // Cleanup semua Firebase listeners saat logout
+    if (_cfgRef)   { _cfgRef.off("value");   _cfgRef   = null; }
+    if (_usageRef) { _usageRef.off("value"); _usageRef = null; }
+    if (_sysRef)   { _sysRef.off("value");   _sysRef   = null; }
+    // Reset state
+    userRole = "GUEST"; usedChat = 0; usedPhoto = 0; maxChat = 10; maxPhoto = 0;
     document.getElementById("upAva").textContent  = "G";
     document.getElementById("upName").textContent = "Guest";
     loginBanner.style.display = "flex";
@@ -640,17 +656,33 @@ document.head.appendChild(spinStyle);
 // ═══════════════════════════════════════════════
 async function loadSysSettings() {
   try {
+    // Pertama ambil sekali dulu (sync)
     const snap = await fbDb.ref("system_settings").once("value");
     sysSettings = snap.val() || {};
+    // Lalu pasang realtime listener untuk update otomatis
+    if (!_sysRef) {
+      _sysRef = fbDb.ref("system_settings");
+      _sysRef.on("value", snap2 => {
+        sysSettings = snap2.val() || {};
+        // Update guest limits jika tidak login
+        if (!fbUser) {
+          maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
+          maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
+          if (sysSettings.login_required) { maxChat = 0; maxPhoto = 0; }
+          updateQuotaBar();
+        }
+      });
+    }
   } catch { sysSettings = {}; }
 }
 
 // ═══════════════════════════════════════════════
 //  SESSION INIT
 // ═══════════════════════════════════════════════
-// Realtime listeners refs (untuk cleanup saat logout)
-let _cfgListener = null;
-let _usageListener = null;
+// Realtime listener refs — store actual Firebase refs for proper .off()
+let _cfgRef     = null;
+let _usageRef   = null;
+let _sysRef     = null;
 
 async function initSession(newSess = false) {
   if (newSess || !curSess) {
@@ -659,22 +691,25 @@ async function initSession(newSess = false) {
     savLocalSess(curSess, "Obrolan Baru");
   }
 
-  // Cleanup listener lama
-  if (_cfgListener)   { fbDb.ref(_cfgListener).off(); _cfgListener=null; }
-  if (_usageListener) { fbDb.ref(_usageListener).off(); _usageListener=null; }
+  // Cleanup old listeners properly
+  if (_cfgRef)   { _cfgRef.off("value");   _cfgRef   = null; }
+  if (_usageRef) { _usageRef.off("value"); _usageRef = null; }
 
   if (fbUser) {
     const uid   = fbUser.uid;
     const today = todayKey();
 
-    // ── Realtime listener: users_config ──────────────
-    _cfgListener = `users_config/${uid}`;
-    fbDb.ref(_cfgListener).on("value", snap => {
+    // ── Realtime: users_config ────────────────────
+    _cfgRef = fbDb.ref(`users_config/${uid}`);
+    _cfgRef.on("value", snap => {
       const cfg = snap.val() || {};
-      userRole = cfg.role || "MEMBER";
-      maxChat  = userRole==="ADMIN"||userRole==="OWNER" ? 99999 : (cfg.max_chat_limit  ?? 50);
-      maxPhoto = userRole==="ADMIN"||userRole==="OWNER" ? 99999 : (cfg.max_photo_limit ?? 5);
-
+      userRole  = cfg.role || "MEMBER";
+      if (userRole === "ADMIN" || userRole === "OWNER") {
+        maxChat = 99999; maxPhoto = 99999;
+      } else {
+        maxChat  = cfg.max_chat_limit  ?? 50;
+        maxPhoto = cfg.max_photo_limit ?? 5;
+      }
       if (userRole === "BANNED") {
         showLimitWarn("⛔ Akun kamu telah dibanned oleh Admin.");
         maxChat = 0; maxPhoto = 0;
@@ -686,20 +721,22 @@ async function initSession(newSess = false) {
       updateQuotaBar();
     });
 
-    // ── Realtime listener: daily_usage ───────────────
-    _usageListener = `daily_usage/${uid}/${today}`;
-    fbDb.ref(_usageListener).on("value", snap => {
-      const d  = snap.val() || {};
+    // ── Realtime: daily_usage ─────────────────────
+    _usageRef = fbDb.ref(`daily_usage/${uid}/${today}`);
+    _usageRef.on("value", snap => {
+      const d   = snap.val() || {};
       usedChat  = d.chats  || 0;
       usedPhoto = d.photos || 0;
       updateQuotaBar();
     });
 
   } else {
-    // Guest — ambil dari system settings
+    // Guest
     userRole = "GUEST";
     maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
     maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
+    usedChat = 0; usedPhoto = 0;
+
     if (sysSettings.login_required) {
       maxChat = 0; maxPhoto = 0;
       showLimitWarn("Kamu harus login untuk menggunakan XREZZKY AI.");
@@ -728,7 +765,7 @@ function updateUserPanel() {
   const icons = { ADMIN:"fa-crown", SELLER:"fa-store", MEMBER:"fa-user-check", GUEST:"fa-circle-user", BANNED:"fa-ban", STOPPED:"fa-pause" };
   const ri = document.getElementById("upRole");
   ri.className = `up-role role-${userRole}`;
-  ri.innerHTML = `${roleEmoji[userRole]||'👤'} ${userRole}`;ole}`;
+  ri.innerHTML = `${roleEmoji[userRole]||'👤'} ${userRole}`;
 }
 
 function updateQuotaBar() {
@@ -976,6 +1013,7 @@ function mkBtn(html) {
 //  STREAMING RENDER (word-by-word)
 // ═══════════════════════════════════════════════
 async function streamRender(fullText, bub) {
+  if (!bub || !fullText) return;
   const td = document.createElement("div"); td.className="md";
   const cur = document.createElement("span"); cur.className="cursor";
   bub.appendChild(td); bub.appendChild(cur);
@@ -1143,6 +1181,12 @@ async function doSend() {
 
   try {
     const headers = {"Content-Type":"application/json"};
+    if (fbUser) {
+      try {
+        // Refresh token before each request (auto handles expiry)
+        idToken = await fbUser.getIdToken(false);
+      } catch { idToken = null; }
+    }
     if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
 
     const r = await fetch(API_URL, {
@@ -1154,9 +1198,18 @@ async function doSend() {
     clearInterval(tIv);
     document.getElementById(tid)?.remove();
 
+    if (r.status===403) {
+      const err=await r.json().catch(()=>({}));
+      showLimitWarn(err.reason||"Akses ditolak.");
+      isBusy=false; return;
+    }
     if (r.status===429) {
-      const err=await r.json();
+      const err=await r.json().catch(()=>({}));
       showLimitWarn(err.reason||"Limit kamu sudah habis.");
+      isBusy=false; return;
+    }
+    if (r.status===503) {
+      showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
       isBusy=false; return;
     }
     if (!r.ok) throw new Error("HTTP "+r.status);
@@ -1165,19 +1218,18 @@ async function doSend() {
     const rep  = data.response || "Maaf, tidak ada respons.";
     const bt   = nowTime();
 
-    // Update local quota counter
-    usedChat++;
-    if (img) usedPhoto++;
-    updateQuotaBar();
-
-    // Update guest usage in localStorage
+    // Guest: update localStorage usage (login user handled by realtime listener)
     if (!fbUser) {
+      usedChat++;
+      if (img) usedPhoto++;
+      updateQuotaBar();
       const key = "xrk_guest_usage_" + todayKey();
       const gu  = JSON.parse(localStorage.getItem(key)||"{}");
       gu.chats  = (gu.chats||0)+1;
       if (img) gu.photos=(gu.photos||0)+1;
       localStorage.setItem(key, JSON.stringify(gu));
     }
+    // Login user: realtime listener di daily_usage akan auto-update quota bar
 
     // Build bot row with streaming
     maybeDateSep();
@@ -1244,11 +1296,12 @@ async function testConnection() {
   msg.textContent = "Mengecek koneksi...";
   bar.style.display = "flex";
   try {
-    const r = await fetch(API_URL.replace("/api/chat", "/api/chat") + "?action=ping", {
+    const testUrl = API_URL.includes("?") ? API_URL : API_URL + "?action=ping";
+    const r = await fetch(testUrl, {
       method: "GET",
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(6000),
     });
-    if (r.ok || r.status === 405) {
+    if (r.ok) {
       // 405 = Method Not Allowed → server hidup tapi method salah → OK
       bar.style.background = "rgba(34,197,94,.08)";
       bar.style.borderColor = "rgba(34,197,94,.25)";
