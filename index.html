@@ -108,11 +108,11 @@ body{background:var(--bg);color:var(--text);display:flex}
 .feed{max-width:780px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:4px;padding-bottom:8px}
 
 /* Welcome */
-.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:50px 20px 30px;animation:fadeUp .4s ease}
-.w-icon{width:66px;height:66px;border-radius:20px;margin-bottom:18px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px;color:#fff;box-shadow:0 10px 32px rgba(37,99,235,.3)}
-.w-title{font-size:22px;font-weight:700;margin-bottom:7px}
+.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:60px 20px 30px;animation:fadeUp .4s ease}
+.w-icon{width:72px;height:72px;border-radius:22px;margin-bottom:22px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:30px;color:#fff;box-shadow:0 12px 36px rgba(37,99,235,.35)}
+.w-title{font-size:24px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
 .w-title span{color:var(--accent)}
-.w-sub{font-size:13px;color:var(--sub);max-width:380px;line-height:1.7}
+.w-sub{font-size:14px;color:var(--sub);line-height:1.6}
 
 /* Date sep */
 .dsep{display:flex;align-items:center;gap:9px;margin:10px 0 4px}
@@ -899,13 +899,11 @@ clearBtn.addEventListener("click", () => {
 //  WELCOME SCREEN
 // ═══════════════════════════════════════════════
 function showWelcome() {
-  const h = new Date().getHours();
-  const gr = h<5||h>=18?"Malam 🌙":h<11?"Pagi ✨":h<15?"Siang ☀️":"Sore 🌅";
   feed.innerHTML = `
     <div class="welcome">
       <div class="w-icon">X</div>
-      <div class="w-title">Selamat ${gr}, <span>Bro!</span></div>
-      <div class="w-sub">Tanyakan apa saja — produk, game, matematika, atau berita terkini.<br>XREZZKY AI siap membantu.</div>
+      <div class="w-title">XREZZKY <span>AI</span></div>
+      <div class="w-sub">Silakan ketik pertanyaan Anda.</div>
     </div>`;
 }
 
@@ -1427,3 +1425,4 @@ window.addEventListener("load", () => {
 
 </body>
 </html>
+p
