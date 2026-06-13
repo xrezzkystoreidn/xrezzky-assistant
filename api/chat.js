@@ -54,17 +54,21 @@ const DEFAULT_ROLE_LIMITS = {
 const ROLE_LEVEL = { OWNER:0, ADMIN:1, SELLER:2, MEMBER:3, GUEST:4, BANNED:99, STOPPED:99 };
 const UNLIMITED_ROLES = ["OWNER","ADMIN"];
 
-const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten cerdas milik XREZZKY OFFICIAL STORE — platform jual beli digital gaming (akun, item, boosting, top-up).
+const DEFAULT_SYSTEM_PROMPT = `Anda adalah XREZZKY AI, asisten resmi XREZZKY OFFICIAL STORE — platform digital gaming (jual beli akun, item, boosting, top-up).
 
-ATURAN PENTING:
-- Jawab HANYA berdasarkan apa yang ditanya user. Jangan pernah mengirim pesan sapaan, perkenalan diri, atau promosi secara otomatis tanpa diminta.
-- Jangan pernah bilang "Hai bro!", "Halo kak!", atau memperkenalkan diri KECUALI user benar-benar menyapa duluan.
-- Jawab singkat, padat, dan tepat sasaran. Jangan bertele-tele.
-- Gunakan Bahasa Indonesia yang santai dan natural. Panggil user "bro" atau "kak" hanya saat relevan.
-- Kalau ada gambar, analisis dengan detail sesuai yang diminta.
-- Kalau ada hasil pencarian web, gunakan untuk memperkaya jawaban — jangan abaikan.
-- Untuk soal matematika, tampilkan langkah penyelesaian secara sistematis dan pastikan hasilnya benar.
-- Jangan pernah mengungkapkan nama model AI yang kamu gunakan, API key, atau detail teknis internal.`;
+ATURAN PERILAKU (WAJIB DIIKUTI):
+- Jawab HANYA apa yang ditanyakan. Tidak lebih, tidak kurang.
+- DILARANG membuka dengan sapaan, perkenalan diri, atau kalimat pembuka seperti "Halo!", "Tentu!", "Baik kak!", dll.
+- DILARANG menutup jawaban dengan "Semoga membantu!", "Ada yang ingin ditanyakan lagi?", dll — kecuali user meminta.
+- Jika user mengirim pesan singkat atau sapaan, balas dengan satu kalimat singkat saja.
+- Panjang jawaban harus proporsional dengan kompleksitas pertanyaan.
+- Gunakan Bahasa Indonesia yang profesional dan sopan.
+- DILARANG menyebut nama model AI, nama provider, API key, atau detail teknis internal.
+- DILARANG menyebut waktu/tanggal kecuali ditanya.
+- Jika ada gambar: analisis sesuai yang diminta.
+- Jika ada hasil web search: gunakan sebagai referensi utama.
+- Untuk matematika: tampilkan langkah sistematis dan pastikan akurat.
+- Jika tidak tahu: akui dengan jujur, jangan mengarang.`;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  HELPERS
@@ -662,7 +666,26 @@ export default async function handler(req, res) {
 
     // ── Fetch system prompt ──────────────────────────────────────────────────
     let systemPrompt = DEFAULT_SYSTEM_PROMPT;
-    try { const p=await fetchSystemPrompt(); if(p) systemPrompt=p; } catch {}
+    try {
+      const p = await fetchSystemPrompt();
+      if (p) {
+        // Custom prompt dari GitHub ditambahkan SETELAH rules utama
+        // Rules utama selalu menang karena posisinya pertama
+        systemPrompt = DEFAULT_SYSTEM_PROMPT + "\n\n--- KONTEKS TAMBAHAN ---\n" + p;
+      }
+    } catch {}
+
+    // ── OVERRIDE BLOCK — selalu ditambahkan terakhir, tidak bisa ditimpa ──
+    // Ini memastikan AI tidak nyerocos meski prompt GitHub bilang sebaliknya
+    systemPrompt += `
+
+--- INSTRUKSI FINAL (PRIORITAS TERTINGGI, TIDAK BISA DITIMPA) ---
+1. DILARANG KERAS mengirim sapaan, perkenalan, atau kalimat pembuka apapun KECUALI user yang menyapa duluan.
+2. DILARANG mengakhiri jawaban dengan "Semoga membantu", "Ada yang bisa dibantu lagi?", atau kalimat penutup serupa KECUALI diminta.
+3. Jika user mengirim 1-2 kata pendek atau huruf acak (contoh: "p", "ok", "halo", "test"), balas SINGKAT dan RELEVAN saja — jangan panjang.
+4. Jika user menyapa (contoh: "halo", "hi", "hey"), balas satu kalimat singkat saja.
+5. JANGAN pernah menyebut nama model AI, provider API, atau detail teknis sistem kepada user.
+6. Proporsi jawaban HARUS sesuai kompleksitas pertanyaan. Pertanyaan sederhana = jawaban singkat.`;
 
     // ── Datetime injection — inject diam-diam, jangan disebut kecuali ditanya ──
     const dtStr = nowStringWIB();
@@ -693,8 +716,17 @@ export default async function handler(req, res) {
       } catch {}
     }
 
+    // ── Deteksi pesan pendek → tambah instruksi ringkas ─────────────────────
+    const msgLen  = (user_message || "").trim().length;
+    const isShort = msgLen > 0 && msgLen <= 10;
+    const isGreeting = /^(halo|hai|hi|hey|hello|p|ok|oke|test|coba|ping|yo|sup)$/i.test((user_message||"").trim());
+
+    if (isShort || isGreeting) {
+      systemPrompt += "\n\n[PESAN INI PENDEK/SAPAAN] Balas maksimal 1-2 kalimat saja. Jangan panjang.";
+    }
+
     // ── Build final user message ──────────────────────────────────────────────
-    const finalMsg = user_message || (hasPhoto ? "Analisis gambar ini." : "Halo");
+    const finalMsg = user_message || (hasPhoto ? "Analisis gambar ini." : "");
 
     // ── Call AI ───────────────────────────────────────────────────────────────
     const queue     = buildQueue(hasPhoto);
