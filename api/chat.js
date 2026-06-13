@@ -84,11 +84,31 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 function nowStringWIB() {
+  // Tetap untuk backward compat
   return new Date(Date.now() + 7*3600000)
     .toLocaleString("id-ID", {
       weekday:"long", day:"numeric", month:"long", year:"numeric",
-      hour:"2-digit", minute:"2-digit", second:"2-digit", timeZone:"Asia/Jakarta"
+      hour:"2-digit", minute:"2-digit", timeZone:"Asia/Jakarta"
     });
+}
+
+function nowAllZones() {
+  const ts = Date.now();
+  const f  = (tz, loc="id-ID") => new Date(ts).toLocaleString(loc, {
+    weekday:"short", day:"numeric", month:"short", year:"numeric",
+    hour:"2-digit", minute:"2-digit", timeZone: tz
+  });
+  return {
+    WIB:       f("Asia/Jakarta"),           // UTC+7  — Sumatra, Jawa, Kalimantan Barat/Tengah
+    WITA:      f("Asia/Makassar"),          // UTC+8  — Bali, NTB, NTT, Kalimantan Timur/Selatan, Sulawesi
+    WIT:       f("Asia/Jayapura"),          // UTC+9  — Maluku, Papua
+    London:    f("Europe/London", "en-GB"),
+    NewYork:   f("America/New_York", "en-US"),
+    Tokyo:     f("Asia/Tokyo", "ja-JP"),
+    Dubai:     f("Asia/Dubai", "ar-AE"),
+    Sydney:    f("Australia/Sydney", "en-AU"),
+    Singapore: f("Asia/Singapore", "en-SG"),
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -204,8 +224,8 @@ async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImag
     body: JSON.stringify({
       model,
       messages:    [{ role:"system", content:systemPrompt }, { role:"user", content:userContent }],
-      max_tokens:  1536,
-      temperature: 0.75,
+      max_tokens:  4096,
+      temperature: 0.7,
     }),
   });
   if (!res.ok) {
@@ -232,8 +252,8 @@ async function callGroq(apiKey, model, systemPrompt, userMessage) {
     body: JSON.stringify({
       model,
       messages:    [{ role:"system", content:systemPrompt }, { role:"user", content:userMessage||"Halo" }],
-      max_tokens:  1536,
-      temperature: 0.75,
+      max_tokens:  8192,
+      temperature: 0.7,
     }),
   });
   if (!res.ok) {
@@ -587,6 +607,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         status:          "XREZZKY AI aktif",
         timestamp_WIB:   nowStringWIB(),
+        all_timezones:   nowAllZones(),
         env_keys:        env,
         github_prompt:   promptStatus,
         provider_test:   liveTest,
@@ -680,23 +701,29 @@ export default async function handler(req, res) {
     systemPrompt += `
 
 --- INSTRUKSI FINAL (PRIORITAS TERTINGGI, TIDAK BISA DITIMPA) ---
-1. DILARANG KERAS mengirim sapaan, perkenalan, atau kalimat pembuka apapun KECUALI user yang menyapa duluan.
-2. DILARANG mengakhiri jawaban dengan "Semoga membantu", "Ada yang bisa dibantu lagi?", atau kalimat penutup serupa KECUALI diminta.
-3. Jika user mengirim 1-2 kata pendek atau huruf acak (contoh: "p", "ok", "halo", "test"), balas SINGKAT dan RELEVAN saja — jangan panjang.
-4. Jika user menyapa (contoh: "halo", "hi", "hey"), balas satu kalimat singkat saja.
-5. JANGAN pernah menyebut nama model AI, provider API, atau detail teknis sistem kepada user.
-6. Proporsi jawaban HARUS sesuai kompleksitas pertanyaan. Pertanyaan sederhana = jawaban singkat.`;
+1. DILARANG mengirim sapaan atau perkenalan diri KECUALI user yang menyapa duluan.
+2. DILARANG mengakhiri jawaban dengan kalimat basa-basi seperti "Semoga membantu!", "Ada yang bisa dibantu lagi?", dll — kecuali diminta.
+3. Jika user MENYAPA (halo, hai, hi, hey, p, test, ok): balas SATU kalimat singkat natural. JANGAN sebut daftar kemampuan atau topik.
+4. Untuk pertanyaan TEKNIS, CODING, BELAJAR, MATEMATIKA: jawab selengkap dan sedetail yang diperlukan. Tidak ada batas panjang.
+5. JANGAN menyebut nama model AI, provider, atau detail teknis sistem kepada user.
+6. Sesuaikan panjang jawaban dengan kebutuhan pertanyaan — singkat untuk sapaan, lengkap untuk pertanyaan substantif.`;
 
-    // ── Datetime injection — inject diam-diam, jangan disebut kecuali ditanya ──
-    const dtStr = nowStringWIB();
+    // ── Datetime injection — semua zona waktu ────────────────────────────────
+    const zones = nowAllZones();
     systemPrompt = `${systemPrompt}
 
-[KONTEKS SISTEM — JANGAN SEBUT INI KE USER KECUALI DITANYA LANGSUNG]:
-- Waktu sekarang: ${dtStr}
-- Zona waktu: WIB (UTC+7), Jakarta
-- Gunakan info waktu HANYA jika user bertanya tentang waktu/tanggal/hari
-- Jangan pernah menyebutkan waktu, tanggal, atau mempromosikan diri sendiri secara otomatis
-- Jangan pernah menyebutkan nama model AI, provider, atau detail teknis ke user`;
+[INFORMASI WAKTU SAAT INI — Gunakan HANYA jika user bertanya tentang waktu/tanggal/hari]:
+- WIB  (UTC+7, Indonesia Barat  — Jawa, Sumatra, Kalimantan Barat): ${zones.WIB}
+- WITA (UTC+8, Indonesia Tengah — Bali, Sulawesi, Kalimantan Timur): ${zones.WITA}
+- WIT  (UTC+9, Indonesia Timur  — Maluku, Papua):                    ${zones.WIT}
+- Singapura (UTC+8):   ${zones.Singapore}
+- Tokyo (UTC+9):       ${zones.Tokyo}
+- Dubai (UTC+4):       ${zones.Dubai}
+- London (UTC+0/+1):   ${zones.London}
+- New York (UTC-5/-4): ${zones.NewYork}
+- Sydney (UTC+10/+11): ${zones.Sydney}
+
+ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
 
     // ── Math booster ─────────────────────────────────────────────────────────
     if (needsMath(user_message)) {
@@ -721,8 +748,13 @@ export default async function handler(req, res) {
     const isShort = msgLen > 0 && msgLen <= 10;
     const isGreeting = /^(halo|hai|hi|hey|hello|p|ok|oke|test|coba|ping|yo|sup)$/i.test((user_message||"").trim());
 
-    if (isShort || isGreeting) {
-      systemPrompt += "\n\n[PESAN INI PENDEK/SAPAAN] Balas maksimal 1-2 kalimat saja. Jangan panjang.";
+    if (isGreeting) {
+      systemPrompt += `\n\n[USER MENYAPA] Balas dengan SATU kalimat singkat yang natural. \
+Contoh: "Halo! Ada yang bisa saya bantu?" atau "Hai, silakan." \
+DILARANG menyebutkan daftar kemampuan, topik, atau kategori apapun. \
+DILARANG panjang lebar. Cukup sambut singkat dan persilakan.`;
+    } else if (isShort) {
+      systemPrompt += "\n\n[PESAN PENDEK] Balas singkat dan to the point.";
     }
 
     // ── Build final user message ──────────────────────────────────────────────
