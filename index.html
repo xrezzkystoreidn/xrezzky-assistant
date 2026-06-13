@@ -899,11 +899,14 @@ clearBtn.addEventListener("click", () => {
 //  WELCOME SCREEN
 // ═══════════════════════════════════════════════
 function showWelcome() {
+  const h  = new Date().getHours();
+  const gr = h < 5 || h >= 19 ? "Malam" : h < 12 ? "Pagi" : h < 15 ? "Siang" : "Sore";
+  const ic = h < 5 || h >= 19 ? "🌙" : h < 12 ? "☀️" : h < 15 ? "🌤️" : "🌅";
   feed.innerHTML = `
     <div class="welcome">
       <div class="w-icon">X</div>
       <div class="w-title">XREZZKY <span>AI</span></div>
-      <div class="w-sub">Silakan ketik pertanyaan Anda.</div>
+      <div class="w-sub">Selamat ${gr} ${ic}<br>Silakan ketik pertanyaan Anda.</div>
     </div>`;
 }
 
@@ -1096,16 +1099,74 @@ cancelImg.addEventListener("click",()=>{ image64=null;fileInput.value="";prevBar
 // ═══════════════════════════════════════════════
 //  VOICE INPUT
 // ═══════════════════════════════════════════════
-const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
-let recog=null,isRec=false;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog=null, isRec=false;
+
 if (SR) {
-  recog=new SR(); recog.lang="id-ID"; recog.interimResults=false;
-  recog.onstart  = ()=>{ isRec=true;  micBtn.classList.add("rec"); msgInput.placeholder="Mendengarkan..."; };
-  recog.onend    = ()=>{ isRec=false; micBtn.classList.remove("rec"); msgInput.placeholder="Tanya XREZZKY AI..."; };
-  recog.onerror  = ()=>{ isRec=false; micBtn.classList.remove("rec"); };
-  recog.onresult = e=>{ const t=e.results[0][0].transcript; if(t.trim()){msgInput.value=t;setTimeout(()=>doSend(),300);} };
-} else { micBtn.style.display="none"; }
-micBtn.addEventListener("click",e=>{ e.preventDefault(); if(!recog) return; window.speechSynthesis?.cancel(); resetTTS(); isRec?recog.stop():(msgInput.value="",msgInput.style.height="auto",recog.start()); });
+  try {
+    recog = new SR();
+    recog.lang           = "id-ID";
+    recog.interimResults = false;
+    recog.maxAlternatives= 1;
+
+    recog.onstart  = () => {
+      isRec = true;
+      micBtn.classList.add("rec");
+      micBtn.textContent = "🔴";
+      msgInput.placeholder = "Mendengarkan...";
+    };
+    recog.onend = () => {
+      isRec = false;
+      micBtn.classList.remove("rec");
+      micBtn.textContent = "🎙️";
+      msgInput.placeholder = "Tanya XREZZKY AI...";
+    };
+    recog.onerror = (e) => {
+      isRec = false;
+      micBtn.classList.remove("rec");
+      micBtn.textContent = "🎙️";
+      msgInput.placeholder = "Tanya XREZZKY AI...";
+      if (e.error === "not-allowed") {
+        showLimitWarn("Izin mikrofon ditolak. Aktifkan di pengaturan browser.");
+      }
+    };
+    recog.onresult = (e) => {
+      const t = e.results[0][0].transcript;
+      if (t.trim()) {
+        msgInput.value = t;
+        msgInput.style.height = "auto";
+        msgInput.style.height = Math.min(msgInput.scrollHeight, 150) + "px";
+        setTimeout(() => doSend(), 400);
+      }
+    };
+  } catch(err) {
+    recog = null;
+    console.warn("SR init failed:", err);
+  }
+}
+
+// Tetap tampil meski SR tidak ada — tap untuk info
+micBtn.addEventListener("click", e => {
+  e.preventDefault();
+  if (!recog) {
+    showLimitWarn("Browser ini tidak mendukung voice input.");
+    return;
+  }
+  window.speechSynthesis?.cancel();
+  resetTTS();
+  if (isRec) {
+    recog.stop();
+  } else {
+    msgInput.value = "";
+    msgInput.style.height = "auto";
+    try { recog.start(); }
+    catch(err) {
+      // Recreate recognizer if aborted
+      recog.abort();
+      setTimeout(() => { try { recog.start(); } catch {} }, 200);
+    }
+  }
+});
 
 // ═══════════════════════════════════════════════
 //  TEXTAREA
@@ -1425,4 +1486,3 @@ window.addEventListener("load", () => {
 
 </body>
 </html>
-p
