@@ -2,343 +2,555 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>XREZZKY AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css" crossorigin="anonymous" media="print" onload="this.media='all'">
-<style>
-/* Icon fallback jika FA tidak load */
-.fa-solid,.fa-regular,.fa-brands,.fas,.far,.fab{font-family:"Font Awesome 6 Free","Font Awesome 6 Brands",sans-serif;font-weight:900;speak:never;font-style:normal;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased}
-</style>
-
-<!-- Firebase SDK (compat) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <style>
+/* ── TOKENS ──────────────────────────────────── */
 :root{
-  --bg:#0b0f17;--surface:#111827;--card:#131a26;--card2:#1a2235;
-  --user:#2563eb;--border:rgba(37,99,235,.18);--border2:rgba(255,255,255,.06);
-  --accent:#2563eb;--accent-lo:rgba(37,99,235,.12);
-  --cyan:#38bdf8;--green:#22c55e;--gold:#f59e0b;--red:#ef4444;--purple:#a78bfa;
-  --text:#f1f5f9;--sub:#94a3b8;--muted:#475569;
-  --sidebar-w:268px;--hdr:58px;--radius:16px;--radius-sm:8px;
+  --bg:       #0b0f17;
+  --bg2:      #131a26;
+  --bg3:      #111827;
+  --bg4:      #1a2235;
+  --border:   rgba(37,99,235,.18);
+  --border2:  rgba(255,255,255,.06);
+  --accent:   #2563eb;
+  --accent2:  #1d4ed8;
+  --glow:     rgba(37,99,235,.25);
+  --cyan:     #38bdf8;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --gold:     #f59e0b;
+  --text:     #f1f5f9;
+  --sub:      #94a3b8;
+  --muted:    #475569;
+  --user-bg:  linear-gradient(135deg,#2563eb,#1d4ed8);
+  --bot-bg:   #1a2235;
+  --r:        14px;
+  --r2:       20px;
+  --sidebar:  260px;
 }
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);display:flex}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
 
-/* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);height:100%;background:var(--card);border-right:1px solid var(--border2);display:flex;flex-direction:column;flex-shrink:0;z-index:30;transition:transform .28s cubic-bezier(.4,0,.2,1)}
-.sb-top{height:var(--hdr);padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border2);flex-shrink:0}
-.sb-top h2{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+/* ── LAYOUT ──────────────────────────────────── */
+body{display:flex}
+.sidebar{
+  width:var(--sidebar);height:100%;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  flex-shrink:0;z-index:30;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.main{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;min-width:0}
 
-/* User Panel */
-.user-panel{margin:10px 10px 0;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(255,255,255,.03);border:1px solid var(--border2);display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s}
-.user-panel:hover{background:rgba(255,255,255,.06)}
-.up-ava{width:32px;height:32px;border-radius:50%;flex-shrink:0;overflow:hidden;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff}
-.up-ava img{width:100%;height:100%;object-fit:cover}
-.up-info{flex:1;overflow:hidden;min-width:0}
-.up-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.up-role{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:3px}
-.role-ADMIN{color:var(--gold)}.role-SELLER{color:var(--cyan)}.role-MEMBER{color:var(--green)}.role-GUEST{color:var(--muted)}
-.up-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px;border-radius:4px;transition:all .15s;flex-shrink:0}
-.up-btn:hover{color:var(--red)}
+/* ── SIDEBAR TOP ─────────────────────────────── */
+.sb-head{
+  height:56px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.sb-brand{display:flex;align-items:center;gap:9px}
+.sb-logo{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:#fff;
+  box-shadow:0 0 12px var(--glow);
+}
+.sb-brand-name{font-size:13px;font-weight:700;letter-spacing:.01em}
+.sb-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s}
+.sb-close:hover{background:rgba(255,255,255,.06);color:var(--text)}
 
-/* Quota */
-.quota-wrap{margin:8px 10px 2px}
-.quota-row{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px}
-.quota-bar{height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-bottom:7px}
-.quota-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease}
-.quota-fill.warn{background:var(--gold)}.quota-fill.over{background:var(--red)}
+/* ── USER CARD ───────────────────────────────── */
+.user-card{
+  margin:10px;padding:10px 12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  display:flex;align-items:center;gap:9px;
+  cursor:pointer;transition:background .15s;
+}
+.user-card:hover{background:rgba(255,255,255,.06)}
+.uc-ava{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;color:#fff;overflow:hidden;
+}
+.uc-ava img{width:100%;height:100%;object-fit:cover}
+.uc-info{flex:1;min-width:0}
+.uc-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uc-role{font-size:10px;color:var(--muted);margin-top:1px}
+.uc-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:3px;border-radius:4px;transition:all .15s;flex-shrink:0}
+.uc-btn:hover{color:var(--red)}
 
-/* New chat btn */
-.new-btn{margin:8px 10px 0;padding:9px 14px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;justify-content:center;transition:opacity .15s;letter-spacing:.01em}
-.new-btn:hover{opacity:.88}
+/* ── QUOTA ───────────────────────────────────── */
+.quota{margin:0 10px 2px;display:flex;flex-direction:column;gap:5px}
+.q-row{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--muted)}
+.q-bar{height:2px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.q-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+.q-fill.warn{background:linear-gradient(90deg,var(--gold),#f59e0b)}
+.q-fill.over{background:linear-gradient(90deg,var(--red),#ef4444)}
 
-/* History */
-.hist-label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;padding:10px 12px 4px}
-.hist-list{flex:1;overflow-y:auto;padding:0 7px 14px;display:flex;flex-direction:column;gap:2px}
-.hi{padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .12s;border:1px solid transparent}
+/* ── NEW CHAT ────────────────────────────────── */
+.new-chat{
+  margin:8px 10px 0;padding:9px 12px;
+  background:rgba(99,102,241,.15);
+  border:1px solid rgba(99,102,241,.3);
+  border-radius:var(--r);color:var(--accent);
+  font-size:12.5px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:7px;
+  justify-content:center;transition:all .15s;
+}
+.new-chat:hover{background:rgba(99,102,241,.25);border-color:rgba(99,102,241,.5)}
+
+/* ── HISTORY ─────────────────────────────────── */
+.hist-label{font-size:9.5px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding:12px 12px 4px}
+.hist{flex:1;overflow-y:auto;padding:0 6px 10px;display:flex;flex-direction:column;gap:1px}
+.hi{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 9px;border-radius:9px;cursor:pointer;
+  border:1px solid transparent;transition:all .12s;
+}
 .hi:hover{background:rgba(255,255,255,.04)}
-.hi.active{background:rgba(37,99,235,.1);border-color:rgba(37,99,235,.28)}
-.hi-info{flex:1;overflow:hidden;min-width:0}
-.hi-t{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hi.active{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25)}
+.hi-t{font-size:12px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hi-d{font-size:9px;color:var(--muted);margin-top:1px}
-.hi-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 5px;border-radius:4px;font-size:10px;opacity:0;transition:all .12s;flex-shrink:0}
+.hi-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:4px;font-size:11px;opacity:0;transition:all .12s;flex-shrink:0}
 .hi:hover .hi-del{opacity:1}
-.hi-del:hover{color:var(--red);background:rgba(239,68,68,.1)}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:25;display:none}
+.hi-del:hover{color:var(--red);background:rgba(248,113,113,.1)}
 
-/* ── MAIN ── */
-.main{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:25;display:none}
 
-/* ── HEADER ── */
-.header{height:var(--hdr);background:var(--card);border-bottom:1px solid var(--border2);padding:0 16px;display:flex;align-items:center;gap:9px;flex-shrink:0;z-index:20}
-#menuBtn{display:none}
-.logo-mark{width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;box-shadow:0 0 12px rgba(37,99,235,.4)}
-.brand h1{font-size:13px;font-weight:700}
-.brand-status{font-size:10px;display:flex;align-items:center;gap:4px;margin-top:1px}
-.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:sdot 2s infinite}
-@keyframes sdot{0%,100%{opacity:1}50%{opacity:.3}}
-.hdr-mid{flex:1;display:flex;justify-content:center;gap:7px}
-.widget{display:flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;font-size:10.5px;color:var(--sub);white-space:nowrap}
-.widget i{color:var(--cyan);font-size:9px}
-.hdr-right{display:flex;gap:2px;margin-left:auto}
-.hbtn{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+/* ── HEADER ──────────────────────────────────── */
+.header{
+  height:56px;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:0 16px;display:flex;align-items:center;
+  gap:10px;flex-shrink:0;z-index:20;
+}
+.hbtn{
+  background:none;border:none;color:var(--muted);
+  cursor:pointer;width:34px;height:34px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .15s;flex-shrink:0;
+}
 .hbtn:hover{background:rgba(255,255,255,.07);color:var(--text)}
+#menuBtn{display:none}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-logo{
+  width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:12px;color:#fff;
+  box-shadow:0 0 10px var(--glow);
+}
+.brand-name{font-size:13px;font-weight:700}
+.brand-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{opacity:.7;box-shadow:0 0 0 4px transparent}}
+.hdr-center{flex:1;display:flex;justify-content:center;gap:8px}
+.widget{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 11px;background:rgba(255,255,255,.03);
+  border:1px solid var(--border);border-radius:20px;
+  font-size:10.5px;color:var(--sub);white-space:nowrap;
+}
+.hdr-right{display:flex;gap:2px;margin-left:auto}
 
-/* Login banner */
-.login-banner{margin:8px 14px 0;padding:9px 13px;border-radius:var(--radius-sm);background:rgba(37,99,235,.09);border:1px solid rgba(37,99,235,.3);display:flex;align-items:center;gap:9px;font-size:12px;color:var(--sub);flex-shrink:0;cursor:pointer;transition:background .15s}
-.login-banner:hover{background:rgba(37,99,235,.16)}
-.login-banner i{color:var(--accent);font-size:13px;flex-shrink:0}
-.lb-btn{margin-left:auto;background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+/* ── LOGIN BANNER ────────────────────────────── */
+.login-banner{
+  margin:8px 14px 0;padding:9px 14px;
+  background:rgba(99,102,241,.08);
+  border:1px solid rgba(99,102,241,.2);
+  border-radius:var(--r);display:flex;align-items:center;
+  gap:9px;font-size:12px;color:var(--sub);
+  flex-shrink:0;cursor:pointer;transition:background .15s;
+}
+.login-banner:hover{background:rgba(99,102,241,.15)}
+.lb-btn{
+  margin-left:auto;background:var(--accent);color:#fff;border:none;
+  padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;
+  cursor:pointer;flex-shrink:0;transition:opacity .15s;white-space:nowrap;
+}
 .lb-btn:hover{opacity:.88}
 
-/* Limit warning */
-.limit-bar{margin:0 14px;padding:7px 13px;border-radius:var(--radius-sm);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);font-size:11px;color:var(--gold);display:none;align-items:center;gap:7px;flex-shrink:0}
+/* ── LIMIT BAR ───────────────────────────────── */
+.limit-bar{
+  margin:6px 14px 0;padding:8px 13px;border-radius:var(--r);
+  background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);
+  font-size:11px;color:var(--gold);display:none;
+  align-items:center;gap:7px;flex-shrink:0;
+}
 
-/* ── FEED ── */
-.feed-wrap{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column}
-.feed{max-width:780px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:4px;padding-bottom:8px}
+/* ── FEED ────────────────────────────────────── */
+.feed-wrap{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:20px 16px}
+.feed{max-width:740px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:2px;padding-bottom:12px}
 
-/* Welcome */
-.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:60px 20px 30px;animation:fadeUp .4s ease}
-.w-icon{width:72px;height:72px;border-radius:22px;margin-bottom:22px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:30px;color:#fff;box-shadow:0 12px 36px rgba(37,99,235,.35)}
-.w-title{font-size:24px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
-.w-title span{color:var(--accent)}
-.w-sub{font-size:14px;color:var(--sub);line-height:1.6}
+/* ── WELCOME ─────────────────────────────────── */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:48px 20px 24px;
+  animation:fadeUp .35s ease;
+}
+.w-mark{
+  width:64px;height:64px;border-radius:18px;margin-bottom:18px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:26px;color:#fff;
+  box-shadow:0 0 30px var(--glow),0 8px 24px rgba(0,0,0,.3);
+}
+.w-title{font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+.w-title span{
+  color:var(--accent);
 
-/* Date sep */
-.dsep{display:flex;align-items:center;gap:9px;margin:10px 0 4px}
-.dsep::before,.dsep::after{content:'';flex:1;height:1px;background:var(--border2)}
+}
+.w-sub{font-size:13px;color:var(--sub);line-height:1.6;max-width:360px}
+
+/* ── DATE SEP ────────────────────────────────── */
+.dsep{display:flex;align-items:center;gap:8px;margin:12px 0 6px}
+.dsep::before,.dsep::after{content:'';flex:1;height:1px;background:var(--border)}
 .dsep span{font-size:10px;color:var(--muted);white-space:nowrap}
 
-/* Messages */
-.msg-row{display:flex;align-items:flex-end;gap:7px}
+/* ── MESSAGES ────────────────────────────────── */
+.msg-row{display:flex;align-items:flex-end;gap:8px}
 .msg-row.user{flex-direction:row-reverse}
-.bwrap{display:flex;flex-direction:column;max-width:82%}
+.bwrap{display:flex;flex-direction:column;max-width:78%}
 .msg-row.user .bwrap{align-items:flex-end}
 .msg-row.bot  .bwrap{align-items:flex-start}
-.bubble{padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.75;word-break:break-word}
-.msg-row.user .bubble{background:var(--user);color:#fff;border-bottom-right-radius:4px}
-.msg-row.bot  .bubble{background:var(--card2);color:var(--text);border-bottom-left-radius:4px;border:1px solid var(--border2)}
 
-/* Search indicator */
-.search-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:20px;font-size:11px;color:var(--cyan);margin-bottom:8px}
+.bubble{
+  padding:12px 16px;font-size:14px;line-height:1.75;
+  word-break:break-word;position:relative;
+}
+/* User bubble */
+.msg-row.user .bubble{
+  background:var(--user-bg);color:#fff;
+  border-radius:18px 18px 4px 18px;
+  box-shadow:0 2px 12px rgba(99,102,241,.3);
+}
+/* Bot bubble */
+.msg-row.bot .bubble{
+  background:var(--bot-bg);color:var(--text);
+  border:1px solid var(--border);
+  border-radius:4px 18px 18px 18px;
+}
 
-/* Streaming cursor */
-.cursor{display:inline-block;width:2px;height:14px;background:var(--cyan);margin-left:1px;vertical-align:middle;animation:cur .65s step-end infinite}
-@keyframes cur{0%,100%{opacity:1}50%{opacity:0}}
-
-/* Markdown */
+/* ── MARKDOWN ────────────────────────────────── */
 .md strong{font-weight:600}
 .md em{font-style:italic;opacity:.85}
-.md code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;font-family:'Fira Mono','Courier New',monospace;font-size:12px;color:#7dd3fc}
-.md pre{background:rgba(0,0,0,.35);border:1px solid var(--border2);border-radius:9px;padding:11px 13px;margin:7px 0;overflow-x:auto}
+.md code{
+  background:rgba(0,0,0,.4);padding:1px 6px;border-radius:5px;
+  font-family:'Fira Mono','Courier New',monospace;font-size:12px;color:var(--cyan);
+}
+.md pre{
+  background:rgba(0,0,0,.4);border:1px solid var(--border);
+  border-radius:10px;padding:12px 14px;margin:8px 0;overflow-x:auto;
+}
 .md pre code{background:none;padding:0;color:#a5f3fc}
 .md ul,.md ol{padding-left:20px;margin:5px 0}
 .md li{margin:2px 0}
-.md h1{font-size:17px;font-weight:700;margin:9px 0 3px}
-.md h2{font-size:15px;font-weight:700;margin:7px 0 3px}
-.md h3{font-size:14px;font-weight:600;margin:5px 0 2px}
-.md a{color:#60a5fa;text-decoration:underline}
-.md hr{border:none;border-top:1px solid var(--border2);margin:9px 0}
-.md blockquote{border-left:3px solid var(--accent);padding-left:11px;margin:5px 0;color:var(--sub);font-style:italic}
-.md table{border-collapse:collapse;width:100%;margin:7px 0;font-size:12.5px}
-.md th{background:rgba(255,255,255,.05);padding:7px 11px;border:1px solid var(--border2);text-align:left;font-weight:600}
-.md td{padding:6px 11px;border:1px solid var(--border2)}
+.md h1{font-size:18px;font-weight:700;margin:10px 0 4px}
+.md h2{font-size:16px;font-weight:700;margin:8px 0 3px}
+.md h3{font-size:14px;font-weight:600;margin:6px 0 3px}
+.md a{color:var(--accent);text-decoration:underline}
+.md hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+.md blockquote{
+  border-left:3px solid var(--accent);padding-left:12px;
+  margin:6px 0;color:var(--sub);font-style:italic;
+}
+.md table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+.md th{background:rgba(255,255,255,.05);padding:7px 11px;border:1px solid var(--border);font-weight:600;text-align:left}
+.md td{padding:6px 11px;border:1px solid var(--border)}
 
-/* Bubble footer */
-.bfoot{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap}
-.msg-time{font-size:10px;color:var(--muted)}
-.msg-row.user .msg-time{color:rgba(255,255,255,.45)}
-.abtn{background:none;border:1px solid var(--border2);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
-.abtn:hover{background:rgba(255,255,255,.07);color:var(--text)}
-.abtn.ok{color:var(--green);border-color:var(--green)}
-.abtn.stp{color:var(--red);border-color:var(--red);background:rgba(239,68,68,.07)}
+/* ── STREAMING CURSOR ────────────────────────── */
+.cur{display:inline-block;width:2px;height:14px;background:var(--cyan);margin-left:1px;vertical-align:middle;animation:blink .65s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* Thinking */
-.thinking{display:flex;align-items:center;gap:9px;padding:11px 15px}
-.dots{display:flex;gap:3px}
-.dots span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dw 1.3s ease-in-out infinite}
+/* ── SEARCH BADGE ────────────────────────────── */
+.search-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;background:rgba(34,211,238,.07);
+  border:1px solid rgba(34,211,238,.2);border-radius:20px;
+  font-size:10.5px;color:var(--cyan);margin-bottom:8px;
+}
+
+/* ── BUBBLE FOOTER ───────────────────────────── */
+.bfoot{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.msg-time{font-size:9.5px;color:var(--muted)}
+.msg-row.user .msg-time{color:rgba(255,255,255,.4)}
+.abtn{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  font-size:10.5px;padding:3px 9px;border-radius:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;transition:all .15s;
+}
+.abtn:hover{background:rgba(255,255,255,.06);color:var(--text);border-color:var(--border2)}
+.abtn.ok{color:var(--green);border-color:rgba(52,211,153,.4)}
+.abtn.stp{color:var(--red);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.06)}
+
+/* ── THINKING ────────────────────────────────── */
+.thinking{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.dots{display:flex;gap:4px}
+.dots span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--muted);animation:dw 1.3s ease-in-out infinite;
+}
 .dots span:nth-child(2){animation-delay:.15s}
 .dots span:nth-child(3){animation-delay:.3s}
 @keyframes dw{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
 .think-lbl{font-size:12px;color:var(--muted)}
 
-/* Chat image */
-.chat-img{max-width:100%;max-height:210px;border-radius:11px;display:block;margin-bottom:7px;object-fit:cover;cursor:pointer;transition:opacity .15s}
+/* ── CHAT IMAGE ──────────────────────────────── */
+.chat-img{max-width:100%;max-height:200px;border-radius:10px;display:block;margin-bottom:7px;object-fit:cover;cursor:pointer;transition:opacity .15s}
 .chat-img:hover{opacity:.88}
 
-/* Preview bar */
-.prev-bar{background:var(--card);border-top:1px solid var(--border2);padding:7px 16px;display:none;align-items:center;justify-content:space-between;flex-shrink:0}
-.prev-inner{display:flex;align-items:center;gap:9px}
-.prev-thumb{width:38px;height:38px;border-radius:7px;object-fit:cover}
-.prev-lbl{font-size:12px;color:var(--sub)}
-.prev-x{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;padding:4px}
+/* ── PREVIEW BAR ─────────────────────────────── */
+.prev-bar{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:8px 16px;display:none;align-items:center;
+  justify-content:space-between;flex-shrink:0;
+}
+.prev-thumb{width:36px;height:36px;border-radius:7px;object-fit:cover}
 
-/* Input */
-.input-wrap{padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--border2);flex-shrink:0}
-.input-inner{max-width:780px;margin:0 auto}
-.input-bar{display:flex;align-items:flex-end;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:5px 6px 5px 13px;gap:5px;min-height:48px;box-shadow:0 2px 16px rgba(0,0,0,.28);transition:border-color .2s}
-.input-bar:focus-within{border-color:rgba(37,99,235,.5);box-shadow:0 2px 16px rgba(37,99,235,.1)}
-.input-bar textarea{flex:1;background:none;border:none;color:var(--text);font-size:14px;outline:none;resize:none;max-height:150px;overflow-y:auto;line-height:1.55;padding:6px 0;scrollbar-width:none}
-.input-bar textarea::-webkit-scrollbar{display:none}
-.input-bar textarea::placeholder{color:var(--muted)}
-.ibtn{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;line-height:1}
+/* ── INPUT AREA ──────────────────────────────── */
+.input-area{
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  background:var(--bg);border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.input-inner{max-width:740px;margin:0 auto}
+.input-box{
+  display:flex;align-items:flex-end;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:16px;padding:8px 8px 8px 14px;gap:6px;
+  min-height:52px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.03),0 4px 20px rgba(0,0,0,.3);
+  transition:border-color .2s,box-shadow .2s;
+}
+.input-box:focus-within{
+  border-color:rgba(99,102,241,.5);
+  box-shadow:0 0 0 1px rgba(99,102,241,.1),0 4px 20px rgba(0,0,0,.3);
+}
+.input-box textarea{
+  flex:1;background:none;border:none;color:var(--text);
+  font-size:14px;outline:none;resize:none;max-height:140px;
+  overflow-y:auto;line-height:1.55;padding:4px 0;
+  scrollbar-width:none;font-family:inherit;
+}
+.input-box textarea::-webkit-scrollbar{display:none}
+.input-box textarea::placeholder{color:var(--muted)}
+.ibtn{
+  background:none;border:none;color:var(--muted);
+  font-size:17px;cursor:pointer;width:36px;height:36px;
+  border-radius:9px;display:flex;align-items:center;
+  justify-content:center;transition:all .15s;flex-shrink:0;
+}
 .ibtn:hover{background:rgba(255,255,255,.07);color:var(--text)}
-.ibtn.send{background:var(--accent);color:#fff;font-size:15px}
-.ibtn.send:hover{opacity:.88}
-.ibtn.rec{color:var(--red);background:rgba(239,68,68,.12);animation:sdot 1.4s infinite}
+.ibtn.send{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;font-size:15px;
+  box-shadow:0 2px 10px var(--glow);
+}
+.ibtn.send:hover{opacity:.88;transform:scale(1.03)}
+.ibtn.rec{color:var(--red);background:rgba(248,113,113,.1);animation:pulse 1.5s infinite}
+.input-hint{
+  text-align:center;font-size:10px;color:var(--muted);
+  margin-top:6px;
+}
 
-/* Image modal */
-.img-modal{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-.img-modal img{max-width:100%;max-height:88vh;border-radius:10px;transform:scale(.92);transition:transform .22s ease}
+/* ── IMAGE MODAL ─────────────────────────────── */
+.img-modal{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.img-modal img{max-width:100%;max-height:88vh;border-radius:10px;transform:scale(.92);transition:transform .2s}
 .img-modal.open img{transform:scale(1)}
-.img-modal-x{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.img-modal-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-/* Animations */
-@keyframes fadeUp{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+/* ── AUTH MODAL ──────────────────────────────── */
+#authModal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px}
+#authModal.open{display:flex}
+.auth-card{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;width:100%;max-width:360px;
+  overflow:hidden;box-shadow:0 0 60px rgba(99,102,241,.15),0 20px 60px rgba(0,0,0,.5);
+  position:relative;
+}
+.auth-head{padding:24px 24px 0;text-align:center}
+.auth-logo{
+  width:48px;height:48px;border-radius:14px;margin:0 auto 14px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:20px;color:#fff;
+  box-shadow:0 0 20px var(--glow);
+}
+.auth-head h2{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.auth-head p{font-size:12px;color:var(--sub);margin-bottom:0}
+.auth-tabs{
+  display:flex;margin:14px 20px 0;
+  background:rgba(255,255,255,.04);
+  border-radius:9px;padding:3px;gap:3px;
+}
+.auth-tab{
+  flex:1;padding:6px;border:none;
+  background:none;border-radius:7px;
+  font-size:12px;font-weight:600;color:var(--sub);
+  cursor:pointer;transition:all .15s;
+}
+.auth-tab.active{background:var(--accent);color:#fff}
+.auth-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.auth-field label{display:block;font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.auth-inp{
+  width:100%;padding:10px 12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:9px;
+  color:var(--text);font-size:13.5px;outline:none;
+  transition:border-color .15s,background .15s;font-family:inherit;
+}
+.auth-inp:focus{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.05)}
+.auth-inp::placeholder{color:var(--muted)}
+.pw-wrap{position:relative}
+.pw-wrap .auth-inp{padding-right:38px}
+.pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
+.auth-btn{
+  width:100%;padding:11px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  border:none;border-radius:9px;color:#fff;
+  font-size:13.5px;font-weight:700;cursor:pointer;
+  transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:7px;
+  font-family:inherit;
+}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-msg{font-size:11.5px;padding:8px 11px;border-radius:8px;display:none;line-height:1.55}
+.auth-msg.err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+.auth-msg.ok {background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:var(--green)}
+.auth-skip{text-align:center;padding:0 20px 16px;font-size:12px;color:var(--muted)}
+.auth-skip button{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit}
+.auth-x{
+  position:absolute;top:12px;right:12px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:none;
+  color:var(--muted);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.auth-x:hover{background:rgba(248,113,113,.15);color:var(--red)}
+
+/* ── ANIMATIONS ──────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg-in{animation:fadeUp .2s ease}
 
-/* Responsive */
+/* ── RESPONSIVE ──────────────────────────────── */
 @media(max-width:1024px){
-  .sidebar{position:fixed;left:0;top:0;height:100%;transform:translateX(-100%);box-shadow:4px 0 22px rgba(0,0,0,.5)}
+  .sidebar{position:fixed;left:0;top:0;height:100%;transform:translateX(-100%);box-shadow:4px 0 30px rgba(0,0,0,.6)}
   .sidebar.open{transform:translateX(0)}
   #menuBtn{display:flex}
   #openHistBtn{display:none}
-  .hdr-mid{display:none}
+  .hdr-center{display:none}
 }
 @media(max-width:600px){
-  .feed-wrap{padding:13px 10px}
-  .bubble{font-size:14px;padding:10px 13px}
+  .feed-wrap{padding:14px 10px}
+  .bubble{font-size:13.5px;padding:10px 13px}
   .bwrap{max-width:90%}
-  .input-wrap{padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
+  .input-area{padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+  .header{padding:0 12px}
 }
-
-/* ── AUTH MODAL ────────────────────────────────── */
-#authModal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
-#authModal.open{display:flex}
-.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 0 48px rgba(37,99,235,.15)}
-.auth-head{padding:22px 24px 0;text-align:center}
-.auth-logo{width:52px;height:52px;border-radius:14px;margin:0 auto 14px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff;box-shadow:0 0 20px rgba(37,99,235,.4)}
-.auth-head h2{font-size:18px;font-weight:800;margin-bottom:4px}
-.auth-head p{font-size:12px;color:var(--sub);margin-bottom:0}
-.auth-tabs{display:flex;margin:16px 24px 0;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;gap:3px}
-.auth-tab{flex:1;padding:7px;border:none;background:none;border-radius:8px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .15s}
-.auth-tab.active{background:var(--accent);color:#fff}
-.auth-body{padding:18px 24px 22px;display:flex;flex-direction:column;gap:11px}
-.auth-field{display:flex;flex-direction:column;gap:5px}
-.auth-field label{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em}
-.auth-input{padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;transition:border-color .15s;width:100%}
-.auth-input:focus{border-color:rgba(37,99,235,.5);background:rgba(37,99,235,.05)}
-.auth-input::placeholder{color:var(--muted)}
-.auth-pw-wrap{position:relative}
-.auth-pw-wrap .auth-input{padding-right:40px}
-.auth-pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px}
-.auth-btn{padding:12px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px}
-.auth-btn:hover{opacity:.88}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed}
-.auth-divider{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
-.auth-msg{font-size:12px;text-align:center;padding:8px 12px;border-radius:var(--radius-sm);display:none}
-.auth-msg.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
-.auth-msg.ok {background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.25); color:var(--green)}
-.auth-footer{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 24px 18px;font-size:12px;color:var(--muted)}
-.auth-link{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
-.auth-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;cursor:pointer;transition:all .15s}
-.auth-close:hover{background:rgba(239,68,68,.15);color:var(--red)}
 </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-  <div class="sb-top">
-    <h2>Riwayat</h2>
-    <button class="hbtn" id="closeSideBtn" style="width:28px;height:28px;font-size:16px">✕</button>
-  </div>
-  <div class="user-panel" id="userPanel">
-    <div class="up-ava" id="upAva">G</div>
-    <div class="up-info">
-      <div class="up-name" id="upName">Guest</div>
-      <div class="up-role role-GUEST" id="upRole"> GUEST</div>
+  <div class="sb-head">
+    <div class="sb-brand">
+      <div class="sb-logo">X</div>
+      <span class="sb-brand-name">XREZZKY AI</span>
     </div>
-    <button class="up-btn" id="authBtn" title="Login / Logout">👤</button>
+    <button class="sb-close" id="closeSide">✕</button>
   </div>
-  <div class="quota-wrap" id="quotaWrap">
-    <div class="quota-row"><span>💬 Chat</span><span id="qChatTxt">0/10</span></div>
-    <div class="quota-bar"><div class="quota-fill" id="qChatBar" style="width:0%"></div></div>
-    <div class="quota-row"><span>🖼️ Foto</span><span id="qPhotoTxt">0/0</span></div>
-    <div class="quota-bar"><div class="quota-fill" id="qPhotoBar" style="width:0%"></div></div>
+
+  <div class="user-card" id="userCard">
+    <div class="uc-ava" id="ucAva">G</div>
+    <div class="uc-info">
+      <div class="uc-name" id="ucName">Guest</div>
+      <div class="uc-role" id="ucRole">Tidak login</div>
+    </div>
+    <button class="uc-btn" id="authBtn" title="Login">👤</button>
   </div>
-  <button class="new-btn" id="newChatBtn">＋ Obrolan Baru</button>
-  <div class="hist-label">Percakapan</div>
-  <div class="hist-list" id="histList"></div>
+
+  <div class="quota" id="quotaWrap">
+    <div class="q-row"><span>💬 Chat</span><span id="qChatTxt">0/10</span></div>
+    <div class="q-bar"><div class="q-fill" id="qChatBar" style="width:0%"></div></div>
+    <div class="q-row"><span>🖼️ Foto</span><span id="qPhotoTxt">0/0</span></div>
+    <div class="q-bar"><div class="q-fill" id="qPhotoBar" style="width:0%"></div></div>
+  </div>
+
+  <button class="new-chat" id="newChatBtn">＋ Percakapan Baru</button>
+
+  <div class="hist-label">Riwayat</div>
+  <div class="hist" id="histList"></div>
 </div>
 <div class="overlay" id="overlay"></div>
 
 <!-- MAIN -->
 <div class="main">
+  <!-- HEADER -->
   <div class="header">
     <button class="hbtn" id="menuBtn">☰</button>
-    <div class="logo-mark">X</div>
     <div class="brand">
-      <h1>XREZZKY AI</h1>
-      <div class="brand-status"><div class="sdot"></div><span style="font-size:10px;color:var(--sub)">Sistem Aktif</span></div>
+      <div class="brand-logo">X</div>
+      <span class="brand-name">XREZZKY AI</span>
+      <div class="brand-dot"></div>
     </div>
-    <div class="hdr-mid">
-      <div class="widget">📅<span id="wDate">-</span></div>
-      <div class="widget"><span id="wIcon">🌤️</span><span id="wWeather">Indonesia</span></div>
+    <div class="hdr-center">
+      <div class="widget">📅 <span id="wDate">-</span></div>
+      <div class="widget"><span id="wIcon">🌤️</span> <span id="wLoc">Indonesia</span></div>
     </div>
     <div class="hdr-right">
       <button class="hbtn" id="openHistBtn" title="Riwayat">🕐</button>
-      <button class="hbtn" id="clearBtn" title="Hapus Chat">🗑️</button>
+      <button class="hbtn" id="clearBtn" title="Hapus chat">🗑️</button>
     </div>
   </div>
 
+  <!-- LOGIN BANNER -->
   <div class="login-banner" id="loginBanner">
-    🔒
-    <div><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan!</div>
-    <button class="lb-btn" id="loginBannerBtn" onclick="openAuthModal()">Login</button>
+    🔒 <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span>
+    <button class="lb-btn" id="loginBannerBtn">Masuk</button>
   </div>
 
-  <!-- API Status bar - shown only when connection fails -->
-  <div id="apiStatus" style="display:none;margin:6px 14px 0;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:11px;color:#ef4444;display:none;align-items:center;gap:8px;flex-shrink:0">
-    ⚠️
-    <span id="apiStatusMsg">API tidak terhubung</span>
-    <button onclick="testConnection()" style="margin-left:auto;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#ef4444;padding:3px 10px;border-radius:14px;font-size:10px;cursor:pointer;font-weight:600">Cek</button>
-  </div>
-
+  <!-- FEED -->
   <div class="feed-wrap" id="feedWrap">
     <div class="feed" id="feed"></div>
   </div>
 
+  <!-- LIMIT BAR -->
+  <div class="limit-bar" id="limitBar">⚠️ <span id="limitMsg"></span></div>
+
+  <!-- PREVIEW -->
   <div class="prev-bar" id="prevBar">
-    <div class="prev-inner">
+    <div style="display:flex;align-items:center;gap:9px">
       <img src="" id="prevThumb" class="prev-thumb" alt="">
-      <span class="prev-lbl">Gambar siap dikirim</span>
+      <span style="font-size:12px;color:var(--sub)">Gambar siap dikirim</span>
     </div>
-    <button class="prev-x" id="cancelImg"><i class="fas fa-times"></i></button>
+    <button onclick="cancelImg()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
   </div>
 
-  <div class="limit-bar" id="limitBar">⚠️<span id="limitMsg">-</span></div>
-
-  <div class="input-wrap">
+  <!-- INPUT -->
+  <div class="input-area">
     <div class="input-inner">
       <input type="file" id="fileInput" accept="image/*" style="display:none">
-      <div class="input-bar">
-        <button type="button" class="ibtn" id="uploadBtn" title="Foto">🖼️</button>
-        <button type="button" class="ibtn" id="micBtn" title="Voice">🎙️</button>
-        <textarea id="msgInput" placeholder="Tanya XREZZKY AI..." autocomplete="off" rows="1"></textarea>
-        <button type="button" class="ibtn send" id="sendBtn">↑</button>
+      <div class="input-box">
+        <button class="ibtn" id="uploadBtn" title="Kirim foto">🖼️</button>
+        <button class="ibtn" id="micBtn" title="Voice">🎙️</button>
+        <textarea id="msgInput" placeholder="Tanya apa saja..." rows="1" autocomplete="off"></textarea>
+        <button class="ibtn send" id="sendBtn">↑</button>
       </div>
+      <div class="input-hint">XREZZKY AI · Tekan Enter untuk kirim · Shift+Enter baris baru</div>
     </div>
   </div>
 </div>
@@ -349,10 +561,92 @@ body{background:var(--bg);color:var(--text);display:flex}
   <img src="" id="modalImg" alt="">
 </div>
 
+<!-- AUTH MODAL -->
+<div id="authModal">
+  <div class="auth-card">
+    <button class="auth-x" onclick="closeAuthModal()">✕</button>
+    <div class="auth-head">
+      <div class="auth-logo">X</div>
+      <h2>Masuk ke XREZZKY AI</h2>
+      <p>Login untuk limit lebih banyak & riwayat tersimpan</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin"    onclick="switchTab('login')">Masuk</button>
+      <button class="auth-tab"        id="tabRegister" onclick="switchTab('register')">Daftar</button>
+      <button class="auth-tab"        id="tabReset"    onclick="switchTab('reset')">Reset</button>
+    </div>
+    <div style="padding:0 20px;margin-top:10px">
+      <div class="auth-msg" id="authMsg"></div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-body" id="formLogin">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-inp" id="lEmail" placeholder="nama@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" class="auth-inp" id="lPass" placeholder="Password" autocomplete="current-password">
+          <button class="pw-eye" onclick="togglePw('lPass',this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-btn" id="btnLogin" onclick="doLogin()">→ Masuk</button>
+      <div style="text-align:center">
+        <button onclick="switchTab('reset')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit">Lupa password?</button>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-body" id="formRegister" style="display:none">
+      <div class="auth-field">
+        <label>Nama</label>
+        <input type="text" class="auth-inp" id="rName" placeholder="Nama kamu" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-inp" id="rEmail" placeholder="nama@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" class="auth-inp" id="rPass" placeholder="Min. 6 karakter" autocomplete="new-password">
+          <button class="pw-eye" onclick="togglePw('rPass',this)">👁</button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label>Konfirmasi Password</label>
+        <div class="pw-wrap">
+          <input type="password" class="auth-inp" id="rPass2" placeholder="Ulangi password" autocomplete="new-password">
+          <button class="pw-eye" onclick="togglePw('rPass2',this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-btn" id="btnReg" onclick="doRegister()">+ Buat Akun</button>
+    </div>
+
+    <!-- RESET -->
+    <div class="auth-body" id="formReset" style="display:none">
+      <p style="font-size:12px;color:var(--sub);text-align:center;line-height:1.6">
+        Masukkan email kamu — kami kirimkan link reset password.
+      </p>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" class="auth-inp" id="rsEmail" placeholder="nama@email.com" autocomplete="email">
+      </div>
+      <button class="auth-btn" id="btnReset" onclick="doReset()">📧 Kirim Link Reset</button>
+    </div>
+
+    <div class="auth-skip">
+      Lanjut tanpa login? <button onclick="closeAuthModal()">Lewati →</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  FIREBASE CONFIG
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 const FB_CFG = {
   apiKey:            "AIzaSyDC0DSJ88fhxIJDCyqxpX9goh4W1gX2fQQ",
   authDomain:        "xrezzky-ai.firebaseapp.com",
@@ -366,39 +660,33 @@ firebase.initializeApp(FB_CFG);
 const fbAuth = firebase.auth();
 const fbDb   = firebase.database();
 
-// ═══════════════════════════════════════════════
-//  CONFIG — GANTI SESUAI DOMAIN VERCEL KAMU
-// ═══════════════════════════════════════════════
-// Kalau buka dari Vercel langsung → pakai "/api/chat"
-// Kalau test di Acode/local → pakai URL full Vercel kamu
-// ── GANTI dengan domain Vercel kamu jika buka dari Acode/lokal ──
+// ════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════
 const VERCEL_URL = "https://xrezzky-storeid.vercel.app";
-const API_URL    = (location.hostname === "localhost" ||
-                   location.protocol === "file:"     ||
-                   !location.hostname.includes("vercel.app"))
-  ? VERCEL_URL + "/api/chat"
-  : "/api/chat";
-const SK      = "xrk_sess";
-const CK      = "xrk_cur";
-const THINK   = ["Berpikir...","Mengetik...","Mencari info...","Menyusun jawaban..."];
+const API_URL    = (location.hostname==="localhost"||location.protocol==="file:"||!location.hostname.includes("vercel.app"))
+  ? VERCEL_URL+"/api/chat" : "/api/chat";
+const SK = "xrk_s", CK = "xrk_c";
+const THINK = ["Sedang berpikir…","Menyusun jawaban…","Memproses…","Sebentar…"];
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════
-let curSess   = localStorage.getItem(CK);
-let image64   = null;
-let activeTTS = null;
-let lastDate  = null;
-let fbUser    = null;
-let idToken   = null;
-let isBusy    = false;
-let usedChat  = 0, usedPhoto = 0, maxChat = 10, maxPhoto = 0;
-let userRole  = "GUEST";
-let sysSettings = {};
+// ════════════════════════════════════════════
+let curSess    = localStorage.getItem(CK);
+let image64    = null;
+let activeTTS  = null;
+let lastDate   = null;
+let fbUser     = null;
+let idToken    = null;
+let isBusy     = false;
+let usedChat   = 0, usedPhoto = 0, maxChat = 10, maxPhoto = 0;
+let userRole   = "GUEST";
+let sysSettings= {};
+let _cfgRef    = null, _usageRef = null, _sysRef = null;
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  ELEMENTS
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 const feed        = document.getElementById("feed");
 const feedWrap    = document.getElementById("feedWrap");
 const msgInput    = document.getElementById("msgInput");
@@ -407,11 +695,10 @@ const uploadBtn   = document.getElementById("uploadBtn");
 const micBtn      = document.getElementById("micBtn");
 const prevBar     = document.getElementById("prevBar");
 const prevThumb   = document.getElementById("prevThumb");
-const cancelImg   = document.getElementById("cancelImg");
 const clearBtn    = document.getElementById("clearBtn");
 const menuBtn     = document.getElementById("menuBtn");
 const openHistBtn = document.getElementById("openHistBtn");
-const closeSideBtn= document.getElementById("closeSideBtn");
+const closeSide   = document.getElementById("closeSide");
 const overlay     = document.getElementById("overlay");
 const sidebar     = document.getElementById("sidebar");
 const histList    = document.getElementById("histList");
@@ -426,508 +713,367 @@ const authBtn     = document.getElementById("authBtn");
 const limitBar    = document.getElementById("limitBar");
 const limitMsg    = document.getElementById("limitMsg");
 
-// ═══════════════════════════════════════════════
-//  FIREBASE AUTH — Email/Password + Reset Password
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
+//  FIREBASE AUTH
+// ════════════════════════════════════════════
 fbAuth.onAuthStateChanged(async user => {
   fbUser = user;
   if (user) {
     idToken = await user.getIdToken(true);
 
-    // ── Auto-create user di Realtime DB ──
+    // Auto-create user in DB
     try {
       const snap = await fbDb.ref(`users_config/${user.uid}`).once("value");
       if (!snap.exists()) {
-        // Baca role_limits dari system_settings kalau ada
-        let chatLim = 50, photoLim = 5;
+        let chatLim=50, photoLim=5;
         try {
-          const rlSnap = await fbDb.ref("system_settings/role_limits/MEMBER").once("value");
-          const rl = rlSnap.val();
-          if (rl) { chatLim = rl.max_chat_limit ?? 50; photoLim = rl.max_photo_limit ?? 5; }
+          const rl = await fbDb.ref("system_settings/role_limits/MEMBER").once("value");
+          if (rl.val()) { chatLim=rl.val().max_chat_limit??50; photoLim=rl.val().max_photo_limit??5; }
         } catch {}
-
         await fbDb.ref(`users_config/${user.uid}`).set({
-          uid:             user.uid,
-          name:            user.displayName || user.email?.split("@")[0] || "User",
-          email:           user.email || "",
-          role:            "MEMBER",
-          max_chat_limit:  chatLim,
-          max_photo_limit: photoLim,
-          status:          "active",
-          created_at:      Date.now(),
-          last_login:      Date.now(),
+          uid:user.uid, name:user.displayName||user.email?.split("@")[0]||"User",
+          email:user.email||"", role:"MEMBER",
+          max_chat_limit:chatLim, max_photo_limit:photoLim,
+          status:"active", created_at:Date.now(), last_login:Date.now()
         });
       } else {
-        // Update last_login saja
         await fbDb.ref(`users_config/${user.uid}/last_login`).set(Date.now());
       }
-    } catch(e) { console.warn("DB write:", e.message); }
+    } catch(e) { console.warn("DB:", e.message); }
 
-    // Update sidebar UI
-    const ava = document.getElementById("upAva");
-    ava.textContent = (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
-    document.getElementById("upName").textContent =
-      user.displayName || user.email?.split("@")[0] || "User";
+    const ava = document.getElementById("ucAva");
+    ava.textContent = (user.displayName?.[0]||user.email?.[0]||"U").toUpperCase();
+    document.getElementById("ucName").textContent = user.displayName||user.email?.split("@")[0]||"User";
     loginBanner.style.display = "none";
-    authBtn.innerHTML = `↩`;
+    authBtn.innerHTML = "↩";
     authBtn.title     = "Logout";
     closeAuthModal();
   } else {
-    idToken = null;
-    // Cleanup semua Firebase listeners saat logout
-    if (_cfgRef)   { _cfgRef.off("value");   _cfgRef   = null; }
-    if (_usageRef) { _usageRef.off("value"); _usageRef = null; }
-    if (_sysRef)   { _sysRef.off("value");   _sysRef   = null; }
-    // Reset state
-    userRole = "GUEST"; usedChat = 0; usedPhoto = 0; maxChat = 10; maxPhoto = 0;
-    document.getElementById("upAva").textContent  = "G";
-    document.getElementById("upName").textContent = "Guest";
-    loginBanner.style.display = "flex";
-    authBtn.innerHTML = `👤`;
-    authBtn.title     = "Login";
+    if (_cfgRef)   { _cfgRef.off("value");   _cfgRef=null; }
+    if (_usageRef) { _usageRef.off("value"); _usageRef=null; }
+    idToken=null; fbUser=null;
+    userRole="GUEST"; usedChat=0; usedPhoto=0; maxChat=10; maxPhoto=0;
+    document.getElementById("ucAva").textContent="G";
+    document.getElementById("ucName").textContent="Guest";
+    document.getElementById("ucRole").textContent="Tidak login";
+    loginBanner.style.display="flex";
+    authBtn.innerHTML="👤"; authBtn.title="Login";
   }
   await loadSysSettings();
   await initSession();
 });
 
-// ── Auth Modal Control ────────────────────────
+// ════════════════════════════════════════════
+//  AUTH FUNCTIONS
+// ════════════════════════════════════════════
 function openAuthModal(tab) {
   document.getElementById("authModal").classList.add("open");
   document.body.style.overflow = "hidden";
-  switchAuthTab(tab || "login");
-  showAuthMsg("", "");
+  switchTab(tab||"login");
+  showAuthMsg("","");
 }
 function closeAuthModal() {
   document.getElementById("authModal").classList.remove("open");
   document.body.style.overflow = "";
 }
-
-function switchAuthTab(tab) {
-  ["login","register","reset"].forEach(t => {
-    document.getElementById("form" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? "flex" : "none";
-    document.getElementById("tab"  + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle("active", t === tab);
+function switchTab(t) {
+  ["login","register","reset"].forEach(x => {
+    const f=document.getElementById("form"+x.charAt(0).toUpperCase()+x.slice(1));
+    const b=document.getElementById("tab"+x.charAt(0).toUpperCase()+x.slice(1));
+    if(f) f.style.display = t===x ? "flex":"none";
+    if(b) { b.classList.toggle("active", t===x); }
   });
-  showAuthMsg("", "");
+  showAuthMsg("","");
+}
+function showAuthMsg(msg,type) {
+  const el=document.getElementById("authMsg");
+  if(!el) return;
+  if(!msg){el.style.display="none";return;}
+  el.textContent=msg; el.className="auth-msg "+type; el.style.display="block";
+}
+function setAuthLoading(id,on) {
+  const b=document.getElementById(id);
+  if(!b) return;
+  b.disabled=on;
+  if(on) b.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>';
+}
+function togglePw(id,btn) {
+  const i=document.getElementById(id);
+  if(!i) return;
+  i.type=i.type==="password"?"text":"password";
+  btn.textContent=i.type==="password"?"👁":"🙈";
 }
 
-function showAuthMsg(msg, type) {
-  const el = document.getElementById("authMsg");
-  if (!msg) { el.style.display = "none"; return; }
-  el.textContent    = msg;
-  el.className      = "auth-msg " + type;
-  el.style.display  = "block";
-}
-
-function setAuthLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.disabled = loading;
-  if (loading) btn.innerHTML = `<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>`;
-}
-
-function togglePw(inputId, btn) {
-  const inp = document.getElementById(inputId);
-  if (!inp) return;
-  const isHidden = inp.type === "password";
-  inp.type = isHidden ? "text" : "password";
-  btn.innerHTML = isHidden
-    ? `👁`
-    : `👁`;
-}
-
-// ── Email Login ───────────────────────────────
-async function doEmailLogin() {
-  const email = document.getElementById("loginEmail")?.value?.trim();
-  const pass  = document.getElementById("loginPass")?.value;
-  if (!email || !pass) { showAuthMsg("Email dan password wajib diisi.", "err"); return; }
-
-  setAuthLoading("btnLogin", true);
-  showAuthMsg("", "");
+async function doLogin() {
+  const email=(document.getElementById("lEmail")?.value||"").trim();
+  const pass=document.getElementById("lPass")?.value||"";
+  if(!email||!pass){showAuthMsg("Email dan password wajib diisi.","err");return;}
+  setAuthLoading("btnLogin",true);
+  showAuthMsg("","");
   try {
-    await fbAuth.signInWithEmailAndPassword(email, pass);
-    // onAuthStateChanged will handle the rest
+    await fbAuth.signInWithEmailAndPassword(email,pass);
   } catch(e) {
-    const msgs = {
-      "auth/user-not-found":     "Email tidak ditemukan. Coba daftar dulu.",
-      "auth/wrong-password":     "Password salah. Coba lagi atau reset password.",
-      "auth/invalid-email":      "Format email tidak valid.",
-      "auth/too-many-requests":  "Terlalu banyak percobaan. Coba lagi nanti.",
-      "auth/invalid-credential": "Email atau password salah.",
-    };
-    showAuthMsg(msgs[e.code] || "Login gagal: " + e.message, "err");
-  } finally {
-    setAuthLoading("btnLogin", false);
-    document.getElementById("btnLogin").innerHTML = `→ Masuk`;
+    setAuthLoading("btnLogin",false);
+    document.getElementById("btnLogin").innerHTML="→ Masuk";
+    const m={"auth/user-not-found":"Email tidak terdaftar.","auth/wrong-password":"Password salah.","auth/invalid-credential":"Email atau password salah.","auth/too-many-requests":"Terlalu banyak percobaan.","auth/invalid-email":"Format email tidak valid."};
+    showAuthMsg(m[e.code]||"Login gagal: "+e.message,"err");
   }
 }
 
-// ── Email Register ────────────────────────────
-async function doEmailRegister() {
-  const name  = document.getElementById("regName")?.value?.trim();
-  const email = document.getElementById("regEmail")?.value?.trim();
-  const pass  = document.getElementById("regPass")?.value;
-  const pass2 = document.getElementById("regPass2")?.value;
-
-  if (!name)              { showAuthMsg("Nama wajib diisi.", "err"); return; }
-  if (!email)             { showAuthMsg("Email wajib diisi.", "err"); return; }
-  if (pass.length < 6)    { showAuthMsg("Password minimal 6 karakter.", "err"); return; }
-  if (pass !== pass2)     { showAuthMsg("Password tidak cocok.", "err"); return; }
-
-  setAuthLoading("btnRegister", true);
-  showAuthMsg("", "");
+async function doRegister() {
+  const name=(document.getElementById("rName")?.value||"").trim();
+  const email=(document.getElementById("rEmail")?.value||"").trim();
+  const pass=document.getElementById("rPass")?.value||"";
+  const pass2=document.getElementById("rPass2")?.value||"";
+  if(!name){showAuthMsg("Nama wajib diisi.","err");return;}
+  if(!email){showAuthMsg("Email wajib diisi.","err");return;}
+  if(pass.length<6){showAuthMsg("Password minimal 6 karakter.","err");return;}
+  if(pass!==pass2){showAuthMsg("Password tidak cocok.","err");return;}
+  setAuthLoading("btnReg",true);
   try {
-    const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
-    // Update display name
-    await cred.user.updateProfile({ displayName: name });
-    // Reload user so displayName propagates
+    const cred=await fbAuth.createUserWithEmailAndPassword(email,pass);
+    await cred.user.updateProfile({displayName:name});
     await cred.user.reload();
-    showAuthMsg("Akun berhasil dibuat! Kamu sudah masuk. 🎉", "ok");
-    // onAuthStateChanged will fire automatically
+    showAuthMsg("Akun berhasil dibuat! 🎉","ok");
   } catch(e) {
-    const msgs = {
-      "auth/email-already-in-use": "Email sudah terdaftar. Coba login.",
-      "auth/invalid-email":        "Format email tidak valid.",
-      "auth/weak-password":        "Password terlalu lemah. Gunakan min. 6 karakter.",
-    };
-    showAuthMsg(msgs[e.code] || "Daftar gagal: " + e.message, "err");
-  } finally {
-    setAuthLoading("btnRegister", false);
-    document.getElementById("btnRegister").innerHTML = `+ Buat Akun`;
+    setAuthLoading("btnReg",false);
+    document.getElementById("btnReg").innerHTML="+ Buat Akun";
+    const m={"auth/email-already-in-use":"Email sudah terdaftar.","auth/invalid-email":"Format email tidak valid.","auth/weak-password":"Password terlalu lemah."};
+    showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");
   }
 }
 
-// ── Reset Password ────────────────────────────
-async function doResetPassword() {
-  const email = document.getElementById("resetEmail")?.value?.trim();
-  if (!email) { showAuthMsg("Masukkan email kamu.", "err"); return; }
-
-  setAuthLoading("btnReset", true);
-  showAuthMsg("", "");
+async function doReset() {
+  const email=(document.getElementById("rsEmail")?.value||"").trim();
+  if(!email){showAuthMsg("Masukkan email kamu.","err");return;}
+  setAuthLoading("btnReset",true);
   try {
     await fbAuth.sendPasswordResetEmail(email);
-    showAuthMsg("Link reset dikirim ke " + email + " — cek inbox/spam kamu! 📧", "ok");
-    document.getElementById("resetEmail").value = "";
+    showAuthMsg("Link reset dikirim ke "+email+" — cek inbox/spam! 📧","ok");
+    document.getElementById("rsEmail").value="";
   } catch(e) {
-    const msgs = {
-      "auth/user-not-found": "Email tidak terdaftar.",
-      "auth/invalid-email":  "Format email tidak valid.",
-    };
-    showAuthMsg(msgs[e.code] || "Gagal kirim email: " + e.message, "err");
+    const m={"auth/user-not-found":"Email tidak terdaftar.","auth/invalid-email":"Format email tidak valid."};
+    showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");
   } finally {
-    setAuthLoading("btnReset", false);
-    document.getElementById("btnReset").innerHTML = `📧 Kirim Link Reset`;
+    setAuthLoading("btnReset",false);
+    document.getElementById("btnReset").innerHTML="📧 Kirim Link Reset";
   }
 }
 
-// ── Auth button & banner wiring ───────────────
-authBtn.addEventListener("click", () => {
-  if (fbUser) {
-    if (confirm("Logout dari XREZZKY AI?")) fbAuth.signOut();
-  } else {
-    openAuthModal("login");
-  }
+authBtn.addEventListener("click",()=>fbUser?confirm("Logout?")&&fbAuth.signOut():openAuthModal("login"));
+loginBannerBtn.addEventListener("click",e=>{e.stopPropagation();openAuthModal("login");});
+loginBanner.addEventListener("click",()=>openAuthModal("login"));
+document.getElementById("authModal").addEventListener("click",e=>{if(e.target===document.getElementById("authModal"))closeAuthModal();});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||!document.getElementById("authModal").classList.contains("open")) return;
+  const t=document.querySelector(".auth-tab.active")?.id;
+  if(t==="tabLogin")doLogin();
+  if(t==="tabRegister")doRegister();
+  if(t==="tabReset")doReset();
 });
-loginBannerBtn.addEventListener("click", e => { e.stopPropagation(); openAuthModal("login"); });
-loginBanner.addEventListener("click", () => openAuthModal("login"));
+const _css=document.createElement("style");
+_css.textContent="@keyframes spin{to{transform:rotate(360deg)}}";
+document.head.appendChild(_css);
 
-// Enter key support in auth forms
-document.addEventListener("keydown", e => {
-  if (e.key !== "Enter") return;
-  const modal = document.getElementById("authModal");
-  if (!modal?.classList.contains("open")) return;
-  const activeTab = document.querySelector(".auth-tab.active")?.id;
-  if (activeTab === "tabLogin")    doEmailLogin();
-  if (activeTab === "tabRegister") doEmailRegister();
-  if (activeTab === "tabReset")    doResetPassword();
-});
-
-// Close modal on backdrop click
-document.getElementById("authModal")?.addEventListener("click", function(e) {
-  if (e.target === this) closeAuthModal();
-});
-
-// Add CSS keyframe for spinner
-const spinStyle = document.createElement("style");
-spinStyle.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
-document.head.appendChild(spinStyle);
-
-// ═══════════════════════════════════════════════
-//  LOAD SYSTEM SETTINGS FROM FIREBASE
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
+//  SYSTEM SETTINGS
+// ════════════════════════════════════════════
 async function loadSysSettings() {
   try {
-    // Pertama ambil sekali dulu (sync)
-    const snap = await fbDb.ref("system_settings").once("value");
-    sysSettings = snap.val() || {};
-    // Lalu pasang realtime listener untuk update otomatis
-    if (!_sysRef) {
-      _sysRef = fbDb.ref("system_settings");
-      _sysRef.on("value", snap2 => {
-        sysSettings = snap2.val() || {};
-        // Update guest limits jika tidak login
-        if (!fbUser) {
-          maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
-          maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
-          if (sysSettings.login_required) { maxChat = 0; maxPhoto = 0; }
-          updateQuotaBar();
+    const snap=await fbDb.ref("system_settings").once("value");
+    sysSettings=snap.val()||{};
+    if(!_sysRef){
+      _sysRef=fbDb.ref("system_settings");
+      _sysRef.on("value",s=>{
+        sysSettings=s.val()||{};
+        if(!fbUser){
+          maxChat=sysSettings.default_guest_chat_limit??10;
+          maxPhoto=sysSettings.default_guest_photo_limit??0;
+          if(sysSettings.login_required){maxChat=0;maxPhoto=0;}
+          updateQuota();
         }
       });
     }
-  } catch { sysSettings = {}; }
+  } catch { sysSettings={}; }
 }
 
-// ═══════════════════════════════════════════════
-//  SESSION INIT
-// ═══════════════════════════════════════════════
-// Realtime listener refs — store actual Firebase refs for proper .off()
-let _cfgRef     = null;
-let _usageRef   = null;
-let _sysRef     = null;
-
-async function initSession(newSess = false) {
-  if (newSess || !curSess) {
-    curSess = "s_" + Date.now();
-    localStorage.setItem(CK, curSess);
-    savLocalSess(curSess, "Obrolan Baru");
+// ════════════════════════════════════════════
+//  SESSION
+// ════════════════════════════════════════════
+async function initSession(newSess=false) {
+  if(newSess||!curSess){
+    curSess="s_"+Date.now();
+    localStorage.setItem(CK,curSess);
+    saveLS(curSess,"Percakapan Baru");
   }
+  if(_cfgRef){_cfgRef.off("value");_cfgRef=null;}
+  if(_usageRef){_usageRef.off("value");_usageRef=null;}
 
-  // Cleanup old listeners properly
-  if (_cfgRef)   { _cfgRef.off("value");   _cfgRef   = null; }
-  if (_usageRef) { _usageRef.off("value"); _usageRef = null; }
-
-  if (fbUser) {
-    const uid   = fbUser.uid;
-    const today = todayKey();
-
-    // ── Realtime: users_config ────────────────────
-    _cfgRef = fbDb.ref(`users_config/${uid}`);
-    _cfgRef.on("value", snap => {
-      const cfg = snap.val() || {};
-      userRole  = cfg.role || "MEMBER";
-      if (userRole === "ADMIN" || userRole === "OWNER") {
-        maxChat = 99999; maxPhoto = 99999;
-      } else {
-        maxChat  = cfg.max_chat_limit  ?? 50;
-        maxPhoto = cfg.max_photo_limit ?? 5;
-      }
-      if (userRole === "BANNED") {
-        showLimitWarn("⛔ Akun kamu telah dibanned oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      } else if (userRole === "STOPPED") {
-        showLimitWarn("⏸️ Akun kamu dihentikan sementara oleh Admin.");
-        maxChat = 0; maxPhoto = 0;
-      }
-      updateUserPanel();
-      updateQuotaBar();
+  if(fbUser) {
+    _cfgRef=fbDb.ref(`users_config/${fbUser.uid}`);
+    _cfgRef.on("value",snap=>{
+      const c=snap.val()||{};
+      userRole=c.role||"MEMBER";
+      if(["ADMIN","OWNER"].includes(userRole)){maxChat=99999;maxPhoto=99999;}
+      else{maxChat=c.max_chat_limit??50;maxPhoto=c.max_photo_limit??5;}
+      if(userRole==="BANNED"){showWarn("⛔ Akun kamu telah dibanned.");maxChat=0;maxPhoto=0;}
+      else if(userRole==="STOPPED"){showWarn("⏸️ Akun dihentikan sementara.");maxChat=0;maxPhoto=0;}
+      updateRoleBadge();
+      updateQuota();
     });
-
-    // ── Realtime: daily_usage ─────────────────────
-    _usageRef = fbDb.ref(`daily_usage/${uid}/${today}`);
-    _usageRef.on("value", snap => {
-      const d   = snap.val() || {};
-      usedChat  = d.chats  || 0;
-      usedPhoto = d.photos || 0;
-      updateQuotaBar();
+    _usageRef=fbDb.ref(`daily_usage/${fbUser.uid}/${todayKey()}`);
+    _usageRef.on("value",snap=>{
+      const d=snap.val()||{};
+      usedChat=d.chats||0; usedPhoto=d.photos||0;
+      updateQuota();
     });
-
   } else {
-    // Guest
-    userRole = "GUEST";
-    maxChat  = sysSettings.default_guest_chat_limit  ?? 10;
-    maxPhoto = sysSettings.default_guest_photo_limit ?? 0;
-    usedChat = 0; usedPhoto = 0;
-
-    if (sysSettings.login_required) {
-      maxChat = 0; maxPhoto = 0;
-      showLimitWarn("Kamu harus login untuk menggunakan XREZZKY AI.");
-    }
-    // Guest usage dari localStorage
-    const gu  = JSON.parse(localStorage.getItem("xrk_guest_usage_" + todayKey()) || "{}");
-    usedChat  = gu.chats  || 0;
-    usedPhoto = gu.photos || 0;
-    updateUserPanel();
-    updateQuotaBar();
+    userRole="GUEST";
+    maxChat=sysSettings.default_guest_chat_limit??10;
+    maxPhoto=sysSettings.default_guest_photo_limit??0;
+    if(sysSettings.login_required){maxChat=0;maxPhoto=0;showWarn("Kamu harus login untuk menggunakan XREZZKY AI.");}
+    const gu=JSON.parse(localStorage.getItem("xrk_gu_"+todayKey())||"{}");
+    usedChat=gu.c||0; usedPhoto=gu.p||0;
+    updateRoleBadge();
+    updateQuota();
   }
-
   loadLocalSess();
   renderHist();
 }
 
-function todayKey() {
-  return new Date(Date.now() + 7*3600000).toISOString().slice(0,10);
-}
+function todayKey(){return new Date(Date.now()+7*3600000).toISOString().slice(0,10);}
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  UI UPDATES
-// ═══════════════════════════════════════════════
-function updateUserPanel() {
-  const roleEmoji = { OWNER:"⭐", ADMIN:"👑", SELLER:"🏪", MEMBER:"✅", GUEST:"👤", BANNED:"🚫", STOPPED:"⏸️" };
-  const icons = { ADMIN:"fa-crown", SELLER:"fa-store", MEMBER:"fa-user-check", GUEST:"fa-circle-user", BANNED:"fa-ban", STOPPED:"fa-pause" };
-  const ri = document.getElementById("upRole");
-  ri.className = `up-role role-${userRole}`;
-  ri.innerHTML = `${roleEmoji[userRole]||'👤'} ${userRole}`;
+// ════════════════════════════════════════════
+function updateRoleBadge(){
+  const el=document.getElementById("ucRole");
+  const em={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",MEMBER:"✅",GUEST:"👤",BANNED:"🚫",STOPPED:"⏸️"};
+  if(el) el.textContent=(em[userRole]||"👤")+" "+userRole;
 }
+function updateQuota(){
+  const pc=maxChat>0?Math.min((usedChat/maxChat)*100,100):0;
+  const pp=maxPhoto>0?Math.min((usedPhoto/maxPhoto)*100,100):0;
+  setText("qChatTxt",`${usedChat}/${maxChat}`);
+  setText("qPhotoTxt",`${usedPhoto}/${maxPhoto}`);
+  const cb=document.getElementById("qChatBar");
+  const pb=document.getElementById("qPhotoBar");
+  if(cb){cb.style.width=pc+"%";cb.className="q-fill"+(pc>=100?" over":pc>=80?" warn":"");}
+  if(pb){pb.style.width=pp+"%";pb.className="q-fill"+(pp>=100?" over":pp>=80?" warn":"");}
+}
+function showWarn(msg,dur=6000){
+  limitMsg.textContent=msg;
+  limitBar.style.display="flex";
+  if(dur) setTimeout(()=>{limitBar.style.display="none";},dur);
+}
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 
-function updateQuotaBar() {
-  const pc = maxChat  > 0 ? Math.min((usedChat /maxChat) *100,100) : 0;
-  const pp = maxPhoto > 0 ? Math.min((usedPhoto/maxPhoto)*100,100) : 0;
-  document.getElementById("qChatTxt").textContent  = `${usedChat}/${maxChat}`;
-  document.getElementById("qPhotoTxt").textContent = `${usedPhoto}/${maxPhoto}`;
-  const cb = document.getElementById("qChatBar");
-  const pb = document.getElementById("qPhotoBar");
-  cb.style.width = pc + "%";
-  pb.style.width = pp + "%";
-  cb.className = "quota-fill" + (pc>=100?" over":pc>=80?" warn":"");
-  pb.className = "quota-fill" + (pp>=100?" over":pp>=80?" warn":"");
-}
-
-function showLimitWarn(msg) {
-  limitMsg.textContent = msg;
-  limitBar.style.display = "flex";
-  setTimeout(() => { limitBar.style.display = "none"; }, 6000);
-}
-
-// ═══════════════════════════════════════════════
-//  WIDGETS (date/time/weather)
-// ═══════════════════════════════════════════════
-function updateWidgets() {
-  const now = new Date();
-  document.getElementById("wDate").textContent =
-    now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
-  const h = now.getHours();
-  const wi = document.getElementById("wIcon");
-  let icon="🌤️", label="Siang";
-  if (h>=18||h<5){icon="🌙";label="Malam";}
-  else if (h<11){icon="☀️";label="Pagi";}
-  else if (h>=15){icon="🌅";label="Sore";}
-  wi.textContent = icon;
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async p => {
-      try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-        const d = await r.json();
-        const loc = d.address.city||d.address.town||d.address.state||"Indonesia";
-        document.getElementById("wWeather").textContent = `${loc} · ${label}`;
-      } catch { document.getElementById("wWeather").textContent = `Indonesia · ${label}`; }
-    }, ()=>{ document.getElementById("wWeather").textContent = `Indonesia · ${label}`; }, {timeout:4000});
-  } else { document.getElementById("wWeather").textContent = `Indonesia · ${label}`; }
-}
-updateWidgets();
-setInterval(updateWidgets, 60000);
-
-// ═══════════════════════════════════════════════
-//  LOCAL STORAGE SESSIONS
-// ═══════════════════════════════════════════════
-const getSess = () => JSON.parse(localStorage.getItem(SK)) || {};
-const saveSess= d => localStorage.setItem(SK, JSON.stringify(d));
-function savLocalSess(id, title) {
-  const d = getSess();
-  if (!d[id]) d[id] = { title, ts:Date.now(), chats:[] };
-  else d[id].ts = Date.now();
-  saveSess(d);
-}
-function saveLocalMsg(text, img, role, time) {
-  const d = getSess();
-  if (!d[curSess]) return;
-  if (role==="user" && !d[curSess].chats?.length && text)
-    d[curSess].title = text.slice(0,44);
-  d[curSess].chats = d[curSess].chats || [];
+// ════════════════════════════════════════════
+//  LOCAL STORAGE
+// ════════════════════════════════════════════
+const getLS=()=>JSON.parse(localStorage.getItem(SK)||"{}");
+const setLS=d=>localStorage.setItem(SK,JSON.stringify(d));
+function saveLS(id,title){const d=getLS();if(!d[id])d[id]={title,ts:Date.now(),chats:[]};else d[id].ts=Date.now();setLS(d);}
+function saveMsg(text,img,role,time){
+  const d=getLS();if(!d[curSess])return;
+  if(role==="user"&&!d[curSess].chats?.length&&text)d[curSess].title=text.slice(0,46);
+  d[curSess].chats=d[curSess].chats||[];
   d[curSess].chats.push({text,img,role,time});
-  d[curSess].ts = Date.now();
-  saveSess(d);
+  d[curSess].ts=Date.now();setLS(d);
 }
-function loadLocalSess() {
-  feed.innerHTML = ""; lastDate = null;
-  const d = getSess()[curSess];
-  if (!d?.chats?.length) { showWelcome(); return; }
-  d.chats.forEach(c => renderMsg(c.text, c.img, c.role, c.time));
+function loadLocalSess(){
+  feed.innerHTML="";lastDate=null;
+  const d=getLS()[curSess];
+  if(!d?.chats?.length){showWelcome();return;}
+  d.chats.forEach(c=>renderMsg(c.text,c.img,c.role,c.time));
   scrollDown();
 }
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  SIDEBAR
-// ═══════════════════════════════════════════════
-const openSide  = () => { renderHist(); sidebar.classList.add("open"); overlay.style.display="block"; };
-const closeSide = () => { sidebar.classList.remove("open"); overlay.style.display="none"; };
-menuBtn.addEventListener("click", openSide);
-openHistBtn.addEventListener("click", openSide);
-closeSideBtn.addEventListener("click", closeSide);
-overlay.addEventListener("click", closeSide);
+// ════════════════════════════════════════════
+const openSB  =()=>{renderHist();sidebar.classList.add("open");overlay.style.display="block";};
+const closeSB =()=>{sidebar.classList.remove("open");overlay.style.display="none";};
+menuBtn.addEventListener("click",openSB);
+openHistBtn.addEventListener("click",openSB);
+closeSide.addEventListener("click",closeSB);
+overlay.addEventListener("click",closeSB);
 
-function renderHist() {
-  histList.innerHTML = "";
-  const d = getSess();
-  const keys = Object.keys(d).sort((a,b) => d[b].ts - d[a].ts);
-  if (!keys.length) {
-    histList.innerHTML = `<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:18px">Belum ada riwayat.</p>`;
+function renderHist(){
+  histList.innerHTML="";
+  const d=getLS();
+  const keys=Object.keys(d).sort((a,b)=>d[b].ts-d[a].ts);
+  if(!keys.length){
+    histList.innerHTML=`<p style="text-align:center;font-size:11px;color:var(--muted);margin-top:16px">Belum ada riwayat.</p>`;
     return;
   }
-  keys.forEach(k => {
-    const s = d[k];
-    const el = document.createElement("div");
-    el.className = "hi" + (k===curSess?" active":"");
-    el.innerHTML = `<div class="hi-info"><div class="hi-t">${esc(s.title||"Obrolan")}</div><div class="hi-d">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus">✕</button>`;
-    el.addEventListener("click", () => { curSess=k; localStorage.setItem(CK,k); feed.innerHTML=""; lastDate=null; loadLocalSess(); renderHist(); closeSide(); });
-    el.querySelector(".hi-del").addEventListener("click", e => {
+  keys.forEach(k=>{
+    const s=d[k];
+    const el=document.createElement("div");
+    el.className="hi"+(k===curSess?" active":"");
+    el.innerHTML=`<div style="flex:1;min-width:0"><div class="hi-t">${esc(s.title||"Percakapan")}</div><div class="hi-d">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus">✕</button>`;
+    el.addEventListener("click",()=>{curSess=k;localStorage.setItem(CK,k);feed.innerHTML="";lastDate=null;loadLocalSess();renderHist();closeSB();});
+    el.querySelector(".hi-del").addEventListener("click",e=>{
       e.stopPropagation();
-      const all = getSess(); delete all[k]; saveSess(all);
-      if (k===curSess) {
-        const rem = Object.keys(getSess());
-        curSess = rem.length ? rem[0] : "s_"+Date.now();
-        if (!rem.length) savLocalSess(curSess,"Obrolan Baru");
+      const all=getLS();delete all[k];setLS(all);
+      if(k===curSess){
+        const rem=Object.keys(getLS());
+        curSess=rem.length?rem[0]:"s_"+Date.now();
+        if(!rem.length)saveLS(curSess,"Percakapan Baru");
         localStorage.setItem(CK,curSess);
-        feed.innerHTML=""; lastDate=null; loadLocalSess();
+        feed.innerHTML="";lastDate=null;loadLocalSess();
       }
       renderHist();
     });
     histList.appendChild(el);
   });
 }
-newChatBtn.addEventListener("click", () => { initSession(true); closeSide(); });
-clearBtn.addEventListener("click", () => {
-  if (!confirm("Hapus percakapan ini?")) return;
+
+newChatBtn.addEventListener("click",()=>{initSession(true);closeSB();});
+clearBtn.addEventListener("click",()=>{
+  if(!confirm("Hapus percakapan ini?"))return;
   window.speechSynthesis?.cancel();
-  const d = getSess(); delete d[curSess]; saveSess(d);
-  const rem = Object.keys(getSess());
-  curSess = rem.length ? rem[0] : "s_"+Date.now();
-  if (!rem.length) savLocalSess(curSess,"Obrolan Baru");
+  const d=getLS();delete d[curSess];setLS(d);
+  const rem=Object.keys(getLS());
+  curSess=rem.length?rem[0]:"s_"+Date.now();
+  if(!rem.length)saveLS(curSess,"Percakapan Baru");
   localStorage.setItem(CK,curSess);
-  feed.innerHTML=""; lastDate=null; loadLocalSess(); renderHist();
+  feed.innerHTML="";lastDate=null;loadLocalSess();renderHist();
 });
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  WELCOME SCREEN
-// ═══════════════════════════════════════════════
-function showWelcome() {
-  const h  = new Date().getHours();
-  const gr = h < 5 || h >= 19 ? "Malam" : h < 12 ? "Pagi" : h < 15 ? "Siang" : "Sore";
-  const ic = h < 5 || h >= 19 ? "🌙" : h < 12 ? "☀️" : h < 15 ? "🌤️" : "🌅";
-  feed.innerHTML = `
+// ════════════════════════════════════════════
+function showWelcome(){
+  const h=new Date().getHours();
+  const gr=h<5||h>=19?"Malam":h<12?"Pagi":h<15?"Siang":"Sore";
+  const ic=h<5||h>=19?"🌙":h<12?"☀️":h<15?"🌤️":"🌅";
+  feed.innerHTML=`
     <div class="welcome">
-      <div class="w-icon">X</div>
-      <div class="w-title">XREZZKY <span>AI</span></div>
-      <div class="w-sub">Selamat ${gr} ${ic}<br>Silakan ketik pertanyaan Anda.</div>
+      <div class="w-mark">X</div>
+      <div class="w-title">Selamat ${gr} ${ic}<br><span>XREZZKY AI</span></div>
+      <div class="w-sub">Silakan ketik pertanyaan Anda.</div>
     </div>`;
 }
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  DATE SEPARATOR
-// ═══════════════════════════════════════════════
-function maybeDateSep() {
-  const today = new Date().toDateString();
-  if (today !== lastDate) {
-    lastDate = today;
-    const s = document.createElement("div");
-    s.className = "dsep"; s.innerHTML = "<span>Hari ini</span>";
+// ════════════════════════════════════════════
+function maybeSep(){
+  const today=new Date().toDateString();
+  if(today!==lastDate){
+    lastDate=today;
+    const s=document.createElement("div");
+    s.className="dsep";s.innerHTML="<span>Hari ini</span>";
     feed.appendChild(s);
   }
 }
 
-// ═══════════════════════════════════════════════
-//  MARKDOWN PARSER
-// ═══════════════════════════════════════════════
-function md(text) {
-  return text
+// ════════════════════════════════════════════
+//  MARKDOWN
+// ════════════════════════════════════════════
+function md(t){
+  return t
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
     .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${c.trim()}</code></pre>`)
     .replace(/`([^`\n]+)`/g,"<code>$1</code>")
@@ -939,550 +1085,272 @@ function md(text) {
     .replace(/^# (.+)$/gm,"<h1>$1</h1>")
     .replace(/^---+$/gm,"<hr>")
     .replace(/^> (.+)$/gm,"<blockquote>$1</blockquote>")
-    .replace(/^\| (.+) \|$/gm, row => {
-      const cells = row.split("|").filter((c,i,a)=>i>0&&i<a.length-1).map(c=>`<td>${c.trim()}</td>`).join("");
-      return `<tr>${cells}</tr>`;
-    })
-    .replace(/(<tr>.*<\/tr>\n?)+/g, t => `<table>${t}</table>`)
     .replace(/^[\*\-] (.+)$/gm,"<li>$1</li>")
     .replace(/^\d+\. (.+)$/gm,"<li>$1</li>")
-    .replace(/(<li>[^<]*<\/li>)/g, m=>`<ul>${m}</ul>`)
+    .replace(/(<li>[^<]*<\/li>)/g,m=>`<ul>${m}</ul>`)
     .replace(/\n/g,"<br>");
 }
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  RENDER MESSAGE
-// ═══════════════════════════════════════════════
-function renderMsg(text, img64, role, time) {
-  maybeDateSep();
-  const row  = document.createElement("div");
-  row.className = `msg-row ${role} msg-in`;
-  const wrap = document.createElement("div");
-  wrap.className = "bwrap";
-  const bub  = document.createElement("div");
-  bub.className = "bubble";
+// ════════════════════════════════════════════
+function renderMsg(text,img64,role,time){
+  maybeSep();
+  const row=document.createElement("div");row.className=`msg-row ${role} msg-in`;
+  const wrap=document.createElement("div");wrap.className="bwrap";
+  const bub=document.createElement("div");bub.className="bubble";
 
-  if (img64) {
-    const im = document.createElement("img");
-    im.src = img64; im.className = "chat-img";
-    im.addEventListener("click", () => openImgModal(img64));
+  if(img64){
+    const im=document.createElement("img");im.src=img64;im.className="chat-img";
+    im.addEventListener("click",()=>openImgModal(img64));
     bub.appendChild(im);
   }
-  if (text) {
-    const td = document.createElement("div");
-    td.className = "md";
-    if (role==="bot") td.innerHTML = md(text); else td.textContent = text;
+  if(text){
+    const td=document.createElement("div");td.className="md";
+    if(role==="bot")td.innerHTML=md(text);else td.textContent=text;
     bub.appendChild(td);
   }
   wrap.appendChild(bub);
 
-  const foot = document.createElement("div");
-  foot.className = "bfoot";
-  const tm = document.createElement("span");
-  tm.className = "msg-time"; tm.textContent = time || nowTime();
+  const foot=document.createElement("div");foot.className="bfoot";
+  const tm=document.createElement("span");tm.className="msg-time";tm.textContent=time||nowTime();
   foot.appendChild(tm);
 
-  if (role==="bot" && text) {
-    const copyBtn = mkBtn(`📋 Salin`);
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.classList.add("ok");
-        copyBtn.innerHTML = `✅ Disalin`;
-        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`📋 Salin`;},2200);
+  if(role==="bot"&&text){
+    const cp=mkBtn("📋 Salin");
+    cp.addEventListener("click",()=>{
+      navigator.clipboard.writeText(text).then(()=>{
+        cp.classList.add("ok");cp.textContent="✅ Disalin";
+        setTimeout(()=>{cp.classList.remove("ok");cp.textContent="📋 Salin";},2200);
       });
     });
-    foot.appendChild(copyBtn);
-
-    const ttsBtn = mkBtn(`🔊 Dengar`);
-    ttsBtn.addEventListener("click", () => toggleTTS(text, ttsBtn));
-    foot.appendChild(ttsBtn);
+    foot.appendChild(cp);
+    const tt=mkBtn("🔊 Dengar");
+    tt.addEventListener("click",()=>toggleTTS(text,tt));
+    foot.appendChild(tt);
   }
-
-  wrap.appendChild(foot);
-  row.appendChild(wrap);
-  feed.appendChild(row);
-  scrollDown();
-  return bub;
+  wrap.appendChild(foot);row.appendChild(wrap);feed.appendChild(row);scrollDown();
 }
+function mkBtn(html){const b=document.createElement("button");b.className="abtn";b.innerHTML=html;return b;}
 
-function mkBtn(html) {
-  const b = document.createElement("button");
-  b.className="abtn"; b.innerHTML=html; return b;
-}
-
-// ═══════════════════════════════════════════════
-//  STREAMING RENDER (word-by-word)
-// ═══════════════════════════════════════════════
-async function streamRender(fullText, bub) {
-  if (!bub || !fullText) return;
-  const td = document.createElement("div"); td.className="md";
-  const cur = document.createElement("span"); cur.className="cursor";
-  bub.appendChild(td); bub.appendChild(cur);
-  const words = fullText.split(" ");
-  let built = "";
-  for (let i=0; i<words.length; i++) {
-    built += (i>0?" ":"") + words[i];
-    td.innerHTML = md(built);
-    scrollDown();
-    await sleep(14 + Math.random()*20);
+// ════════════════════════════════════════════
+//  STREAMING
+// ════════════════════════════════════════════
+async function streamRender(fullText,bub){
+  if(!bub||!fullText)return;
+  const td=document.createElement("div");td.className="md";
+  const cur=document.createElement("span");cur.className="cur";
+  bub.appendChild(td);bub.appendChild(cur);
+  const words=fullText.split(" ");let built="";
+  for(let i=0;i<words.length;i++){
+    built+=(i>0?" ":"")+words[i];td.innerHTML=md(built);scrollDown();
+    await new Promise(r=>setTimeout(r,12+Math.random()*18));
   }
-  cur.remove();
-  td.innerHTML = md(fullText);
-  scrollDown();
+  cur.remove();td.innerHTML=md(fullText);scrollDown();
 }
-const sleep = ms => new Promise(r => setTimeout(r,ms));
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  TTS
-// ═══════════════════════════════════════════════
-function cleanTTS(raw) {
-  return raw.replace(/```[\s\S]*?```/g,"").replace(/`[^`]+`/g,"")
-            .replace(/[*#_~]+/g,"").replace(/https?:\/\/\S+/g,"link")
-            .replace(/\s{2,}/g," ").trim();
-}
-function resetTTS() {
-  document.querySelectorAll(".abtn.stp").forEach(b => {
-    b.classList.remove("stp"); b.innerHTML=`🔊 Dengar`;
-  });
-  activeTTS = null;
-}
-function toggleTTS(text, btn) {
-  if (!window.speechSynthesis) return;
-  if (activeTTS===btn){ window.speechSynthesis.cancel(); resetTTS(); return; }
-  window.speechSynthesis.cancel(); resetTTS();
-  const utt = new SpeechSynthesisUtterance(cleanTTS(text));
-  utt.lang="id-ID"; utt.rate=1.1; utt.pitch=1.05;
-  const vs = window.speechSynthesis.getVoices();
-  const bv = vs.find(v=>v.name.includes("Google")&&v.lang.startsWith("id"))||vs.find(v=>v.lang==="id-ID");
-  if (bv) utt.voice=bv;
-  utt.onstart = () => { activeTTS=btn; btn.classList.add("stp"); btn.innerHTML=`⏹ Stop`; };
-  utt.onend = utt.onerror = resetTTS;
+// ════════════════════════════════════════════
+function cleanTTS(r){return r.replace(/```[\s\S]*?```/g,"").replace(/`[^`]+`/g,"").replace(/[*#_~]+/g,"").replace(/https?:\/\/\S+/g,"link").replace(/\s{2,}/g," ").trim();}
+function resetTTS(){document.querySelectorAll(".abtn.stp").forEach(b=>{b.classList.remove("stp");b.innerHTML="🔊 Dengar";});activeTTS=null;}
+function toggleTTS(text,btn){
+  if(!window.speechSynthesis)return;
+  if(activeTTS===btn){window.speechSynthesis.cancel();resetTTS();return;}
+  window.speechSynthesis.cancel();resetTTS();
+  const utt=new SpeechSynthesisUtterance(cleanTTS(text));
+  utt.lang="id-ID";utt.rate=1.1;utt.pitch=1.05;
+  const vs=window.speechSynthesis.getVoices();
+  const bv=vs.find(v=>v.name.includes("Google")&&v.lang.startsWith("id"))||vs.find(v=>v.lang==="id-ID");
+  if(bv)utt.voice=bv;
+  utt.onstart=()=>{activeTTS=btn;btn.classList.add("stp");btn.innerHTML="⏹ Stop";};
+  utt.onend=utt.onerror=resetTTS;
   window.speechSynthesis.speak(utt);
 }
 window.speechSynthesis?.getVoices?.();
-if (window.speechSynthesis?.onvoiceschanged!==undefined)
-  window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
+if(window.speechSynthesis?.onvoiceschanged!==undefined)window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  IMAGE MODAL
-// ═══════════════════════════════════════════════
-function openImgModal(src) {
-  modalImg.src=src; imgModal.style.display="flex";
-  setTimeout(()=>imgModal.classList.add("open"),30);
-}
-function closeImgModal() {
-  imgModal.classList.remove("open");
-  setTimeout(()=>{imgModal.style.display="none";modalImg.src="";},220);
-}
-closeModal.addEventListener("click", closeImgModal);
-imgModal.addEventListener("click", e=>{ if(e.target===imgModal) closeImgModal(); });
+// ════════════════════════════════════════════
+function openImgModal(src){modalImg.src=src;imgModal.style.display="flex";setTimeout(()=>imgModal.classList.add("open"),30);}
+function closeImgModal(){imgModal.classList.remove("open");setTimeout(()=>{imgModal.style.display="none";modalImg.src="";},200);}
+closeModal.addEventListener("click",closeImgModal);
+imgModal.addEventListener("click",e=>{if(e.target===imgModal)closeImgModal();});
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  IMAGE UPLOAD
-// ═══════════════════════════════════════════════
-uploadBtn.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", function() {
-  const f = this.files[0]; if (!f) return;
+// ════════════════════════════════════════════
+uploadBtn.addEventListener("click",()=>fileInput.click());
+fileInput.addEventListener("change",function(){
+  const f=this.files[0];if(!f)return;
   const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
   const img=new Image(),url=URL.createObjectURL(f);
   img.onload=()=>{
-    const MAX=1024; let w=img.width,h=img.height;
-    if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+    let w=img.width,h=img.height;
+    const M=1024;if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M;}else{w=Math.round(w*M/h);h=M;}}
     canvas.width=w;canvas.height=h;ctx.drawImage(img,0,0,w,h);
     image64=canvas.toDataURL("image/jpeg",.82);
-    prevThumb.src=image64; prevBar.style.display="flex"; URL.revokeObjectURL(url);
-  };
-  img.src=url;
+    prevThumb.src=image64;prevBar.style.display="flex";URL.revokeObjectURL(url);
+  };img.src=url;
 });
-cancelImg.addEventListener("click",()=>{ image64=null;fileInput.value="";prevBar.style.display="none"; });
+function cancelImg(){image64=null;fileInput.value="";prevBar.style.display="none";}
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  VOICE INPUT
-// ═══════════════════════════════════════════════
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recog=null, isRec=false;
-
-if (SR) {
-  try {
-    recog = new SR();
-    recog.lang           = "id-ID";
-    recog.interimResults = false;
-    recog.maxAlternatives= 1;
-
-    recog.onstart  = () => {
-      isRec = true;
-      micBtn.classList.add("rec");
-      micBtn.textContent = "🔴";
-      msgInput.placeholder = "Mendengarkan...";
-    };
-    recog.onend = () => {
-      isRec = false;
-      micBtn.classList.remove("rec");
-      micBtn.textContent = "🎙️";
-      msgInput.placeholder = "Tanya XREZZKY AI...";
-    };
-    recog.onerror = (e) => {
-      isRec = false;
-      micBtn.classList.remove("rec");
-      micBtn.textContent = "🎙️";
-      msgInput.placeholder = "Tanya XREZZKY AI...";
-      if (e.error === "not-allowed") {
-        showLimitWarn("Izin mikrofon ditolak. Aktifkan di pengaturan browser.");
-      }
-    };
-    recog.onresult = (e) => {
-      const t = e.results[0][0].transcript;
-      if (t.trim()) {
-        msgInput.value = t;
-        msgInput.style.height = "auto";
-        msgInput.style.height = Math.min(msgInput.scrollHeight, 150) + "px";
-        setTimeout(() => doSend(), 400);
-      }
-    };
-  } catch(err) {
-    recog = null;
-    console.warn("SR init failed:", err);
-  }
+// ════════════════════════════════════════════
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recog=null,isRec=false;
+if(SR){
+  try{
+    recog=new SR();recog.lang="id-ID";recog.interimResults=false;recog.maxAlternatives=1;
+    recog.onstart=()=>{isRec=true;micBtn.classList.add("rec");micBtn.textContent="🔴";msgInput.placeholder="Mendengarkan…";};
+    recog.onend=()=>{isRec=false;micBtn.classList.remove("rec");micBtn.textContent="🎙️";msgInput.placeholder="Tanya apa saja…";};
+    recog.onerror=e=>{isRec=false;micBtn.classList.remove("rec");micBtn.textContent="🎙️";msgInput.placeholder="Tanya apa saja…";if(e.error==="not-allowed")showWarn("Izin mikrofon ditolak.");};
+    recog.onresult=e=>{const t=e.results[0][0].transcript;if(t.trim()){msgInput.value=t;msgInput.style.height="auto";msgInput.style.height=Math.min(msgInput.scrollHeight,140)+"px";setTimeout(()=>doSend(),400);}};
+  }catch(e){recog=null;}
 }
-
-// Tetap tampil meski SR tidak ada — tap untuk info
-micBtn.addEventListener("click", e => {
+micBtn.addEventListener("click",e=>{
   e.preventDefault();
-  if (!recog) {
-    showLimitWarn("Browser ini tidak mendukung voice input.");
-    return;
-  }
-  window.speechSynthesis?.cancel();
-  resetTTS();
-  if (isRec) {
-    recog.stop();
-  } else {
-    msgInput.value = "";
-    msgInput.style.height = "auto";
-    try { recog.start(); }
-    catch(err) {
-      // Recreate recognizer if aborted
-      recog.abort();
-      setTimeout(() => { try { recog.start(); } catch {} }, 200);
-    }
-  }
+  if(!recog){showWarn("Browser tidak mendukung voice input.");return;}
+  window.speechSynthesis?.cancel();resetTTS();
+  if(isRec){recog.stop();}else{msgInput.value="";msgInput.style.height="auto";try{recog.start();}catch{recog.abort();setTimeout(()=>{try{recog.start();}catch{}},200);}}
 });
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  TEXTAREA
-// ═══════════════════════════════════════════════
-msgInput.addEventListener("input", function() { this.style.height="auto"; this.style.height=Math.min(this.scrollHeight,150)+"px"; });
-msgInput.addEventListener("keydown", e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();doSend();} });
-sendBtn.addEventListener("click", doSend);
+// ════════════════════════════════════════════
+msgInput.addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,140)+"px";});
+msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();doSend();}});
+sendBtn.addEventListener("click",doSend);
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
 //  SEND
-// ═══════════════════════════════════════════════
-async function doSend() {
-  if (isBusy) return;
-  const text = msgInput.value.trim();
-  const img  = image64;
-  if (!text && !img) return;
+// ════════════════════════════════════════════
+async function doSend(){
+  if(isBusy)return;
+  const text=msgInput.value.trim();
+  const img=image64;
+  if(!text&&!img)return;
 
-  // Maintenance check
-  if (sysSettings.maintenance_mode) {
-    showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
-    return;
-  }
-  // Login required check
-  if (sysSettings.login_required && !fbUser) {
-    showLimitWarn("Kamu harus login dulu untuk chat!");
-    openAuthModal("login");
-    return;
-  }
-  // Chat limit — maxChat=0 berarti tidak ada limit (skip check)
-  if (maxChat > 0 && usedChat >= maxChat) {
-    showLimitWarn("Kapasitas chat harian kamu sudah habis! Login untuk dapat limit lebih banyak.");
-    return;
-  }
-  // Photo checks
-  if (img) {
-    if (!fbUser && !sysSettings.allow_guest_photos) {
-      showLimitWarn("Guest tidak bisa kirim foto. Login dulu ya!");
-      openAuthModal("login");
-      return;
-    }
-    if (maxPhoto > 0 && usedPhoto >= maxPhoto) {
-      showLimitWarn("Limit kirim foto kamu hari ini sudah habis!");
-      return;
-    }
+  if(sysSettings.maintenance_mode){showWarn("Sistem sedang maintenance.");return;}
+  if(sysSettings.login_required&&!fbUser){showWarn("Kamu harus login untuk chat.");openAuthModal("login");return;}
+  if(maxChat>0&&usedChat>=maxChat){showWarn("Kapasitas chat harian habis. Login untuk limit lebih banyak.");return;}
+  if(img){
+    if(!fbUser&&!sysSettings.allow_guest_photos){showWarn("Guest tidak bisa kirim foto. Login dulu.");openAuthModal("login");return;}
+    if(maxPhoto>0&&usedPhoto>=maxPhoto){showWarn("Limit kirim foto hari ini habis.");return;}
   }
 
-  isBusy = true;
+  isBusy=true;
   feed.querySelector(".welcome")?.remove();
 
-  const time = nowTime();
-  msgInput.value=""; msgInput.style.height="auto";
-  image64=null; fileInput.value=""; prevBar.style.display="none";
+  const time=nowTime();
+  msgInput.value="";msgInput.style.height="auto";
+  image64=null;fileInput.value="";prevBar.style.display="none";
 
-  renderMsg(text, img, "user", time);
-  saveLocalMsg(text, img, "user", time);
+  renderMsg(text,img,"user",time);
+  saveMsg(text,img,"user",time);
   renderHist();
 
   // Thinking
-  const tid = "t_" + Date.now();
-  const trow = document.createElement("div");
-  trow.id=tid; trow.className="msg-row bot msg-in";
+  const tid="t_"+Date.now();
+  const trow=document.createElement("div");
+  trow.id=tid;trow.className="msg-row bot msg-in";
   trow.innerHTML=`<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
-  feed.appendChild(trow); scrollDown();
+  feed.appendChild(trow);scrollDown();
+  let ti=0;
+  const tiv=setInterval(()=>{ti=(ti+1)%THINK.length;const el=document.querySelector(`#${tid} .think-lbl`);if(el)el.textContent=THINK[ti];else clearInterval(tiv);},950);
 
-  let tIdx=0;
-  const tIv = setInterval(()=>{
-    tIdx=(tIdx+1)%THINK.length;
-    const el=document.querySelector(`#${tid} .think-lbl`);
-    if(el) el.textContent=THINK[tIdx]; else clearInterval(tIv);
-  },900);
+  try{
+    const headers={"Content-Type":"application/json"};
+    if(fbUser){try{idToken=await fbUser.getIdToken(false);}catch{idToken=null;}}
+    if(idToken)headers["Authorization"]="Bearer "+idToken;
 
-  try {
-    const headers = {"Content-Type":"application/json"};
-    if (fbUser) {
-      try {
-        // Refresh token before each request (auto handles expiry)
-        idToken = await fbUser.getIdToken(false);
-      } catch { idToken = null; }
+    const r=await fetch(API_URL,{method:"POST",headers,body:JSON.stringify({user_message:text,user_image:img,sess:curSess})});
+    clearInterval(tiv);document.getElementById(tid)?.remove();
+
+    if(r.status===403){const e=await r.json().catch(()=>({}));showWarn(e.reason||"Akses ditolak.");isBusy=false;return;}
+    if(r.status===429){const e=await r.json().catch(()=>({}));showWarn(e.reason||"Limit habis.");isBusy=false;return;}
+    if(r.status===503){showWarn("Sistem maintenance. Coba lagi nanti.");isBusy=false;return;}
+    if(!r.ok)throw new Error("HTTP "+r.status);
+
+    const data=await r.json();
+    const rep=data.response||"Tidak ada respons.";
+    const bt=nowTime();
+
+    if(!fbUser){
+      usedChat++;if(img)usedPhoto++;updateQuota();
+      const key="xrk_gu_"+todayKey();
+      const gu=JSON.parse(localStorage.getItem(key)||"{}");
+      gu.c=(gu.c||0)+1;if(img)gu.p=(gu.p||0)+1;
+      localStorage.setItem(key,JSON.stringify(gu));
     }
-    if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
 
-    const r = await fetch(API_URL, {
-      method:"POST",
-      headers,
-      body: JSON.stringify({ user_message:text, user_image:img, sess:curSess }),
-    });
-
-    clearInterval(tIv);
-    document.getElementById(tid)?.remove();
-
-    if (r.status===403) {
-      const err=await r.json().catch(()=>({}));
-      showLimitWarn(err.reason||"Akses ditolak.");
-      isBusy=false; return;
-    }
-    if (r.status===429) {
-      const err=await r.json().catch(()=>({}));
-      showLimitWarn(err.reason||"Limit kamu sudah habis.");
-      isBusy=false; return;
-    }
-    if (r.status===503) {
-      showLimitWarn("Sistem sedang maintenance. Coba lagi nanti.");
-      isBusy=false; return;
-    }
-    if (!r.ok) throw new Error("HTTP "+r.status);
-
-    const data = await r.json();
-    const rep  = data.response || "Maaf, tidak ada respons.";
-    const bt   = nowTime();
-
-    // Guest: update localStorage usage (login user handled by realtime listener)
-    if (!fbUser) {
-      usedChat++;
-      if (img) usedPhoto++;
-      updateQuotaBar();
-      const key = "xrk_guest_usage_" + todayKey();
-      const gu  = JSON.parse(localStorage.getItem(key)||"{}");
-      gu.chats  = (gu.chats||0)+1;
-      if (img) gu.photos=(gu.photos||0)+1;
-      localStorage.setItem(key, JSON.stringify(gu));
-    }
-    // Login user: realtime listener di daily_usage akan auto-update quota bar
-
-    // Build bot row with streaming
-    maybeDateSep();
-    const row  = document.createElement("div"); row.className="msg-row bot msg-in";
-    const wrap = document.createElement("div"); wrap.className="bwrap";
-    const bub  = document.createElement("div"); bub.className="bubble";
+    // Build bot row
+    maybeSep();
+    const row=document.createElement("div");row.className="msg-row bot msg-in";
+    const wrap=document.createElement("div");wrap.className="bwrap";
+    const bub=document.createElement("div");bub.className="bubble";
+    if(data.searched){const sb=document.createElement("div");sb.className="search-badge";sb.textContent="🔍 Mencari di web…";bub.appendChild(sb);}
     wrap.appendChild(bub);
+    const foot=document.createElement("div");foot.className="bfoot";
+    const tm=document.createElement("span");tm.className="msg-time";tm.textContent=bt;foot.appendChild(tm);
+    const cp=mkBtn("📋 Salin");
+    cp.addEventListener("click",()=>{navigator.clipboard.writeText(rep).then(()=>{cp.classList.add("ok");cp.textContent="✅ Disalin";setTimeout(()=>{cp.classList.remove("ok");cp.textContent="📋 Salin";},2200);});});
+    foot.appendChild(cp);
+    const tt=mkBtn("🔊 Dengar");tt.addEventListener("click",()=>toggleTTS(rep,tt));foot.appendChild(tt);
+    wrap.appendChild(foot);row.appendChild(wrap);feed.appendChild(row);
 
-    // Search badge if AI used web search
-    if (data.searched) {
-      const sb = document.createElement("div");
-      sb.className="search-badge";
-      sb.innerHTML=`🔍 Mencari di web...`;
-      bub.insertBefore(sb, bub.firstChild);
-    }
-
-    const foot=document.createElement("div"); foot.className="bfoot";
-    const tm=document.createElement("span"); tm.className="msg-time"; tm.textContent=bt;
-    foot.appendChild(tm);
-    const copyBtn=mkBtn(`📋 Salin`);
-    copyBtn.addEventListener("click",()=>{
-      navigator.clipboard.writeText(rep).then(()=>{
-        copyBtn.classList.add("ok"); copyBtn.innerHTML=`✅ Disalin`;
-        setTimeout(()=>{copyBtn.classList.remove("ok");copyBtn.innerHTML=`📋 Salin`;},2200);
-      });
-    });
-    foot.appendChild(copyBtn);
-    const ttsBtn=mkBtn(`🔊 Dengar`);
-    ttsBtn.addEventListener("click",()=>toggleTTS(rep,ttsBtn));
-    foot.appendChild(ttsBtn);
-    // Provider info disembunyikan dari publik — hanya tampil di admin dashboard
-    wrap.appendChild(foot);
-    row.appendChild(wrap);
-    feed.appendChild(row);
-
-    await streamRender(rep, bub);
-    saveLocalMsg(rep, null, "bot", bt);
+    await streamRender(rep,bub);
+    saveMsg(rep,null,"bot",bt);
     renderHist();
-
-  } catch(err) {
-    clearInterval(tIv);
-    document.getElementById(tid)?.remove();
-    const bt = nowTime();
-    renderMsg("Gagal terhubung ke server. Cek koneksi kamu ya 🙏", null, "bot", bt);
-    saveLocalMsg("Gagal terhubung ke server.", null, "bot", bt);
+  }catch(e){
+    clearInterval(tiv);document.getElementById(tid)?.remove();
+    renderMsg("Gagal terhubung ke server. Cek koneksi kamu.",null,"bot",nowTime());
   }
   isBusy=false;
 }
 
-// ═══════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════
-function scrollDown() { requestAnimationFrame(()=>{ feedWrap.scrollTop=feedWrap.scrollHeight; }); }
-function nowTime()    { return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":","·"); }
-function esc(s)       { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-// ═══════════════════════════════════════════════
-//  CONNECTION TEST
-// ═══════════════════════════════════════════════
-async function testConnection() {
-  const bar = document.getElementById("apiStatus");
-  const msg = document.getElementById("apiStatusMsg");
-  if (!bar || !msg) return;
-  msg.textContent = "Mengecek koneksi...";
-  bar.style.display = "flex";
-  try {
-    const testUrl = API_URL.includes("?") ? API_URL : API_URL + "?action=ping";
-    const r = await fetch(testUrl, {
-      method: "GET",
-      signal: AbortSignal.timeout(6000),
-    });
-    if (r.ok) {
-      // 405 = Method Not Allowed → server hidup tapi method salah → OK
-      bar.style.background = "rgba(34,197,94,.08)";
-      bar.style.borderColor = "rgba(34,197,94,.25)";
-      bar.style.color = "#22c55e";
-      msg.textContent = "✅ Server terhubung — " + API_URL;
-      setTimeout(() => { bar.style.display = "none"; }, 3000);
-    } else {
-      msg.textContent = "⚠️ Server error " + r.status + " — " + API_URL;
-    }
-  } catch(e) {
-    msg.textContent = "❌ Tidak bisa reach " + API_URL + " — " + e.message;
-  }
+// ════════════════════════════════════════════
+//  WIDGETS
+// ════════════════════════════════════════════
+function updateWidgets(){
+  const now=new Date();
+  setText("wDate",now.toLocaleDateString("id-ID",{weekday:"short",day:"numeric",month:"short",year:"numeric"}));
+  const h=now.getHours();
+  const icons=h<5||h>=19?"🌙":h<12?"☀️":h<15?"🌤️":"🌅";
+  setText("wIcon",icons);
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(async p=>{
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+        const d=await res.json();
+        setText("wLoc",(d.address.city||d.address.town||d.address.state||"Indonesia"));
+      }catch{setText("wLoc","Indonesia");}
+    },()=>setText("wLoc","Indonesia"),{timeout:4000});
+  }else setText("wLoc","Indonesia");
 }
+updateWidgets();setInterval(updateWidgets,60000);
 
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════
+function scrollDown(){requestAnimationFrame(()=>{feedWrap.scrollTop=feedWrap.scrollHeight;});}
+function nowTime(){return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":",".");}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+// ════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════
-window.addEventListener("load", () => {
-  if (!curSess) {
-    curSess="s_"+Date.now(); localStorage.setItem(CK,curSess);
-    savLocalSess(curSess,"Obrolan Baru");
-  }
-  // Auto-test connection after 2s
-  setTimeout(testConnection, 2000);
+// ════════════════════════════════════════════
+window.addEventListener("load",()=>{
+  if(!curSess){curSess="s_"+Date.now();localStorage.setItem(CK,curSess);saveLS(curSess,"Percakapan Baru");}
+  setTimeout(async()=>{
+    try{
+      const r=await fetch(API_URL+"?action=ping",{signal:AbortSignal.timeout(5000)});
+      if(!r.ok)showWarn("Server tidak merespons. Pastikan Vercel sudah di-deploy.",8000);
+    }catch{showWarn("Tidak bisa menjangkau server. Cek koneksi atau deploy Vercel.",8000);}
+  },3000);
 });
 </script>
-
-<!-- ══ AUTH MODAL ════════════════════════════════ -->
-<div id="authModal">
-  <div class="auth-card" style="position:relative">
-    <button class="auth-close" onclick="closeAuthModal()">✕</button>
-
-    <div class="auth-head">
-      <div class="auth-logo">X</div>
-      <h2>Masuk ke XREZZKY AI</h2>
-      <p>Login untuk limit lebih banyak & riwayat tersimpan</p>
-    </div>
-
-    <!-- Tabs -->
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin"    onclick="switchAuthTab('login')">Masuk</button>
-      <button class="auth-tab"        id="tabRegister" onclick="switchAuthTab('register')">Daftar</button>
-      <button class="auth-tab"        id="tabReset"    onclick="switchAuthTab('reset')">Reset</button>
-    </div>
-
-    <!-- Alert message -->
-    <div style="padding:0 24px;margin-top:10px">
-      <div class="auth-msg" id="authMsg"></div>
-    </div>
-
-    <!-- ── LOGIN ── -->
-    <div class="auth-body" id="formLogin">
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" class="auth-input" id="loginEmail" placeholder="email@gmail.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <div class="auth-pw-wrap">
-          <input type="password" class="auth-input" id="loginPass" placeholder="Password kamu" autocomplete="current-password">
-          <button class="auth-pw-eye" onclick="togglePw('loginPass',this)">👁</button>
-        </div>
-      </div>
-      <button class="auth-btn" id="btnLogin" onclick="doEmailLogin()">
-        → Masuk
-      </button>
-      <div style="text-align:center;margin-top:-2px">
-        <button onclick="switchAuthTab('reset')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;text-decoration:underline">
-          Lupa password?
-        </button>
-      </div>
-    </div>
-
-    <!-- ── REGISTER ── -->
-    <div class="auth-body" id="formRegister" style="display:none">
-      <div class="auth-field">
-        <label>Nama</label>
-        <input type="text" class="auth-input" id="regName" placeholder="Nama kamu" autocomplete="name">
-      </div>
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" class="auth-input" id="regEmail" placeholder="email@gmail.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <div class="auth-pw-wrap">
-          <input type="password" class="auth-input" id="regPass" placeholder="Min. 6 karakter" autocomplete="new-password">
-          <button class="auth-pw-eye" onclick="togglePw('regPass',this)">👁</button>
-        </div>
-      </div>
-      <div class="auth-field">
-        <label>Konfirmasi Password</label>
-        <div class="auth-pw-wrap">
-          <input type="password" class="auth-input" id="regPass2" placeholder="Ulangi password" autocomplete="new-password">
-          <button class="auth-pw-eye" onclick="togglePw('regPass2',this)">👁</button>
-        </div>
-      </div>
-      <button class="auth-btn" id="btnRegister" onclick="doEmailRegister()">
-        + Buat Akun
-      </button>
-    </div>
-
-    <!-- ── RESET PASSWORD ── -->
-    <div class="auth-body" id="formReset" style="display:none">
-      <p style="font-size:13px;color:var(--sub);text-align:center;line-height:1.6">
-        Masukkan email kamu, kami akan kirimkan link reset password.
-      </p>
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" class="auth-input" id="resetEmail" placeholder="email@gmail.com" autocomplete="email">
-      </div>
-      <button class="auth-btn" id="btnReset" onclick="doResetPassword()">
-        📧 Kirim Link Reset
-      </button>
-    </div>
-
-    <div class="auth-footer">
-      <span>Lanjut tanpa login?</span>
-      <button class="auth-link" onclick="closeAuthModal()">Lewati →</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
