@@ -905,6 +905,12 @@ async function initSession(newSess=false) {
     curSess="s_"+Date.now();
     localStorage.setItem(CK,curSess);
     saveLS(curSess,"Percakapan Baru");
+  } else {
+    // Pastikan sesi yang ada memang exist di LS
+    const d=getLS();
+    if(!d[curSess]){
+      saveLS(curSess,"Percakapan Baru");
+    }
   }
   if(_cfgRef){_cfgRef.off("value");_cfgRef=null;}
   if(_usageRef){_usageRef.off("value");_usageRef=null;}
@@ -974,18 +980,50 @@ function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;
 const getLS=()=>JSON.parse(localStorage.getItem(SK)||"{}");
 const setLS=d=>localStorage.setItem(SK,JSON.stringify(d));
 function saveLS(id,title){const d=getLS();if(!d[id])d[id]={title,ts:Date.now(),chats:[]};else d[id].ts=Date.now();setLS(d);}
+const MAX_MSGS = 20;   // max pesan per sesi
+const MAX_SESS = 10;   // max sesi tersimpan
+
 function saveMsg(text,img,role,time){
-  const d=getLS();if(!d[curSess])return;
-  if(role==="user"&&!d[curSess].chats?.length&&text)d[curSess].title=text.slice(0,46);
-  d[curSess].chats=d[curSess].chats||[];
-  d[curSess].chats.push({text,img,role,time});
-  d[curSess].ts=Date.now();setLS(d);
+  const d = getLS();
+
+  // Auto-create session jika belum ada
+  if(!d[curSess]){
+    d[curSess] = { title:"Percakapan Baru", ts:Date.now(), chats:[] };
+  }
+
+  // Set title dari pesan pertama user
+  if(role==="user" && d[curSess].chats.filter(c=>c.role==="user").length===0 && text){
+    d[curSess].title = text.slice(0,46);
+  }
+
+  d[curSess].chats = d[curSess].chats || [];
+  // Jangan simpan base64 image di localStorage (terlalu besar)
+  d[curSess].chats.push({text, img: img ? "[foto]" : null, role, time});
+
+  // Batasi 20 pesan terakhir per sesi
+  if(d[curSess].chats.length > MAX_MSGS){
+    d[curSess].chats = d[curSess].chats.slice(-MAX_MSGS);
+  }
+
+  d[curSess].ts = Date.now();
+
+  // Batasi 10 sesi tersimpan — hapus yang paling lama
+  const keys = Object.keys(d).sort((a,b) => d[b].ts - d[a].ts);
+  if(keys.length > MAX_SESS){
+    keys.slice(MAX_SESS).forEach(k => { if(k !== curSess) delete d[k]; });
+  }
+
+  setLS(d);
 }
 function loadLocalSess(){
   feed.innerHTML="";lastDate=null;
   const d=getLS()[curSess];
   if(!d?.chats?.length){showWelcome();return;}
-  d.chats.forEach(c=>renderMsg(c.text,c.img,c.role,c.time));
+  d.chats.forEach(c=>{
+    // img dari LS hanya "[foto]" string — tidak perlu di-render sebagai gambar
+    const imgData = (c.img && c.img !== "[foto]") ? c.img : null;
+    renderMsg(c.text, imgData, c.role, c.time);
+  });
   scrollDown();
 }
 
@@ -1012,16 +1050,30 @@ function renderHist(){
     const el=document.createElement("div");
     el.className="hi"+(k===curSess?" active":"");
     el.innerHTML=`<div style="flex:1;min-width:0"><div class="hi-t">${esc(s.title||"Percakapan")}</div><div class="hi-d">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus">✕</button>`;
-    el.addEventListener("click",()=>{curSess=k;localStorage.setItem(CK,k);feed.innerHTML="";lastDate=null;loadLocalSess();renderHist();closeSB();});
+    el.addEventListener("click",()=>{
+      curSess=k;
+      localStorage.setItem(CK,k);
+      feed.innerHTML="";lastDate=null;
+      loadLocalSess();
+      renderHist();
+      closeSB();
+    });
     el.querySelector(".hi-del").addEventListener("click",e=>{
       e.stopPropagation();
-      const all=getLS();delete all[k];setLS(all);
+      const all=getLS();
+      delete all[k];
+      setLS(all);
       if(k===curSess){
-        const rem=Object.keys(getLS());
-        curSess=rem.length?rem[0]:"s_"+Date.now();
-        if(!rem.length)saveLS(curSess,"Percakapan Baru");
+        const remaining=Object.keys(getLS()).sort((a,b)=>(getLS()[b]?.ts||0)-(getLS()[a]?.ts||0));
+        if(remaining.length){
+          curSess=remaining[0];
+        } else {
+          curSess="s_"+Date.now();
+          saveLS(curSess,"Percakapan Baru");
+        }
         localStorage.setItem(CK,curSess);
-        feed.innerHTML="";lastDate=null;loadLocalSess();
+        feed.innerHTML="";lastDate=null;
+        loadLocalSess();
       }
       renderHist();
     });
@@ -1031,14 +1083,22 @@ function renderHist(){
 
 newChatBtn.addEventListener("click",()=>{initSession(true);closeSB();});
 clearBtn.addEventListener("click",()=>{
-  if(!confirm("Hapus percakapan ini?"))return;
+  if(!window.confirm("Hapus percakapan ini?"))return;
   window.speechSynthesis?.cancel();
-  const d=getLS();delete d[curSess];setLS(d);
-  const rem=Object.keys(getLS());
-  curSess=rem.length?rem[0]:"s_"+Date.now();
-  if(!rem.length)saveLS(curSess,"Percakapan Baru");
+  const d = getLS();
+  delete d[curSess];
+  setLS(d);
+  const rem = Object.keys(getLS());
+  if(rem.length){
+    curSess = rem.sort((a,b)=>getLS()[b]?.ts - getLS()[a]?.ts)[0];
+  } else {
+    curSess = "s_"+Date.now();
+    saveLS(curSess,"Percakapan Baru");
+  }
   localStorage.setItem(CK,curSess);
-  feed.innerHTML="";lastDate=null;loadLocalSess();renderHist();
+  feed.innerHTML=""; lastDate=null;
+  loadLocalSess();
+  renderHist();
 });
 
 // ════════════════════════════════════════════
