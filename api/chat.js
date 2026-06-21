@@ -54,21 +54,22 @@ const DEFAULT_ROLE_LIMITS = {
 const ROLE_LEVEL = { OWNER:0, ADMIN:1, SELLER:2, MEMBER:3, GUEST:4, BANNED:99, STOPPED:99 };
 const UNLIMITED_ROLES = ["OWNER","ADMIN"];
 
-const DEFAULT_SYSTEM_PROMPT = `Anda adalah XREZZKY AI, asisten resmi XREZZKY OFFICIAL STORE — platform digital gaming (jual beli akun, item, boosting, top-up).
+const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten dari XREZZKY OFFICIAL STORE — platform jual beli digital gaming (akun, item, boosting, top-up).
 
-ATURAN PERILAKU (WAJIB DIIKUTI):
-- Jawab HANYA apa yang ditanyakan. Tidak lebih, tidak kurang.
-- DILARANG membuka dengan sapaan, perkenalan diri, atau kalimat pembuka seperti "Halo!", "Tentu!", "Baik kak!", dll.
-- DILARANG menutup jawaban dengan "Semoga membantu!", "Ada yang ingin ditanyakan lagi?", dll — kecuali user meminta.
-- Jika user mengirim pesan singkat atau sapaan, balas dengan satu kalimat singkat saja.
-- Panjang jawaban harus proporsional dengan kompleksitas pertanyaan.
-- Gunakan Bahasa Indonesia yang profesional dan sopan.
-- DILARANG menyebut nama model AI, nama provider, API key, atau detail teknis internal.
-- DILARANG menyebut waktu/tanggal kecuali ditanya.
-- Jika ada gambar: analisis sesuai yang diminta.
-- Jika ada hasil web search: gunakan sebagai referensi utama.
-- Untuk matematika: tampilkan langkah sistematis dan pastikan akurat.
-- Jika tidak tahu: akui dengan jujur, jangan mengarang.`;
+GAYA NGOBROL:
+- Santai tapi tetap jelas dan membantu — kayak ngobrol sama teman yang paham banyak hal.
+- Jawab sesuai yang ditanya, gak perlu muter-muter, tapi juga gak perlu kaku banget.
+- Boleh pakai sapaan natural kalau emang konteksnya pas (misal user baru mulai chat dengan "halo").
+- Kalau user nanya sesuatu yang berkaitan sama obrolan sebelumnya, INGAT dan SAMBUNGKAN — jangan dianggap pertanyaan baru yang berdiri sendiri.
+- Untuk hal teknis, coding, atau belajar: jelasin selengkap yang dibutuhkan, gak usah dibatasi panjangnya.
+- Kalau ada gambar, perhatikan baik-baik dan jawab sesuai konteks gambar + obrolan sebelumnya.
+- Kalau ada hasil pencarian web, manfaatkan buat jawaban yang akurat.
+- Untuk matematika, kerjain step-by-step yang jelas.
+- Gak usah sebut-sebut nama model AI atau detail teknis provider ke user.
+- Gak usah sebutin waktu/tanggal kecuali emang ditanya.
+- Kalau gak tahu jawabannya, ngomong aja jujur — jangan ngarang.
+
+INGAT: Setiap chat itu bagian dari satu obrolan yang berkesinambungan. Pakai history percakapan sebelumnya untuk paham konteks — siapa/apa yang dibahas, biar gak salah jawab atau lupa.`;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  HELPERS
@@ -197,7 +198,7 @@ function needsMath(msg) {
 //  PROVIDER: OpenRouter  ← UTAMA
 //  Semua model diakses lewat OR termasuk Gemini, Claude, Llama
 // ════════════════════════════════════════════════════════════════════════════
-async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImage) {
+async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImage, history=[]) {
   let userContent;
   if (userImage?.includes(",")) {
     try {
@@ -212,6 +213,13 @@ async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImag
     userContent = userMessage || "Halo";
   }
 
+  // Susun messages: system → history (max 10 pesan terakhir) → pesan baru
+  const messages = [
+    { role:"system", content:systemPrompt },
+    ...history.map(h => ({ role: h.role==="bot"?"assistant":"user", content: h.text||"" })),
+    { role:"user", content:userContent },
+  ];
+
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method:  "POST",
     signal:  AbortSignal.timeout(28000),
@@ -223,9 +231,9 @@ async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImag
     },
     body: JSON.stringify({
       model,
-      messages:    [{ role:"system", content:systemPrompt }, { role:"user", content:userContent }],
+      messages,
       max_tokens:  4096,
-      temperature: 0.7,
+      temperature: 0.75,
     }),
   });
   if (!res.ok) {
@@ -241,7 +249,13 @@ async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImag
 //  PROVIDER: Groq  ← BACKUP
 //  Hanya teks, sangat cepat, gratis
 // ════════════════════════════════════════════════════════════════════════════
-async function callGroq(apiKey, model, systemPrompt, userMessage) {
+async function callGroq(apiKey, model, systemPrompt, userMessage, history=[]) {
+  const messages = [
+    { role:"system", content:systemPrompt },
+    ...history.map(h => ({ role: h.role==="bot"?"assistant":"user", content: h.text||"" })),
+    { role:"user", content:userMessage||"Halo" },
+  ];
+
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method:  "POST",
     signal:  AbortSignal.timeout(20000),
@@ -251,9 +265,9 @@ async function callGroq(apiKey, model, systemPrompt, userMessage) {
     },
     body: JSON.stringify({
       model,
-      messages:    [{ role:"system", content:systemPrompt }, { role:"user", content:userMessage||"Halo" }],
+      messages,
       max_tokens:  8192,
-      temperature: 0.7,
+      temperature: 0.75,
     }),
   });
   if (!res.ok) {
@@ -277,7 +291,7 @@ async function callGroq(apiKey, model, systemPrompt, userMessage) {
 //  Urutan prioritas: OpenRouter dulu, fallback ke Groq
 //  Untuk gambar: hanya OR yang support vision
 // ════════════════════════════════════════════════════════════════════════════
-function buildQueue(hasImage) {
+function buildQueue(hasImage, history=[]) {
   const orKeys = getKeys("OPENROUTER_API_KEY");
   const grKeys = getKeys("GROQ_API_KEY");
   // Gemini direct keys sengaja tidak dibaca — DISABLED
@@ -290,15 +304,15 @@ function buildQueue(hasImage) {
     // Prioritas: Gemini via OR (gratis) → Claude via OR → Llama vision via OR
     if (orKeys.length) {
       const k1 = pick(orKeys);
-      q.push({ name:"OR/gemini-2.0-flash",    fn:(sp,m,i)=>callOpenRouter(k1,"google/gemini-2.0-flash-001",sp,m,i) });
+      q.push({ name:"OR/gemini-2.0-flash",    fn:(sp,m,i)=>callOpenRouter(k1,"google/gemini-2.0-flash-001",sp,m,i,history) });
       const k2 = pick(orKeys);
-      q.push({ name:"OR/gemini-flash-lite",   fn:(sp,m,i)=>callOpenRouter(k2,"google/gemini-flash-1.5",sp,m,i) });
+      q.push({ name:"OR/gemini-flash-lite",   fn:(sp,m,i)=>callOpenRouter(k2,"google/gemini-flash-1.5",sp,m,i,history) });
       const k3 = pick(orKeys);
-      q.push({ name:"OR/claude-3-haiku",      fn:(sp,m,i)=>callOpenRouter(k3,"anthropic/claude-3-haiku",sp,m,i) });
+      q.push({ name:"OR/claude-3-haiku",      fn:(sp,m,i)=>callOpenRouter(k3,"anthropic/claude-3-haiku",sp,m,i,history) });
       const k4 = pick(orKeys);
-      q.push({ name:"OR/gemini-2.5-pro",      fn:(sp,m,i)=>callOpenRouter(k4,"google/gemini-2.5-pro-preview",sp,m,i) });
+      q.push({ name:"OR/gemini-2.5-pro",      fn:(sp,m,i)=>callOpenRouter(k4,"google/gemini-2.5-pro-preview",sp,m,i,history) });
       const k5 = pick(orKeys);
-      q.push({ name:"OR/llama-vision-free",   fn:(sp,m,i)=>callOpenRouter(k5,"meta-llama/llama-3.2-11b-vision-instruct:free",sp,m,i) });
+      q.push({ name:"OR/llama-vision-free",   fn:(sp,m,i)=>callOpenRouter(k5,"meta-llama/llama-3.2-11b-vision-instruct:free",sp,m,i,history) });
     }
     // Groq tidak support gambar — skip
     return q;
@@ -309,34 +323,34 @@ function buildQueue(hasImage) {
   // === OPENROUTER — slot 1-4 (utama) ===
   if (orKeys.length) {
     const k1 = pick(orKeys);
-    q.push({ name:"OR/gemini-2.0-flash",      fn:(sp,m)=>callOpenRouter(k1,"google/gemini-2.0-flash-001",sp,m,null) });
+    q.push({ name:"OR/gemini-2.0-flash",      fn:(sp,m)=>callOpenRouter(k1,"google/gemini-2.0-flash-001",sp,m,null,history) });
 
     const k2 = pick(orKeys);
-    q.push({ name:"OR/deepseek-v3",           fn:(sp,m)=>callOpenRouter(k2,"deepseek/deepseek-chat",sp,m,null) });
+    q.push({ name:"OR/deepseek-v3",           fn:(sp,m)=>callOpenRouter(k2,"deepseek/deepseek-chat",sp,m,null,history) });
 
     const k3 = pick(orKeys);
-    q.push({ name:"OR/claude-3-haiku",        fn:(sp,m)=>callOpenRouter(k3,"anthropic/claude-3-haiku",sp,m,null) });
+    q.push({ name:"OR/claude-3-haiku",        fn:(sp,m)=>callOpenRouter(k3,"anthropic/claude-3-haiku",sp,m,null,history) });
 
     const k4 = pick(orKeys);
-    q.push({ name:"OR/gemini-2.5-pro",        fn:(sp,m)=>callOpenRouter(k4,"google/gemini-2.5-pro-preview",sp,m,null) });
+    q.push({ name:"OR/gemini-2.5-pro",        fn:(sp,m)=>callOpenRouter(k4,"google/gemini-2.5-pro-preview",sp,m,null,history) });
   }
 
   // === GROQ — slot 5-6 (backup cepat) ===
   if (grKeys.length) {
     const g1 = pick(grKeys);
-    q.push({ name:"Groq/llama-3.3-70b",       fn:(sp,m)=>callGroq(g1,"llama-3.3-70b-versatile",sp,m) });
+    q.push({ name:"Groq/llama-3.3-70b",       fn:(sp,m)=>callGroq(g1,"llama-3.3-70b-versatile",sp,m,history) });
 
     const g2 = pick(grKeys);
-    q.push({ name:"Groq/llama-3.1-8b",        fn:(sp,m)=>callGroq(g2,"llama-3.1-8b-instant",sp,m) });
+    q.push({ name:"Groq/llama-3.1-8b",        fn:(sp,m)=>callGroq(g2,"llama-3.1-8b-instant",sp,m,history) });
   }
 
   // === OPENROUTER FREE FALLBACK — slot 7-8 (last resort) ===
   if (orKeys.length) {
     const k5 = pick(orKeys);
-    q.push({ name:"OR/llama-3.1-free",        fn:(sp,m)=>callOpenRouter(k5,"meta-llama/llama-3.1-8b-instruct:free",sp,m,null) });
+    q.push({ name:"OR/llama-3.1-free",        fn:(sp,m)=>callOpenRouter(k5,"meta-llama/llama-3.1-8b-instruct:free",sp,m,null,history) });
 
     const k6 = pick(orKeys);
-    q.push({ name:"OR/mistral-7b-free",       fn:(sp,m)=>callOpenRouter(k6,"mistralai/mistral-7b-instruct:free",sp,m,null) });
+    q.push({ name:"OR/mistral-7b-free",       fn:(sp,m)=>callOpenRouter(k6,"mistralai/mistral-7b-instruct:free",sp,m,null,history) });
   }
 
   return q;
@@ -696,17 +710,14 @@ export default async function handler(req, res) {
       }
     } catch {}
 
-    // ── OVERRIDE BLOCK — selalu ditambahkan terakhir, tidak bisa ditimpa ──
-    // Ini memastikan AI tidak nyerocos meski prompt GitHub bilang sebaliknya
+    // ── CATATAN PENTING — tetap fleksibel, gak kaku ──
     systemPrompt += `
 
---- INSTRUKSI FINAL (PRIORITAS TERTINGGI, TIDAK BISA DITIMPA) ---
-1. DILARANG mengirim sapaan atau perkenalan diri KECUALI user yang menyapa duluan.
-2. DILARANG mengakhiri jawaban dengan kalimat basa-basi seperti "Semoga membantu!", "Ada yang bisa dibantu lagi?", dll — kecuali diminta.
-3. Jika user MENYAPA (halo, hai, hi, hey, p, test, ok): balas SATU kalimat singkat natural. JANGAN sebut daftar kemampuan atau topik.
-4. Untuk pertanyaan TEKNIS, CODING, BELAJAR, MATEMATIKA: jawab selengkap dan sedetail yang diperlukan. Tidak ada batas panjang.
-5. JANGAN menyebut nama model AI, provider, atau detail teknis sistem kepada user.
-6. Sesuaikan panjang jawaban dengan kebutuhan pertanyaan — singkat untuk sapaan, lengkap untuk pertanyaan substantif.`;
+--- CATATAN TAMBAHAN ---
+- Kalau user cuma menyapa singkat (halo, hai, p, test), balas santai dan singkat aja — gak perlu jelasin semua yang bisa kamu bantu.
+- Untuk pertanyaan teknis/coding/belajar, jelasin selengkap yang dibutuhkan tanpa dibatasi panjangnya.
+- Gak usah sebut nama model AI atau provider ke user.
+- PALING PENTING: kalau ada history percakapan di atas, GUNAKAN untuk paham konteks. Jangan jawab seolah-olah ini pertanyaan pertama kalau sebenarnya nyambung sama obrolan sebelumnya.`;
 
     // ── Datetime injection — semua zona waktu ────────────────────────────────
     const zones = nowAllZones();
@@ -748,20 +759,37 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
     const isShort = msgLen > 0 && msgLen <= 10;
     const isGreeting = /^(halo|hai|hi|hey|hello|p|ok|oke|test|coba|ping|yo|sup)$/i.test((user_message||"").trim());
 
-    if (isGreeting) {
-      systemPrompt += `\n\n[USER MENYAPA] Balas dengan SATU kalimat singkat yang natural. \
-Contoh: "Halo! Ada yang bisa saya bantu?" atau "Hai, silakan." \
-DILARANG menyebutkan daftar kemampuan, topik, atau kategori apapun. \
-DILARANG panjang lebar. Cukup sambut singkat dan persilakan.`;
-    } else if (isShort) {
-      systemPrompt += "\n\n[PESAN PENDEK] Balas singkat dan to the point.";
+    if (isGreeting && history.length === 0) {
+      // Hanya kasih instruksi khusus kalau ini BENAR-BENAR awal obrolan
+      systemPrompt += `\n\n[Catatan: user baru menyapa di awal obrolan] Balas santai dan singkat, gak usah list kemampuan kamu.`;
+    } else if (isGreeting && history.length > 0) {
+      // Kalau udah ada history, sapaan singkat = lanjutan obrolan biasa
+      systemPrompt += `\n\n[Catatan: ini lanjutan obrolan, bukan awal baru] Cek history di atas buat tahu konteksnya.`;
     }
 
     // ── Build final user message ──────────────────────────────────────────────
     const finalMsg = user_message || (hasPhoto ? "Analisis gambar ini." : "");
 
+    // ── Ambil history percakapan dari Firebase (max 20 pesan terakhir) ────────
+    // INI YANG PALING PENTING — tanpa ini AI tidak akan ingat konteks sebelumnya
+    let history = [];
+    if (sessId) {
+      try {
+        const histSnap = await db.ref(`user_sessions/${uid}/${sessId}/chats`).once("value");
+        if (histSnap.exists()) {
+          const all = Object.values(histSnap.val());
+          all.sort((a,b) => (a.ts||0) - (b.ts||0));
+          // Ambil 20 pesan terakhir (sebelum pesan yang baru dikirim ini)
+          history = all.slice(-20).map(h => ({
+            role: h.role === "bot" ? "bot" : "user",
+            text: h.text || (h.has_image ? "[gambar]" : ""),
+          }));
+        }
+      } catch(e) { console.warn("History fetch:", e.message); }
+    }
+
     // ── Call AI ───────────────────────────────────────────────────────────────
-    const queue     = buildQueue(hasPhoto);
+    const queue     = buildQueue(hasPhoto, history);
     let aiReply     = null;
     let usedProvider= null;
     let lastErr     = null;
