@@ -558,19 +558,30 @@ function lsSaveMsg(text,img,r,time) {
   const s = d[sesId];
   if (r==="user" && s.msgs.filter(m=>m.r==="user").length===0 && text)
     s.title = text.slice(0,48);
-  s.msgs.push({text, img: img?"[img]":null, r, time});
+  // Simpan gambar penuh di localStorage HP user (per device, bukan ke Firebase)
+  s.msgs.push({text, img: img||null, r, time});
   if (s.msgs.length > MAX_MSG) s.msgs = s.msgs.slice(-MAX_MSG);
   s.ts = Date.now();
   // Keep only MAX_SES newest sessions
   const keys = Object.keys(d).sort((a,b)=>d[b].ts-d[a].ts);
   keys.slice(MAX_SES).forEach(k=>{ if(k!==sesId) delete d[k]; });
-  lsSet(d);
+  try {
+    lsSet(d);
+  } catch(e) {
+    // localStorage penuh (quota exceeded) — hapus sesi paling lama dan coba lagi
+    console.warn("LS quota exceeded, cleaning old sessions:", e.message);
+    const allKeys = Object.keys(d).sort((a,b)=>d[a].ts-d[b].ts);
+    if (allKeys.length > 1) {
+      delete d[allKeys[0]];
+      try { lsSet(d); } catch {}
+    }
+  }
 }
 function lsLoad() {
   feed.innerHTML=""; lastDate=null;
   const d = lsGet()[sesId];
   if (!d?.msgs?.length) { showWelcome(); return; }
-  d.msgs.forEach(m => renderMsg(m.text, null, m.r, m.time));
+  d.msgs.forEach(m => renderMsg(m.text, m.img, m.r, m.time));
   scrollBot();
 }
 function lsDelSes(id) {
@@ -956,7 +967,7 @@ function renderMsg(text, img64, r, time) {
   const wrap=document.createElement("div"); wrap.className="bwrap";
   const bub=document.createElement("div"); bub.className="bubble";
 
-  if(img64 && img64!=="[img]") {
+  if(img64) {
     const im=document.createElement("img"); im.src=img64; im.className="chat-img";
     im.addEventListener("click",()=>openImgModal(img64));
     bub.appendChild(im);
