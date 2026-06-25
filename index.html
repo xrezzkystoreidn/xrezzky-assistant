@@ -123,7 +123,6 @@ body{display:flex}
 .ibtn.send{background:var(--accent);color:#fff;font-size:15px;box-shadow:0 2px 10px rgba(37,99,235,.35)}.ibtn.send:hover{opacity:.88}
 .ibtn.rec{color:var(--red);background:rgba(239,68,68,.12);animation:blink 1.4s infinite}
 .input-hint{text-align:center;font-size:10px;color:var(--muted);margin-top:5px}
-/* Admin button */
 .admin-btn{
   margin:6px 10px 0;padding:9px 11px;
   background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(245,158,11,.08));
@@ -320,8 +319,8 @@ const API     = (location.protocol==="file:"||location.hostname==="localhost"||!
                 ? VERCEL+"/api/chat" : "/api/chat";
 const LS_KEY  = "xrk_sessions";
 const LS_CUR  = "xrk_cur";
-const MAX_MSG = 20;
-const MAX_SES = 10;
+const MAX_MSG = 30;
+const MAX_SES = 12;
 const THINK   = ["Sedang berpikir…","Menyusun jawaban…","Memproses…","Sebentar…"];
 
 // ─── State ───
@@ -752,7 +751,7 @@ msgInput.addEventListener("input",function(){this.style.height="auto";this.style
 msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
-// ─── Send Message ───
+// ─── Send Message (DIPERBAIKI: kirim history percakapan) ───
 async function sendMsg(){
   if(busy)return;
   const text=msgInput.value.trim();
@@ -784,6 +783,26 @@ async function sendMsg(){
   lsSaveMsg(text,sentImg,"user",time);
   renderHist();
 
+  // ─── AMBIL HISTORY PERCAKAPAN ───
+  const d = lsGet();
+  const sessData = d[sesId];
+  let history = [];
+  if (sessData && sessData.msgs && sessData.msgs.length > 0) {
+    // Ambil maksimal 20 pesan terakhir biar ga kebanyakan
+    const msgs = sessData.msgs.slice(-20);
+    for (const m of msgs) {
+      if (!m.text) continue;
+      history.push({
+        role: m.r === 'user' ? 'user' : 'assistant',
+        content: m.text
+      });
+    }
+  }
+  // Tambahkan pesan user saat ini ke history (biar backend langsung proses)
+  if (text) {
+    history.push({ role: 'user', content: text });
+  }
+
   const tid="t"+Date.now();
   const trow=document.createElement("div");trow.id=tid;trow.className="msg-row bot msg-in";
   trow.innerHTML=`<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
@@ -795,7 +814,17 @@ async function sendMsg(){
     if(fbUser){try{token=await fbUser.getIdToken(false);}catch{token=null;}}
     const headers={"Content-Type":"application/json"};
     if(token)headers["Authorization"]="Bearer "+token;
-    const res=await fetch(API,{method:"POST",headers,body:JSON.stringify({user_message:text,user_image:sentImg,sess:sesId})});
+
+    // Kirim history + pesan + gambar
+    const payload = {
+      user_message: text || "",
+      user_image: sentImg || null,
+      sess: sesId,
+      history: history,           // <-- INI YANG DITAMBAHKAN
+      timestamp: Date.now()
+    };
+
+    const res=await fetch(API,{method:"POST",headers,body:JSON.stringify(payload)});
     clearInterval(tiv);document.getElementById(tid)?.remove();
 
     if(res.status===403){const e=await res.json().catch(()=>({}));warn(e.reason||"Akses ditolak.");busy=false;return;}
