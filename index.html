@@ -313,8 +313,9 @@ firebase.initializeApp(FB);
 const FBA = firebase.auth();
 const FBD = firebase.database();
 
-// ─── API & Constants ───
-const API = "/api/chat";  // pakai relative, sesuaikan dengan backend di Vercel
+// ─── API endpoint (pakai /api/chat.js) ───
+const API = "/api/chat.js";
+
 const LS_KEY  = "xrk_sessions";
 const LS_CUR  = "xrk_cur";
 const MAX_MSG = 30;
@@ -659,19 +660,16 @@ function renderMsg(text,imgSrc,r,time,extra){
     cp.addEventListener("click",()=>{navigator.clipboard.writeText(text).then(()=>{cp.classList.add("ok");cp.textContent="✅ Disalin";setTimeout(()=>{cp.classList.remove("ok");cp.textContent="📋 Salin";},2200);});});
     foot.appendChild(cp);
     const tt=makeBtn("🔊 Dengar");tt.addEventListener("click",()=>toggleTTS(text,tt));foot.appendChild(tt);
-    if(extra && extra.retry){ // jika ada tombol coba lagi
+    if(extra && extra.retry){
       const retryBtn=makeBtn("🔄 Coba lagi");
       retryBtn.addEventListener("click",()=>{
-        // cari pesan user terakhir dan kirim ulang
         const lastUser = Array.from(feed.querySelectorAll('.msg-row.user')).pop();
         if(lastUser){
           const textEl = lastUser.querySelector('.bubble .md');
           const imgEl = lastUser.querySelector('.bubble .chat-img');
           const userText = textEl ? textEl.textContent : '';
           const userImg = imgEl ? imgEl.src : null;
-          // hapus pesan error ini
           row.remove();
-          // kirim ulang
           sendRaw(userText, userImg);
         }
       });
@@ -769,26 +767,15 @@ document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
 // ─── Send Message (dengan retry & fallback) ───
 async function sendRaw(text, img) {
-  // fungsi internal untuk kirim ulang
+  // Fungsi untuk retry, langsung panggil doSend tanpa render ulang user
+  if (busy) return;
   busy = true;
-  // render ulang pesan user? sudah ada, kita langsung proses ke backend
-  // tapi kita perlu ambil history terbaru
   await doSend(text, img);
+  busy = false;
 }
 
 async function doSend(text, img) {
-  // text dan img sudah disiapkan, kita proses
-  // kita sudah punya text dan img dari parameter, tapi jika tidak ada, ambil dari input
-  if (!text && !img) {
-    text = msgInput.value.trim();
-    img = img64;
-  }
-  if (!text && !img) { busy = false; return; }
-
-  // simpan pesan user ke localStorage dulu (tapi kalau sudah dirender, jangan double)
-  // di sini kita asumsikan pesan user sudah dirender di luar fungsi ini
-  // kita hanya proses ke backend
-
+  // text dan img sudah siap, tidak perlu render ulang user
   const tid = "t"+Date.now();
   const trow = document.createElement("div"); trow.id = tid; trow.className = "msg-row bot msg-in";
   trow.innerHTML = `<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
@@ -801,7 +788,7 @@ async function doSend(text, img) {
   }, 950);
 
   try {
-    // ambil history
+    // ambil history dari localStorage (sudah termasuk pesan user terbaru)
     const d = lsGet();
     const sessData = d[sesId];
     let history = [];
@@ -812,6 +799,7 @@ async function doSend(text, img) {
         history.push({ role: m.r === 'user' ? 'user' : 'assistant', content: m.text });
       }
     }
+    // tambahkan pesan user saat ini (bisa dari parameter)
     if (text) history.push({ role: 'user', content: text });
 
     if (fbUser) { try { token = await fbUser.getIdToken(false); } catch { token = null; } }
@@ -827,7 +815,7 @@ async function doSend(text, img) {
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     const res = await fetch(API, {
       method: "POST",
@@ -840,9 +828,9 @@ async function doSend(text, img) {
     clearInterval(tiv);
     document.getElementById(tid)?.remove();
 
-    if (res.status === 403) { const e = await res.json().catch(()=>({})); warn(e.reason || "Akses ditolak."); busy=false; return; }
-    if (res.status === 429) { const e = await res.json().catch(()=>({})); warn(e.reason || "Limit habis."); busy=false; return; }
-    if (res.status === 503) { warn("Sistem maintenance."); busy=false; return; }
+    if (res.status === 403) { const e = await res.json().catch(()=>({})); warn(e.reason || "Akses ditolak."); return; }
+    if (res.status === 429) { const e = await res.json().catch(()=>({})); warn(e.reason || "Limit habis."); return; }
+    if (res.status === 503) { warn("Sistem maintenance."); return; }
     if (!res.ok) throw new Error("HTTP "+res.status);
 
     const data = await res.json();
@@ -885,15 +873,13 @@ async function doSend(text, img) {
   } catch (e) {
     clearInterval(tiv);
     document.getElementById(tid)?.remove();
-    // Tampilkan pesan error yang ramah dengan tombol coba lagi
     const errMsg = e.name === 'AbortError' ? 'Server tidak merespons (timeout).' : 'Gagal terhubung ke server.';
     renderMsg(errMsg + ' Coba lagi nanti.', null, 'bot', nowTime(), { retry: true });
     console.error(e);
   }
-  busy = false;
 }
 
-// Fungsi utama sendMsg
+// ─── Fungsi utama sendMsg ───
 async function sendMsg() {
   if (busy) return;
   const text = msgInput.value.trim();
@@ -913,7 +899,11 @@ async function sendMsg() {
     if (maxP > 0 && usedP >= maxP) { warn("Limit foto hari ini habis."); return; }
   }
 
-  // Clear input dan render pesan user
+  // ─── HAPUS WELCOME ───
+  const welcomeEl = feed.querySelector(".welcome");
+  if (welcomeEl) welcomeEl.remove();
+
+  // Render pesan user
   const time = nowTime();
   msgInput.value = ""; msgInput.style.height = "auto";
   const sentImg = img64;
@@ -923,11 +913,10 @@ async function sendMsg() {
   renderHist();
 
   // Kirim ke backend
+  busy = true;
   await doSend(text, sentImg);
+  busy = false;
 }
-
-// ─── Fallback sederhana jika server down (opsional) ───
-// tidak perlu, karena sudah ada tombol retry
 
 // ─── Utils ───
 function scrollBot(){ requestAnimationFrame(()=>{ feedWrap.scrollTop = feedWrap.scrollHeight; }); }
