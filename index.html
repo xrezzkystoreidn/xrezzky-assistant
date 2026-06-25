@@ -34,7 +34,6 @@
             --sidebar: 268px;
         }
 
-        /* ─── RESET ─── */
         *,
         *::before,
         *::after {
@@ -407,6 +406,25 @@
             margin-left: auto;
             flex-shrink: 0;
         }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: var(--sub);
+            padding: 0 6px;
+        }
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            transition: background .3s;
+            flex-shrink: 0;
+        }
+        .status-dot.offline {
+            background: var(--red);
+        }
 
         .login-banner {
             margin: 7px 14px 0;
@@ -534,6 +552,7 @@
             display: flex;
             align-items: flex-end;
             gap: 8px;
+            position: relative;
         }
         .msg-row.user {
             flex-direction: row-reverse;
@@ -542,6 +561,7 @@
             display: flex;
             flex-direction: column;
             max-width: 80%;
+            position: relative;
         }
         .msg-row.user .bwrap {
             align-items: flex-end;
@@ -555,6 +575,7 @@
             font-size: 14px;
             line-height: 1.75;
             word-break: break-word;
+            position: relative;
         }
         .msg-row.user .bubble {
             background: var(--accent);
@@ -566,6 +587,14 @@
             color: var(--text);
             border: 1px solid var(--border2);
             border-bottom-left-radius: 4px;
+        }
+
+        .bubble.editable {
+            outline: 1px dashed var(--accent);
+            cursor: text;
+        }
+        .bubble.editable:focus {
+            outline: 2px solid var(--accent);
         }
 
         .md strong {
@@ -723,6 +752,24 @@
             color: var(--red);
             border-color: rgba(239, 68, 68, .35);
             background: rgba(239, 68, 68, .07);
+        }
+        .msg-del {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 12px;
+            padding: 2px 5px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: all .15s;
+            line-height: 1;
+        }
+        .msg-row:hover .msg-del {
+            opacity: 1;
+        }
+        .msg-del:hover {
+            color: var(--red);
+            background: rgba(239, 68, 68, .1);
         }
 
         .thinking {
@@ -1277,6 +1324,10 @@
                 <div class="widget"><span id="wIcon">🌤️</span> <span id="wLoc">Indonesia</span></div>
             </div>
             <div class="hdr-right">
+                <div class="status-indicator" title="Status koneksi">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusLabel">Online</span>
+                </div>
                 <button class="icon-btn" id="openHistBtn" title="Riwayat">🕐</button>
                 <button class="icon-btn" id="clearBtn" title="Hapus percakapan">🗑️</button>
             </div>
@@ -1310,7 +1361,7 @@
                     <textarea id="msgInput" placeholder="Tanya apa saja…" rows="1" autocomplete="off"></textarea>
                     <button class="ibtn send" id="sendBtn" aria-label="Kirim">↑</button>
                 </div>
-                <div class="input-hint">Enter kirim · Shift+Enter baris baru</div>
+                <div class="input-hint">Enter kirim · Shift+Enter baris baru · double-click pesan user untuk edit</div>
             </div>
         </div>
     </div>
@@ -1378,14 +1429,19 @@
         const FBA = firebase.auth();
         const FBD = firebase.database();
 
+        // ─── API ENDPOINT ───
+        const API = (() => {
+            const isLocal = location.protocol === "file:" || location.hostname === "localhost" || location.hostname ===
+                "127.0.0.1";
+            return isLocal ?
+                "https://xrezzky-storeid.vercel.app/api/chat" :
+                "/api/chat";
+        })();
+
         // ─── CONSTANTS ───
-        const VERCEL = "https://xrezzky-storeid.vercel.app";
-        const API = (location.protocol === "file:" || location.hostname === "localhost" || !location.hostname.includes(
-                "vercel.app"))
-            ? VERCEL + "/api/chat"
-            : "/api/chat";
         const LS_KEY = "xrk_sessions";
         const LS_CUR = "xrk_cur";
+        const DEVICE_KEY = "xrk_device_id";
         const MAX_MSG = 20;
         const MAX_SES = 10;
         const THINK = ["Sedang berpikir…", "Menyusun jawaban…", "Memproses…", "Sebentar…"];
@@ -1408,6 +1464,14 @@
             refUsage = null,
             refSys = null;
         let voiceLoaded = false;
+        let messageIdCounter = 0;
+        let isLoggedIn = false;
+        let fbChatsRef = null; // untuk realtime listener di Firebase
+        let deviceId = localStorage.getItem(DEVICE_KEY) || (() => {
+            const id = "dev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+            localStorage.setItem(DEVICE_KEY, id);
+            return id;
+        })();
 
         // ─── DOM REFS ───
         const feed = document.getElementById("feed");
@@ -1433,6 +1497,17 @@
         const openHistBtn = document.getElementById("openHistBtn");
         const clearBtn = document.getElementById("clearBtn");
         const newChatBtn = document.getElementById("newChatBtn");
+        const statusDot = document.getElementById("statusDot");
+        const statusLabel = document.getElementById("statusLabel");
+
+        // ─── STATUS ONLINE ───
+        function setOnline(online) {
+            statusDot.className = "status-dot" + (online ? "" : " offline");
+            statusLabel.textContent = online ? "Online" : "Offline";
+        }
+        window.addEventListener("online", () => setOnline(true));
+        window.addEventListener("offline", () => setOnline(false));
+        setOnline(navigator.onLine);
 
         // ─── LOCAL STORAGE HELPERS ───
         function lsGet() {
@@ -1447,17 +1522,20 @@
             const d = lsGet();
             d[id] = { title: t || "Percakapan Baru", ts: Date.now(), msgs: [] };
             lsSet(d);
+            // jika user login, simpan ke Firebase juga
+            if (fbUser) fbSaveSessions(d);
         }
 
-        function lsSaveMsg(text, img, r, time) {
+        function lsSaveMsg(text, img, r, time, mid) {
             const d = lsGet();
             if (!d[sesId]) d[sesId] = { title: "Percakapan Baru", ts: Date.now(), msgs: [] };
             const s = d[sesId];
-            // Set title from first user message
             if (r === "user" && s.msgs.filter(m => m.r === "user").length === 0 && text) {
                 s.title = text.slice(0, 48);
             }
-            s.msgs.push({ text, img: img || null, r, time });
+            const entry = { text, img: img || null, r, time, mid: mid || Date.now() + "_" + Math.random().toString(36)
+                .slice(2, 6) };
+            s.msgs.push(entry);
             if (s.msgs.length > MAX_MSG) s.msgs = s.msgs.slice(-MAX_MSG);
             s.ts = Date.now();
             const keys = Object.keys(d).sort((a, b) => d[b].ts - d[a].ts);
@@ -1467,21 +1545,123 @@
                 if (all.length > 1) { delete d[all[0]];
                     try { lsSet(d); } catch {} }
             }
+            // jika user login, simpan ke Firebase
+            if (fbUser) fbSaveSessions(d);
+            return entry.mid;
+        }
+
+        function lsDelMsg(mid) {
+            const d = lsGet();
+            if (!d[sesId]) return;
+            d[sesId].msgs = d[sesId].msgs.filter(m => m.mid !== mid);
+            lsSet(d);
+            if (fbUser) fbSaveSessions(d);
+        }
+
+        function lsUpdateMsg(mid, newText) {
+            const d = lsGet();
+            if (!d[sesId]) return;
+            const msg = d[sesId].msgs.find(m => m.mid === mid);
+            if (msg) {
+                msg.text = newText;
+                lsSet(d);
+                if (fbUser) fbSaveSessions(d);
+            }
         }
 
         function lsDelSes(id) {
             const d = lsGet();
             delete d[id];
             lsSet(d);
+            if (fbUser) fbSaveSessions(d);
         }
 
         function lsLoad() {
             feed.innerHTML = "";
             lastDate = null;
-            const d = lsGet()[sesId];
+            let data = lsGet();
+            // jika user login dan ada data di Firebase, kita akan timpa dengan Firebase
+            // tapi kita sudah sinkron di fbLoadSessions
+            const d = data[sesId];
             if (!d?.msgs?.length) { showWelcome(); return; }
-            d.msgs.forEach(m => renderMsg(m.text, m.img, m.r, m.time));
+            d.msgs.forEach(m => renderMsg(m.text, m.img, m.r, m.time, m.mid));
             scrollBot();
+        }
+
+        // ─── FIREBASE SYNC ───
+        function fbSaveSessions(sessions) {
+            if (!fbUser) return;
+            const uid = fbUser.uid;
+            // simpan semua sesi di bawah users_config/{uid}/chats
+            FBD.ref(`users_config/${uid}/chats`).set(sessions).catch(err => {
+                console.warn("Gagal simpan ke Firebase:", err);
+            });
+        }
+
+        function fbLoadSessions() {
+            return new Promise((resolve, reject) => {
+                if (!fbUser) return resolve(null);
+                const uid = fbUser.uid;
+                FBD.ref(`users_config/${uid}/chats`).once("value").then(snap => {
+                    const data = snap.val();
+                    if (data) {
+                        // timpa localStorage dengan data Firebase
+                        lsSet(data);
+                        // update sesId jika perlu
+                        const keys = Object.keys(data).sort((a, b) => data[b].ts - data[a].ts);
+                        if (keys.length > 0) {
+                            // jika sesId tidak ada di data, ambil yang pertama
+                            if (!data[sesId]) {
+                                sesId = keys[0];
+                                localStorage.setItem(LS_CUR, sesId);
+                            }
+                        } else {
+                            // tidak ada sesi, buat baru
+                            sesId = "s_" + Date.now();
+                            localStorage.setItem(LS_CUR, sesId);
+                            lsNewSes(sesId);
+                        }
+                        resolve(data);
+                    } else {
+                        // tidak ada data di Firebase, gunakan localStorage yang ada
+                        resolve(null);
+                    }
+                }).catch(err => {
+                    reject(err);
+                });
+            });
+        }
+
+        // Realtime listener untuk perubahan dari perangkat lain
+        function fbListenSessions() {
+            if (!fbUser) return;
+            const uid = fbUser.uid;
+            if (fbChatsRef) fbChatsRef.off();
+            fbChatsRef = FBD.ref(`users_config/${uid}/chats`);
+            fbChatsRef.on("value", snap => {
+                const data = snap.val();
+                if (data) {
+                    const oldData = lsGet();
+                    // bandingkan apakah ada perubahan
+                    if (JSON.stringify(data) !== JSON.stringify(oldData)) {
+                        lsSet(data);
+                        // reload feed jika sesId masih sama
+                        if (data[sesId]) {
+                            // update tampilan
+                            feed.innerHTML = "";
+                            lastDate = null;
+                            const d = data[sesId];
+                            if (d?.msgs?.length) {
+                                d.msgs.forEach(m => renderMsg(m.text, m.img, m.r, m.time, m.mid));
+                                scrollBot();
+                            } else {
+                                showWelcome();
+                            }
+                        }
+                        renderHist();
+                    }
+                }
+            });
         }
 
         // ─── TODAY KEY ───
@@ -1616,6 +1796,12 @@
                 refUsage = null; }
 
             if (fbUser) {
+                isLoggedIn = true;
+                // Load dari Firebase
+                await fbLoadSessions();
+                // Pasang listener realtime
+                fbListenSessions();
+
                 refCfg = FBD.ref(`users_config/${fbUser.uid}`);
                 refCfg.on("value", snap => {
                     const c = snap.val() || {};
@@ -1638,6 +1824,9 @@
                     updateQuota();
                 });
             } else {
+                isLoggedIn = false;
+                if (fbChatsRef) { fbChatsRef.off();
+                    fbChatsRef = null; }
                 applyGuestLimits();
             }
             lsLoad();
@@ -1646,6 +1835,7 @@
 
         // ─── AUTH STATE ───
         FBA.onAuthStateChanged(async user => {
+            const prevUser = fbUser;
             fbUser = user;
             if (user) {
                 token = await user.getIdToken(true).catch(() => null);
@@ -1656,6 +1846,7 @@
                 authBtn.innerHTML = "↩";
                 authBtn.title = "Logout";
                 closeAuth();
+                // update config
                 FBD.ref(`users_config/${user.uid}`).once("value").then(async snap => {
                     if (!snap.exists()) {
                         let cl = 50,
@@ -1686,6 +1877,8 @@
                     refCfg = null; }
                 if (refUsage) { refUsage.off("value");
                     refUsage = null; }
+                if (fbChatsRef) { fbChatsRef.off();
+                    fbChatsRef = null; }
                 role = "GUEST";
                 usedC = 0;
                 usedP = 0;
@@ -1955,8 +2148,7 @@
         }
 
         // ─── RENDER MESSAGE ───
-        function renderMsg(text, img, r, time) {
-            // Date separator
+        function renderMsg(text, img, r, time, mid) {
             const t = new Date().toDateString();
             if (t !== lastDate) {
                 lastDate = t;
@@ -1967,10 +2159,43 @@
             }
             const row = document.createElement("div");
             row.className = `msg-row ${r} msg-in`;
+            row.dataset.mid = mid || "";
             const wrap = document.createElement("div");
             wrap.className = "bwrap";
             const bub = document.createElement("div");
             bub.className = "bubble";
+            if (r === "user") {
+                bub.contentEditable = false;
+                bub.addEventListener("dblclick", function(e) {
+                    if (r !== "user") return;
+                    if (this.contentEditable === "true") return;
+                    this.contentEditable = "true";
+                    this.classList.add("editable");
+                    this.focus();
+                    const sel = window.getSelection();
+                    sel.selectAllChildren(this);
+                    sel.collapseToEnd();
+                });
+                bub.addEventListener("blur", function(e) {
+                    if (this.contentEditable !== "true") return;
+                    const newText = this.textContent.trim();
+                    if (newText !== text) {
+                        const oldMid = row.dataset.mid;
+                        if (oldMid) {
+                            lsUpdateMsg(oldMid, newText);
+                            text = newText;
+                        }
+                    }
+                    this.contentEditable = "false";
+                    this.classList.remove("editable");
+                });
+                bub.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter") { e.preventDefault();
+                        this.blur(); }
+                    if (e.key === "Escape") { this.textContent = text;
+                        this.blur(); }
+                });
+            }
             if (img) {
                 const im = document.createElement("img");
                 im.src = img;
@@ -1992,6 +2217,19 @@
             tm.className = "msg-time";
             tm.textContent = time || nowTime();
             foot.appendChild(tm);
+            const delBtn = document.createElement("button");
+            delBtn.className = "msg-del";
+            delBtn.textContent = "✕";
+            delBtn.title = "Hapus pesan ini";
+            delBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const midDel = row.dataset.mid;
+                if (midDel && confirm("Hapus pesan ini?")) {
+                    lsDelMsg(midDel);
+                    row.remove();
+                    if (!feed.querySelector(".msg-row")) showWelcome();
+                }
+            });
             if (r === "bot" && text) {
                 const cp = makeBtn("📋 Salin");
                 cp.addEventListener("click", () => {
@@ -2007,6 +2245,7 @@
                 tt.addEventListener("click", () => toggleTTS(text, tt));
                 foot.appendChild(tt);
             }
+            foot.appendChild(delBtn);
             wrap.appendChild(foot);
             row.appendChild(wrap);
             feed.appendChild(row);
@@ -2078,7 +2317,6 @@
             window.speechSynthesis.speak(utt);
         }
 
-        // Preload voices
         if (window.speechSynthesis) {
             window.speechSynthesis.getVoices();
             window.speechSynthesis.onvoiceschanged = () => { voiceLoaded = true; };
@@ -2202,12 +2440,10 @@
             const img = img64;
             if (!text && !img) return;
 
-            // Maintenance & login check
             if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
             if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat.");
                 openAuth("login"); return; }
 
-            // Chat limit
             if (maxC > 0 && usedC >= maxC) {
                 warn(fbUser ? "Kapasitas chat harian habis. Coba lagi besok." :
                     "Kapasitas chat habis. Login untuk limit lebih banyak.");
@@ -2215,7 +2451,6 @@
                 return;
             }
 
-            // Photo check
             if (img) {
                 if (!fbUser && !sys.allow_guest_photos) { warn("Guest tidak bisa kirim foto. Login dulu.");
                     openAuth("login"); return; }
@@ -2232,8 +2467,9 @@
             fileInput.value = "";
             prevBar.style.display = "none";
 
-            renderMsg(text, sentImg, "user", time);
-            lsSaveMsg(text, sentImg, "user", time);
+            const mid = Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+            renderMsg(text, sentImg, "user", time, mid);
+            lsSaveMsg(text, sentImg, "user", time, mid);
             renderHist();
 
             const tid = "t" + Date.now();
@@ -2256,6 +2492,7 @@
                 if (fbUser) { try { token = await fbUser.getIdToken(false); } catch { token = null; } }
                 const headers = { "Content-Type": "application/json" };
                 if (token) headers["Authorization"] = "Bearer " + token;
+                if (!navigator.onLine) throw new Error("No internet connection");
                 const res = await fetch(API, {
                     method: "POST",
                     headers,
@@ -2278,7 +2515,6 @@
                 const rep = data.response || "Tidak ada respons.";
                 const bt = nowTime();
 
-                // Update guest usage
                 if (!fbUser) {
                     usedC++;
                     if (sentImg) usedP++;
@@ -2322,16 +2558,33 @@
                 const tt = makeBtn("🔊 Dengar");
                 tt.addEventListener("click", () => toggleTTS(rep, tt));
                 foot.appendChild(tt);
+                const delBtn = document.createElement("button");
+                delBtn.className = "msg-del";
+                delBtn.textContent = "✕";
+                delBtn.title = "Hapus pesan ini";
+                const botMid = Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+                row.dataset.mid = botMid;
+                delBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (confirm("Hapus pesan ini?")) {
+                        lsDelMsg(botMid);
+                        row.remove();
+                        if (!feed.querySelector(".msg-row")) showWelcome();
+                    }
+                });
+                foot.appendChild(delBtn);
                 wrap.appendChild(foot);
                 row.appendChild(wrap);
                 feed.appendChild(row);
                 await streamRender(rep, bub);
-                lsSaveMsg(rep, null, "bot", bt);
+                lsSaveMsg(rep, null, "bot", bt, botMid);
                 renderHist();
             } catch (e) {
                 clearInterval(tiv);
                 document.getElementById(tid)?.remove();
-                renderMsg("Gagal terhubung ke server. Cek koneksi kamu.", null, "bot", nowTime());
+                const errMsg = e.message.includes("internet") ? "Tidak ada koneksi internet." :
+                    "Gagal terhubung ke server. Cek koneksi atau API.";
+                renderMsg(errMsg, null, "bot", nowTime());
                 console.error("Send error:", e);
             }
             busy = false;
@@ -2347,10 +2600,10 @@
             setTimeout(async () => {
                 try {
                     const r = await fetch(API + "?action=ping", { signal: AbortSignal.timeout(5000) });
-                    if (!r.ok) warn("Server tidak merespons. Pastikan Vercel sudah di-deploy.", 8000);
-                } catch { warn("Tidak bisa menjangkau server. Cek koneksi atau Vercel deploy.", 8000); }
+                    if (!r.ok) warn("Server tidak merespons. Pastikan api/chat.js sudah berjalan.", 8000);
+                } catch { warn("Tidak bisa menjangkau server. Cek koneksi atau api/chat.js.", 8000); }
             }, 2500);
         });
     </script>
 </body>
-  </html>
+    </html>
