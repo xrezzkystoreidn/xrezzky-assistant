@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
+/* (CSS sama seperti sebelumnya, tidak diubah) */
 :root {
   --bg:#0b0f17;--surface:#111827;--card:#131a26;--card2:#1a2235;
   --border:rgba(37,99,235,.18);--border2:rgba(255,255,255,.06);
@@ -765,9 +766,8 @@ msgInput.addEventListener("input",function(){this.style.height="auto";this.style
 msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
-// ─── Send Message (dengan retry & fallback) ───
+// ─── Send Message (dengan fallback lokal untuk sapaan) ───
 async function sendRaw(text, img) {
-  // Fungsi untuk retry, langsung panggil doSend tanpa render ulang user
   if (busy) return;
   busy = true;
   await doSend(text, img);
@@ -775,7 +775,6 @@ async function sendRaw(text, img) {
 }
 
 async function doSend(text, img) {
-  // text dan img sudah siap, tidak perlu render ulang user
   const tid = "t"+Date.now();
   const trow = document.createElement("div"); trow.id = tid; trow.className = "msg-row bot msg-in";
   trow.innerHTML = `<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
@@ -788,7 +787,6 @@ async function doSend(text, img) {
   }, 950);
 
   try {
-    // ambil history dari localStorage (sudah termasuk pesan user terbaru)
     const d = lsGet();
     const sessData = d[sesId];
     let history = [];
@@ -799,7 +797,6 @@ async function doSend(text, img) {
         history.push({ role: m.r === 'user' ? 'user' : 'assistant', content: m.text });
       }
     }
-    // tambahkan pesan user saat ini (bisa dari parameter)
     if (text) history.push({ role: 'user', content: text });
 
     if (fbUser) { try { token = await fbUser.getIdToken(false); } catch { token = null; } }
@@ -873,6 +870,15 @@ async function doSend(text, img) {
   } catch (e) {
     clearInterval(tiv);
     document.getElementById(tid)?.remove();
+    // ── FALLBACK UNTUK SAPAAN ──
+    const isGreeting = text && /^(halo|hai|hi|hey|hello|p|ok|oke|test|coba|ping|yo|sup)$/i.test(text.trim());
+    if (isGreeting && !img) {
+      const fallback = "Halo juga! Ada yang bisa saya bantu? 😊";
+      renderMsg(fallback, null, 'bot', nowTime());
+      lsSaveMsg(fallback, null, 'bot', nowTime());
+      renderHist();
+      return;
+    }
     const errMsg = e.name === 'AbortError' ? 'Server tidak merespons (timeout).' : 'Gagal terhubung ke server.';
     renderMsg(errMsg + ' Coba lagi nanti.', null, 'bot', nowTime(), { retry: true });
     console.error(e);
