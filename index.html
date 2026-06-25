@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-/* (CSS sama seperti sebelumnya, tidak diubah) */
 :root {
   --bg:#0b0f17;--surface:#111827;--card:#131a26;--card2:#1a2235;
   --border:rgba(37,99,235,.18);--border2:rgba(255,255,255,.06);
@@ -314,7 +313,7 @@ firebase.initializeApp(FB);
 const FBA = firebase.auth();
 const FBD = firebase.database();
 
-// ─── API endpoint (pakai /api/chat.js) ───
+// ─── API endpoint ───
 const API = "/api/chat.js";
 
 const LS_KEY  = "xrk_sessions";
@@ -412,6 +411,7 @@ function warn(msg,dur=6000){
 // ─── Guest Limits ───
 function applyGuestLimits() {
   if (fbUser) return;
+  // Baca dari system_settings yang sudah di-load
   if (sys.login_required) {
     maxC = 0; maxP = 0;
   } else {
@@ -437,9 +437,32 @@ async function loadSys() {
       sys = snap.val() || {};
       if (!fbUser) applyGuestLimits();
       else updateQuota();
+      // Update login banner jika login_required berubah
+      updateLoginBanner();
     });
   }
   if (!fbUser) applyGuestLimits();
+  updateLoginBanner();
+}
+
+function updateLoginBanner() {
+  const banner = document.getElementById("loginBanner");
+  if (!banner) return;
+  if (fbUser) {
+    banner.style.display = "none";
+    return;
+  }
+  if (sys.login_required) {
+    banner.innerHTML = `🔒 <span><strong style="color:var(--text)">Login wajib</strong> — kamu harus login untuk menggunakan XREZZKY AI</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
+  } else {
+    banner.innerHTML = `🔒 <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
+  }
+  // Re-attach event listener
+  const btn = document.getElementById("loginBannerBtn");
+  if (btn) {
+    btn.addEventListener("click", e => { e.stopPropagation(); openAuth("login"); });
+  }
+  banner.addEventListener("click", () => openAuth("login"));
 }
 
 // ─── Session ───
@@ -455,8 +478,14 @@ async function initSes(fresh=false){
     refCfg.on("value",snap=>{
       const c=snap.val()||{};
       role=c.role||"MEMBER";
-      if(["ADMIN","OWNER"].includes(role)){maxC=99999;maxP=99999;}
-      else{maxC=c.max_chat_limit??50;maxP=c.max_photo_limit??5;}
+      // Cek role_limits dari system_settings
+      const roleLimit = sys.role_limits?.[role] || {};
+      if (["ADMIN","OWNER"].includes(role)) {
+        maxC = 99999; maxP = 99999;
+      } else {
+        maxC = c.max_chat_limit ?? roleLimit.max_chat_limit ?? 50;
+        maxP = c.max_photo_limit ?? roleLimit.max_photo_limit ?? 5;
+      }
       if(role==="BANNED") {warn("⛔ Akun kamu dibanned.");maxC=0;maxP=0;}
       if(role==="STOPPED"){warn("⏸️ Akun dihentikan sementara.");maxC=0;maxP=0;}
       updateRoleBadge();updateQuota();
@@ -487,9 +516,21 @@ FBA.onAuthStateChanged(async user=>{
     closeAuth();
     FBD.ref(`users_config/${user.uid}`).once("value").then(async snap=>{
       if(!snap.exists()){
-        let cl=50,pl=5;
-        try{const rl=await FBD.ref("system_settings/role_limits/MEMBER").once("value"); if(rl.val()){cl=rl.val().max_chat_limit??50;pl=rl.val().max_photo_limit??5;}}catch{}
-        FBD.ref(`users_config/${user.uid}`).set({uid:user.uid,name:n,email:user.email||"",role:"MEMBER",max_chat_limit:cl,max_photo_limit:pl,status:"active",created_at:Date.now(),last_login:Date.now()}).catch(()=>{});
+        // Baca role_limits dari system_settings
+        const roleLimit = sys.role_limits?.MEMBER || {};
+        let cl = roleLimit.max_chat_limit ?? 50;
+        let pl = roleLimit.max_photo_limit ?? 5;
+        FBD.ref(`users_config/${user.uid}`).set({
+          uid:user.uid,
+          name:n,
+          email:user.email||"",
+          role:"MEMBER",
+          max_chat_limit:cl,
+          max_photo_limit:pl,
+          status:"active",
+          created_at:Date.now(),
+          last_login:Date.now()
+        }).catch(()=>{});
       } else {
         FBD.ref(`users_config/${user.uid}/last_login`).set(Date.now()).catch(()=>{});
       }
@@ -505,6 +546,7 @@ FBA.onAuthStateChanged(async user=>{
     document.getElementById("loginBanner").style.display="flex";
     document.getElementById("authBtn").innerHTML="👤";
     document.getElementById("authBtn").title="Login";
+    applyGuestLimits();
   }
   await loadSys();
   await initSes();
@@ -550,7 +592,7 @@ async function doReset(){
 
 // Event listeners
 document.getElementById("authBtn").addEventListener("click",()=>{if(fbUser){if(confirm("Logout dari XREZZKY AI?"))FBA.signOut();}else openAuth("login");});
-document.getElementById("loginBannerBtn").addEventListener("click",e=>{e.stopPropagation();openAuth("login");});
+document.getElementById("loginBannerBtn")?.addEventListener("click",e=>{e.stopPropagation();openAuth("login");});
 document.getElementById("loginBanner").addEventListener("click",()=>openAuth("login"));
 document.getElementById("authModal").addEventListener("click",e=>{if(e.target===document.getElementById("authModal"))closeAuth();});
 document.getElementById("authModalX").addEventListener("click",closeAuth);
@@ -766,7 +808,7 @@ msgInput.addEventListener("input",function(){this.style.height="auto";this.style
 msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
-// ─── Send Message (dengan fallback lokal untuk sapaan) ───
+// ─── Send Message ───
 async function sendRaw(text, img) {
   if (busy) return;
   busy = true;
@@ -870,7 +912,6 @@ async function doSend(text, img) {
   } catch (e) {
     clearInterval(tiv);
     document.getElementById(tid)?.remove();
-    // ── FALLBACK UNTUK SAPAAN ──
     const isGreeting = text && /^(halo|hai|hi|hey|hello|p|ok|oke|test|coba|ping|yo|sup)$/i.test(text.trim());
     if (isGreeting && !img) {
       const fallback = "Halo juga! Ada yang bisa saya bantu? 😊";
@@ -895,14 +936,28 @@ async function sendMsg() {
   if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
   if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat."); openAuth("login"); return; }
 
+  // Cek limit chat
   if (maxC > 0 && usedC >= maxC) {
-    warn(fbUser ? "Kapasitas chat harian habis. Coba lagi besok." : "Kapasitas chat habis. Login untuk limit lebih banyak.");
+    const msg = fbUser
+      ? "Kapasitas chat harian habis. Coba lagi besok."
+      : "Kapasitas chat habis. Login untuk limit lebih banyak atau tunggu besok.";
+    warn(msg);
     if (!fbUser) openAuth("login");
     return;
   }
+
+  // Cek limit foto
   if (img) {
-    if (!fbUser && !sys.allow_guest_photos) { warn("Guest tidak bisa kirim foto. Login dulu."); openAuth("login"); return; }
-    if (maxP > 0 && usedP >= maxP) { warn("Limit foto hari ini habis."); return; }
+    // Cek izin guest kirim foto dari system_settings
+    if (!fbUser && !sys.allow_guest_photos) {
+      warn("Guest tidak bisa kirim foto. Login dulu atau minta admin aktifkan izin guest.");
+      openAuth("login");
+      return;
+    }
+    if (maxP > 0 && usedP >= maxP) {
+      warn("Limit foto hari ini habis.");
+      return;
+    }
   }
 
   // ─── HAPUS WELCOME ───
