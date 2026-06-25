@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  XREZZKY AI — api/chat.js  (Vercel Serverless)
-//  Fitur: AI Multi-Provider (OpenRouter, Groq) · Web Search · Analisis Gambar
-//         Konteks Percakapan · Data Real-time · Firebase Auth & DB
+//  Fitur: AI Multi-Provider · Web Search · Analisis Gambar
+//         Konteks Percakapan · Role-based Limits dari Firebase
 // ═══════════════════════════════════════════════════════════════════════════
 
 import admin from "firebase-admin";
@@ -24,16 +24,6 @@ const auth = admin.auth();
 //  KONSTANTA & KONFIGURASI
 // ═══════════════════════════════════════════════════════════════════════════
 const GITHUB_RAW = "https://raw.githubusercontent.com/xrezzkystoreidn/xrezzky-assistant/main/prompt";
-
-const DEFAULT_ROLE_LIMITS = {
-  OWNER:   { max_chat_limit: 99999, max_photo_limit: 99999 },
-  ADMIN:   { max_chat_limit: 99999, max_photo_limit: 99999 },
-  SELLER:  { max_chat_limit: 200,   max_photo_limit: 50    },
-  MEMBER:  { max_chat_limit: 50,    max_photo_limit: 10    },
-  GUEST:   { max_chat_limit: 10,    max_photo_limit: 0     },
-  BANNED:  { max_chat_limit: 0,     max_photo_limit: 0     },
-  STOPPED: { max_chat_limit: 0,     max_photo_limit: 0     },
-};
 
 const UNLIMITED_ROLES = ["OWNER","ADMIN"];
 
@@ -106,7 +96,7 @@ async function fetchSystemPrompt() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  WEB SEARCH (Google Custom Search API) — DENGAN FAKTA LAPANGAN
+//  WEB SEARCH (Google Custom Search API)
 // ═══════════════════════════════════════════════════════════════════════════
 async function webSearch(query) {
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
@@ -114,8 +104,6 @@ async function webSearch(query) {
   if (!apiKey || !cx) return null;
 
   try {
-    // Gunakan parameter 'dateRestrict' untuk berita terbaru (dalam 7 hari)
-    // Dan 'sort' agar yang terbaru di atas
     const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}&num=5&hl=id&dateRestrict=d7&sort=date`;
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return null;
@@ -154,14 +142,12 @@ function needsSearch(msg) {
     "presiden", "menteri", "pemilu", "hasil", "skor", "pertandingan"
   ];
 
-  // Math/calculation — jangan search
   const mathPattern = /[\d\+\-\*\/\^\=\(\)]{3,}|hitung|kalkul|integral|turunan|limit|matriks|persamaan|modulo|pangkat|akar|sin|cos|tan|log/i;
   if (mathPattern.test(m) && !searchTriggers.some(t => m.includes(t))) return false;
 
   return searchTriggers.some(trigger => m.includes(trigger));
 }
 
-// ── Detect math ────────────────────────────────────────────────────────────
 function needsMath(msg) {
   if (!msg) return false;
   return /[\d\+\-\*\/\^\=\(\)]{3,}|hitung|kalkul|integral|turunan|limit\s|matriks|persamaan|modulo|pangkat|akar\s|sin\(|cos\(|tan\(|log\(|sigma|kombinasi|permutasi|statistik|mean|median|modus|standar deviasi/i.test(msg);
@@ -250,7 +236,7 @@ async function callGroq(apiKey, model, systemPrompt, userMessage, history=[]) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  BUILD QUEUE — PRIORITAS: OPENROUTER → GROQ
+//  BUILD QUEUE
 // ═══════════════════════════════════════════════════════════════════════════
 function buildQueue(hasImage, history=[]) {
   const orKeys = getKeys("OPENROUTER_API_KEY");
@@ -258,9 +244,7 @@ function buildQueue(hasImage, history=[]) {
   const q = [];
 
   if (hasImage) {
-    // HANYA OpenRouter yang support vision
     if (orKeys.length) {
-      // model vision gratis & andal
       const visionModels = [
         "google/gemini-2.0-flash-001",
         "google/gemini-flash-1.5",
@@ -279,8 +263,6 @@ function buildQueue(hasImage, history=[]) {
     return q;
   }
 
-  // ── TEKS ──
-  // 1. OpenRouter (utama)
   if (orKeys.length) {
     const orModels = [
       "google/gemini-2.0-flash-001",
@@ -298,7 +280,6 @@ function buildQueue(hasImage, history=[]) {
     }
   }
 
-  // 2. Groq (backup cepat)
   if (grKeys.length) {
     const grModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     for (const model of grModels) {
@@ -316,44 +297,52 @@ function buildQueue(hasImage, history=[]) {
 // ═══════════════════════════════════════════════════════════════════════════
 //  FIREBASE DB HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
-async function ensureUserConfig(uid, defaultRole="MEMBER", meta={}) {
-  const ref  = db.ref(`users_config/${uid}`);
-  const snap = await ref.once("value");
 
-  let roleLimits = {};
+// ── 🔥 AMBIL ROLE LIMITS DARI FIREBASE ──
+async function getRoleLimits() {
   try {
-    const rlSnap = await db.ref("system_settings/role_limits").once("value");
-    roleLimits = rlSnap.val() || {};
-  } catch {}
-
-  if (!snap.exists()) {
-    const dbLim  = roleLimits[defaultRole] || {};
-    const defLim = DEFAULT_ROLE_LIMITS[defaultRole];
-    const cfg = {
-      role:            defaultRole,
-      max_chat_limit:  dbLim.max_chat_limit  ?? defLim.max_chat_limit,
-      max_photo_limit: dbLim.max_photo_limit ?? defLim.max_photo_limit,
-      name:            meta.name  || "",
-      email:           meta.email || "",
-      created_at:      now(),
-    };
-    await ref.set(cfg);
-    return cfg;
+    const snap = await db.ref("system_settings/role_limits").once("value");
+    return snap.val() || {};
+  } catch {
+    return {};
   }
-
-  const cfg = snap.val();
-  if (roleLimits[cfg.role] && !cfg.custom_limit) {
-    const rl = roleLimits[cfg.role];
-    await ref.update({
-      max_chat_limit:  rl.max_chat_limit,
-      max_photo_limit: rl.max_photo_limit,
-    });
-    cfg.max_chat_limit  = rl.max_chat_limit;
-    cfg.max_photo_limit = rl.max_photo_limit;
-  }
-  return cfg;
 }
 
+// ── 🔥 AMBIL SYSTEM SETTINGS ──
+async function getSystemSettings() {
+  try {
+    const snap = await db.ref("system_settings").once("value");
+    return snap.val() || {};
+  } catch { return {}; }
+}
+
+// ── 🔥 AMBIL LIMIT USER (dengan prioritas: user_config > role_limits) ──
+async function getUserLimits(uid, role, userConfig) {
+  const roleLimits = await getRoleLimits();
+  
+  // ADMIN/OWNER unlimited
+  if (UNLIMITED_ROLES.includes(role)) {
+    return { chatLimit: 99999, photoLimit: 99999 };
+  }
+
+  // Cek user_config dulu (bisa diubah admin)
+  if (userConfig) {
+    const chatLimit = userConfig.max_chat_limit;
+    const photoLimit = userConfig.max_photo_limit;
+    if (chatLimit !== undefined && photoLimit !== undefined) {
+      return { chatLimit, photoLimit };
+    }
+  }
+
+  // Fallback ke role_limits dari Firebase
+  const roleLimit = roleLimits[role] || {};
+  const chatLimit = roleLimit.max_chat_limit ?? 10;
+  const photoLimit = roleLimit.max_photo_limit ?? 0;
+
+  return { chatLimit, photoLimit };
+}
+
+// ── 🔥 AMBIL COUNTER HARIAN ──
 async function getDailyCounter(uid) {
   const key  = todayWIB();
   const ref  = db.ref(`daily_usage/${uid}/${key}`);
@@ -367,6 +356,43 @@ async function getDailyCounter(uid) {
 
 async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v||0)+1);
+}
+
+async function ensureUserConfig(uid, defaultRole="MEMBER", meta={}) {
+  const ref  = db.ref(`users_config/${uid}`);
+  const snap = await ref.once("value");
+
+  if (!snap.exists()) {
+    const roleLimits = await getRoleLimits();
+    const rl = roleLimits[defaultRole] || {};
+    const cfg = {
+      role:            defaultRole,
+      max_chat_limit:  rl.max_chat_limit  ?? 10,
+      max_photo_limit: rl.max_photo_limit ?? 0,
+      name:            meta.name  || "",
+      email:           meta.email || "",
+      is_anonymous:    meta.is_anonymous || false,
+      created_at:      now(),
+    };
+    await ref.set(cfg);
+    return cfg;
+  }
+
+  const cfg = snap.val();
+  // Update last_login
+  await ref.update({ last_login: now() });
+  return cfg;
+}
+
+async function pushChat(uid, sessId, role, text, hasImg) {
+  await db.ref(`user_sessions/${uid}/${sessId}/chats`).push({ role, text, has_image:!!hasImg, ts:now() });
+}
+
+async function ensureSessionMeta(uid, sessId, firstMsg) {
+  const ref  = db.ref(`user_sessions/${uid}/${sessId}/meta`);
+  const snap = await ref.once("value");
+  if (!snap.exists()) await ref.set({ title:firstMsg?.slice(0,50)||"Obrolan Baru", created_at:now() });
+  else await ref.child("last_active").set(now());
 }
 
 async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
@@ -394,24 +420,6 @@ async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
   });
 }
 
-async function pushChat(uid, sessId, role, text, hasImg) {
-  await db.ref(`user_sessions/${uid}/${sessId}/chats`).push({ role, text, has_image:!!hasImg, ts:now() });
-}
-
-async function ensureSessionMeta(uid, sessId, firstMsg) {
-  const ref  = db.ref(`user_sessions/${uid}/${sessId}/meta`);
-  const snap = await ref.once("value");
-  if (!snap.exists()) await ref.set({ title:firstMsg?.slice(0,50)||"Obrolan Baru", created_at:now() });
-  else await ref.child("last_active").set(now());
-}
-
-async function getSystemSettings() {
-  try {
-    const snap = await db.ref("system_settings").once("value");
-    return snap.val() || {};
-  } catch { return {}; }
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 //  MAIN HANDLER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -425,7 +433,7 @@ export default async function handler(req, res) {
 
   // ── AUTH ──────────────────────────────────────────────────────────────────
   let uid = "GUEST_" + ip.replace(/[.:]/g,"_");
-  let uName="Guest", uEmail="", isGuest=true;
+  let uName="Guest", uEmail="", isGuest=true, isAnonymous=false;
 
   const token = (req.headers["authorization"]||"").replace("Bearer ","").trim();
   if (token) {
@@ -434,11 +442,12 @@ export default async function handler(req, res) {
       uid        = dec.uid;
       uName      = dec.name  || dec.email?.split("@")[0] || "User";
       uEmail     = dec.email || "";
+      isAnonymous = dec.firebase?.sign_in_provider === "anonymous";
       const domain = uEmail.split("@")[1]?.toLowerCase();
-      if (!["gmail.com","googlemail.com"].includes(domain)) {
-        return res.status(403).json({ error:"Forbidden", reason:"Hanya akun Google (@gmail.com) yang diizinkan." });
+      if (!isAnonymous && !["gmail.com","googlemail.com"].includes(domain)) {
+        return res.status(403).json({ error:"Forbidden", reason:"Hanya akun Google (@gmail.com) atau Anonymous yang diizinkan." });
       }
-      isGuest = false;
+      isGuest = isAnonymous;
     } catch {
       uid = "GUEST_" + ip.replace(/[.:]/g,"_");
     }
@@ -455,10 +464,14 @@ export default async function handler(req, res) {
   }
 
   // ── USER CONFIG ───────────────────────────────────────────────────────────
-  const userCfg = await ensureUserConfig(uid, isGuest ? "GUEST" : "MEMBER");
-  const { role, max_chat_limit, max_photo_limit } = userCfg;
+  const defaultRole = isGuest ? "GUEST" : "MEMBER";
+  const userCfg = await ensureUserConfig(uid, defaultRole, { name:uName, email:uEmail, is_anonymous:isGuest });
+  const role = userCfg.role || defaultRole;
 
-  // ── GET — init / debug ────────────────────────────────────────────────────
+  // ── 🔥 AMBIL LIMIT DARI FIREBASE ──────────────────────────────────────
+  const { chatLimit, photoLimit } = await getUserLimits(uid, role, userCfg);
+
+  // ── GET — debug ──────────────────────────────────────────────────────────
   if (req.method === "GET") {
     const { action, sess } = req.query;
     if (action === "debug") {
@@ -500,6 +513,7 @@ export default async function handler(req, res) {
         provider_test:   liveTest,
         active_queue:    buildQueue(false).map(p => p.name),
         system_settings: sysCfg,
+        user: { uid, role, chatLimit, photoLimit, isGuest }
       });
     }
 
@@ -507,7 +521,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ status:"ok", ts:new Date(Date.now()+7*3600000).toISOString() });
     }
 
-    // GET data user / session
     const counter = await getDailyCounter(uid).catch(()=>({chats:0,photos:0}));
     let chats=[]; let allSessions=[];
     if (sess) {
@@ -530,7 +543,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       uid, name: uName, email: uEmail, role,
       used_chat: counter.chats||0, used_photo: counter.photos||0,
-      max_chat_limit, max_photo_limit,
+      max_chat_limit: chatLimit,
+      max_photo_limit: photoLimit,
       allow_guest_photos: sysCfg.allow_guest_photos ?? false,
       login_required: sysCfg.login_required ?? false,
       maintenance_mode: sysCfg.maintenance_mode ?? false,
@@ -543,21 +557,34 @@ export default async function handler(req, res) {
     const { user_message="", user_image=null, sess:sessId, history: historyFromFrontend } = req.body || {};
     const hasPhoto = !!(user_image?.includes(","));
 
-    // Rate limit checks
+    // ── 🔥 RATE LIMIT CHECKS ──────────────────────────────────────────────
     const counter = await getDailyCounter(uid).catch(()=>({chats:0,photos:0}));
     const isUnlimited = UNLIMITED_ROLES.includes(role);
 
-    if (!isUnlimited && (counter.chats||0) >= max_chat_limit && max_chat_limit > 0) {
-      return res.status(429).json({ reason:"Kapasitas chat harian kamu sudah habis! Tunggu besok atau upgrade akun.", used_chat:counter.chats, max_chat_limit });
+    // 🔥 Cek limit chat
+    if (!isUnlimited && (counter.chats||0) >= chatLimit && chatLimit > 0) {
+      return res.status(429).json({
+        reason: `Kapasitas chat harian kamu sudah habis! (${counter.chats}/${chatLimit}) Tunggu besok atau upgrade akun.`,
+        used_chat: counter.chats,
+        max_chat_limit: chatLimit
+      });
     }
+
+    // 🔥 Cek limit foto
     if (hasPhoto) {
       if (isGuest && !sysCfg.allow_guest_photos) {
-        return res.status(429).json({ reason:"Guest tidak bisa kirim foto. Login dulu ya!" });
+        return res.status(429).json({ reason:"Guest tidak bisa kirim foto. Login dulu atau minta admin aktifkan izin guest." });
       }
-      if (!isUnlimited && (counter.photos||0) >= max_photo_limit && max_photo_limit > 0) {
-        return res.status(429).json({ reason:"Limit kirim foto kamu hari ini sudah habis!" });
+      if (!isUnlimited && (counter.photos||0) >= photoLimit && photoLimit > 0) {
+        return res.status(429).json({
+          reason: `Limit kirim foto kamu hari ini sudah habis! (${counter.photos}/${photoLimit})`,
+          used_photo: counter.photos,
+          max_photo_limit: photoLimit
+        });
       }
     }
+
+    // 🔥 Cek role banned/stopped
     if (["BANNED","STOPPED"].includes(role)) {
       return res.status(403).json({ reason:role==="BANNED"?"Akun kamu telah dibanned oleh Admin.":"Akun kamu dihentikan sementara oleh Admin." });
     }
@@ -569,7 +596,6 @@ export default async function handler(req, res) {
       if (p) systemPrompt = DEFAULT_SYSTEM_PROMPT + "\n\n--- KONTEKS TAMBAHAN ---\n" + p;
     } catch {}
 
-    // ── Tambahan aturan fleksibel ──────────────────────────────────────────
     systemPrompt += `
 
 --- CATATAN TAMBAHAN ---
@@ -578,7 +604,7 @@ export default async function handler(req, res) {
 - Gak usah sebut nama model AI atau provider ke user.
 - PALING PENTING: kalau ada history percakapan di atas, GUNAKAN untuk paham konteks. Jangan jawab seolah-olah ini pertanyaan pertama kalau sebenarnya nyambung sama obrolan sebelumnya.`;
 
-    // ── Inject waktu (hanya jika ditanya) ──────────────────────────────────
+    // ── Inject waktu ──────────────────────────────────────────────────────
     const zones = nowAllZones();
     systemPrompt = `${systemPrompt}
 
@@ -613,16 +639,14 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       } catch {}
     }
 
-    // ── Ambil history dari Firebase (selain dari frontend) ────────────────
+    // ── Ambil history ──────────────────────────────────────────────────────
     let history = [];
-    // Jika frontend mengirim history, kita pakai itu (lebih fresh)
     if (historyFromFrontend && Array.isArray(historyFromFrontend)) {
       history = historyFromFrontend.map(h => ({
         role: h.role === 'assistant' ? 'bot' : 'user',
         text: h.content || ''
       }));
     } else if (sessId) {
-      // fallback ambil dari Firebase
       try {
         const histSnap = await db.ref(`user_sessions/${uid}/${sessId}/chats`).once("value");
         if (histSnap.exists()) {
@@ -690,11 +714,11 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       searched:       didSearch,
       used_chat:      updated.chats  || 0,
       used_photo:     updated.photos || 0,
-      max_chat_limit,
-      max_photo_limit,
+      max_chat_limit: chatLimit,
+      max_photo_limit: photoLimit,
       role,
     });
   }
 
   return res.status(405).json({ error:"Method Not Allowed" });
-    }
+}
