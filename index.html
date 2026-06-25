@@ -300,6 +300,7 @@ body{display:flex}
 <script>
 'use strict';
 
+// ─── Firebase Config ───
 const FB = {
   apiKey:            "AIzaSyDC0DSJ88fhxIJDCyqxpX9goh4W1gX2fQQ",
   authDomain:        "xrezzky-ai.firebaseapp.com",
@@ -313,6 +314,7 @@ firebase.initializeApp(FB);
 const FBA = firebase.auth();
 const FBD = firebase.database();
 
+// ─── API & Constants ───
 const VERCEL  = "https://xrezzky-storeid.vercel.app";
 const API     = (location.protocol==="file:"||location.hostname==="localhost"||!location.hostname.includes("vercel.app"))
                 ? VERCEL+"/api/chat" : "/api/chat";
@@ -322,6 +324,7 @@ const MAX_MSG = 20;
 const MAX_SES = 10;
 const THINK   = ["Sedang berpikir…","Menyusun jawaban…","Memproses…","Sebentar…"];
 
+// ─── State ───
 let sesId  = localStorage.getItem(LS_CUR) || null;
 let img64  = null;
 let ttsActive = null;
@@ -334,10 +337,15 @@ let role  = "GUEST";
 let sys   = {};
 let refCfg=null, refUsage=null, refSys=null;
 
-/* ── LS HELPERS ── */
+// ─── DOM refs ───
+const feed = document.getElementById("feed");
+const feedWrap = document.getElementById("feedWrap");
+const msgInput = document.getElementById("msgInput");
+
+// ─── LS Helpers ───
 function lsGet()        { try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}")}catch{return{}} }
 function lsSet(d)       { localStorage.setItem(LS_KEY, JSON.stringify(d)) }
-function lsNewSes(id,t) { const d=lsGet(); d[id]={title:t||"Percakapan Baru",ts:Date.now(),msgs:[]}; lsSet(d) }
+function lsNewSes(id,t) { const d=lsGet(); d[id]={title:t||"Percakapan Baru",ts:Date.now(),msgs:[]}; lsSet(d); }
 function lsSaveMsg(text,img,r,time) {
   const d=lsGet();
   if(!d[sesId]) d[sesId]={title:"Percakapan Baru",ts:Date.now(),msgs:[]};
@@ -362,160 +370,7 @@ function lsLoad() {
 }
 function lsDelSes(id) { const d=lsGet(); delete d[id]; lsSet(d); }
 
-/* ── FIREBASE AUTH ── */
-FBA.onAuthStateChanged(async user=>{
-  fbUser=user;
-  if(user){
-    token=await user.getIdToken(true).catch(()=>null);
-    const n=user.displayName||user.email?.split("@")[0]||"User";
-    document.getElementById("uAva").textContent=n[0].toUpperCase();
-    document.getElementById("uName").textContent=n;
-    document.getElementById("loginBanner").style.display="none";
-    document.getElementById("authBtn").innerHTML="↩";
-    document.getElementById("authBtn").title="Logout";
-    closeAuth();
-    FBD.ref(`users_config/${user.uid}`).once("value").then(async snap=>{
-      if(!snap.exists()){
-        let cl=50,pl=5;
-        try{const rl=await FBD.ref("system_settings/role_limits/MEMBER").once("value"); if(rl.val()){cl=rl.val().max_chat_limit??50;pl=rl.val().max_photo_limit??5;}}catch{}
-        FBD.ref(`users_config/${user.uid}`).set({uid:user.uid,name:n,email:user.email||"",role:"MEMBER",max_chat_limit:cl,max_photo_limit:pl,status:"active",created_at:Date.now(),last_login:Date.now()}).catch(()=>{});
-      } else {
-        FBD.ref(`users_config/${user.uid}/last_login`).set(Date.now()).catch(()=>{});
-      }
-    }).catch(()=>{});
-  } else {
-    token=null;
-    if(refCfg)  {refCfg.off("value");  refCfg=null;}
-    if(refUsage){refUsage.off("value");refUsage=null;}
-    role="GUEST"; usedC=0; usedP=0;
-    document.getElementById("uAva").textContent="G";
-    document.getElementById("uName").textContent="Guest";
-    document.getElementById("uRole").textContent="👤 GUEST";
-    document.getElementById("loginBanner").style.display="flex";
-    document.getElementById("authBtn").innerHTML="👤";
-    document.getElementById("authBtn").title="Login";
-  }
-  await loadSys();
-  await initSes();
-});
-
-/* ── AUTH FUNCTIONS ── */
-function openAuth(tab){document.getElementById("authModal").classList.add("open");document.body.style.overflow="hidden";switchTab(tab||"login");showAuthMsg("","");}
-function closeAuth(){document.getElementById("authModal").classList.remove("open");document.body.style.overflow="";}
-function switchTab(t){["login","register","reset"].forEach(x=>{const f=document.getElementById("form-"+x),b=document.getElementById("tab-"+x);if(f)f.style.display=(t===x)?"flex":"none";if(b)b.classList.toggle("active",t===x);});showAuthMsg("","");}
-function showAuthMsg(msg,type){const el=document.getElementById("authMsg");if(!el)return;if(!msg){el.style.display="none";return;}el.textContent=msg;el.className="auth-msg "+type;el.style.display="block";}
-function setBtnLoading(id,on,def){const b=document.getElementById(id);if(!b)return;b.disabled=on;b.innerHTML=on?'<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>':def;}
-function togglePW(id,btn){const i=document.getElementById(id);if(!i)return;i.type=i.type==="password"?"text":"password";btn.textContent=i.type==="password"?"👁":"🙈";}
-
-async function doLogin(){
-  const email=(document.getElementById("l-email")?.value||"").trim();
-  const pass=document.getElementById("l-pass")?.value||"";
-  if(!email||!pass){showAuthMsg("Email dan password wajib diisi.","err");return;}
-  setBtnLoading("btn-login",true,"→ Masuk"); showAuthMsg("","");
-  try{await FBA.signInWithEmailAndPassword(email,pass);}
-  catch(e){setBtnLoading("btn-login",false,"→ Masuk");const m={"auth/user-not-found":"Email tidak terdaftar.","auth/wrong-password":"Password salah.","auth/invalid-credential":"Email atau password salah.","auth/too-many-requests":"Terlalu banyak percobaan.","auth/invalid-email":"Format email tidak valid."};showAuthMsg(m[e.code]||"Login gagal: "+e.message,"err");}
-}
-async function doRegister(){
-  const name=(document.getElementById("r-name")?.value||"").trim();
-  const email=(document.getElementById("r-email")?.value||"").trim();
-  const pass=document.getElementById("r-pass")?.value||"";
-  const pass2=document.getElementById("r-pass2")?.value||"";
-  if(!name){showAuthMsg("Nama wajib diisi.","err");return;}
-  if(!email){showAuthMsg("Email wajib diisi.","err");return;}
-  if(pass.length<6){showAuthMsg("Password minimal 6 karakter.","err");return;}
-  if(pass!==pass2){showAuthMsg("Password tidak cocok.","err");return;}
-  setBtnLoading("btn-register",true,"+ Buat Akun");
-  try{const c=await FBA.createUserWithEmailAndPassword(email,pass);await c.user.updateProfile({displayName:name}).catch(()=>{});showAuthMsg("Akun berhasil dibuat! 🎉","ok");}
-  catch(e){setBtnLoading("btn-register",false,"+ Buat Akun");const m={"auth/email-already-in-use":"Email sudah terdaftar.","auth/invalid-email":"Format email tidak valid.","auth/weak-password":"Password terlalu lemah."};showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");}
-}
-async function doReset(){
-  const email=(document.getElementById("rs-email")?.value||"").trim();
-  if(!email){showAuthMsg("Masukkan email kamu.","err");return;}
-  setBtnLoading("btn-reset",true,"📧 Kirim Link Reset");
-  try{await FBA.sendPasswordResetEmail(email);showAuthMsg("Link dikirim ke "+email+" — cek inbox/spam!","ok");document.getElementById("rs-email").value="";}
-  catch(e){const m={"auth/user-not-found":"Email tidak terdaftar.","auth/invalid-email":"Format email tidak valid."};showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");}
-  finally{setBtnLoading("btn-reset",false,"📧 Kirim Link Reset");}
-}
-
-// Auth event listeners (perbaikan: pakai ID)
-document.getElementById("authBtn").addEventListener("click",()=>{if(fbUser){if(confirm("Logout dari XREZZKY AI?"))FBA.signOut();}else openAuth("login");});
-document.getElementById("loginBannerBtn").addEventListener("click",e=>{e.stopPropagation();openAuth("login");});
-document.getElementById("loginBanner").addEventListener("click",()=>openAuth("login"));
-document.getElementById("authModal").addEventListener("click",e=>{if(e.target===document.getElementById("authModal"))closeAuth();});
-document.getElementById("authModalX").addEventListener("click",closeAuth);
-document.addEventListener("keydown",e=>{
-  if(e.key!=="Enter"||!document.getElementById("authModal").classList.contains("open"))return;
-  const t=document.querySelector(".auth-tab.active")?.id?.replace("tab-","");
-  if(t==="login")doLogin();if(t==="register")doRegister();if(t==="reset")doReset();
-});
-
-/* ══════════════════════════════════════════════════
-   SYSTEM SETTINGS — realtime listener
-   ══════════════════════════════════════════════════ */
-async function loadSys() {
-  try {
-    const s = await FBD.ref("system_settings").once("value");
-    sys = s.val() || {};
-  } catch { sys = {}; }
-
-  if (!refSys) {
-    refSys = FBD.ref("system_settings");
-    refSys.on("value", snap => {
-      sys = snap.val() || {};
-      if (!fbUser) applyGuestLimits();
-      else updateQuota();
-    });
-  }
-  if (!fbUser) applyGuestLimits();
-}
-
-function applyGuestLimits() {
-  if (fbUser) return;
-  if (sys.login_required) {
-    maxC = 0; maxP = 0;
-  } else {
-    maxC = sys.default_guest_chat_limit ?? 10;
-    maxP = sys.allow_guest_photos ? (sys.default_guest_photo_limit ?? 0) : 0;
-  }
-  const gu = JSON.parse(localStorage.getItem("xrk_gu_" + todayKey()) || "{}");
-  usedC = gu.c || 0;
-  usedP = gu.p || 0;
-  updateRoleBadge();
-  updateQuota();
-}
-
-/* ── SESSION ── */
-async function initSes(fresh=false){
-  if(fresh||!sesId){sesId="s_"+Date.now();localStorage.setItem(LS_CUR,sesId);lsNewSes(sesId);}
-  else{const d=lsGet();if(!d[sesId])lsNewSes(sesId);}
-  if(refCfg)  {refCfg.off("value");  refCfg=null;}
-  if(refUsage){refUsage.off("value");refUsage=null;}
-  if(fbUser){
-    refCfg=FBD.ref(`users_config/${fbUser.uid}`);
-    refCfg.on("value",snap=>{
-      const c=snap.val()||{};
-      role=c.role||"MEMBER";
-      if(["ADMIN","OWNER"].includes(role)){maxC=99999;maxP=99999;}
-      else{maxC=c.max_chat_limit??50;maxP=c.max_photo_limit??5;}
-      if(role==="BANNED") {warn("⛔ Akun kamu dibanned.");maxC=0;maxP=0;}
-      if(role==="STOPPED"){warn("⏸️ Akun dihentikan sementara.");maxC=0;maxP=0;}
-      updateRoleBadge();updateQuota();
-    });
-    refUsage=FBD.ref(`daily_usage/${fbUser.uid}/${todayKey()}`);
-    refUsage.on("value",snap=>{
-      const d=snap.val()||{};
-      usedC=d.chats||0;usedP=d.photos||0;
-      updateQuota();
-    });
-  } else {
-    applyGuestLimits();
-  }
-  lsLoad();renderHist();
-}
-
-function todayKey(){ return new Date(Date.now()+7*3600000).toISOString().slice(0,10); }
-
-/* ── UI ── */
+// ─── UI Helpers ───
 function updateRoleBadge(){
   const em={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",MEMBER:"✅",GUEST:"👤",BANNED:"🚫",STOPPED:"⏸️"};
   const el=document.getElementById("uRole");
@@ -555,7 +410,158 @@ function warn(msg,dur=6000){
   if(dur) warnTimer=setTimeout(()=>{document.getElementById("warnBar").style.display="none";},dur);
 }
 
-/* ── WIDGETS ── */
+// ─── Guest Limits ───
+function applyGuestLimits() {
+  if (fbUser) return;
+  if (sys.login_required) {
+    maxC = 0; maxP = 0;
+  } else {
+    maxC = sys.default_guest_chat_limit ?? 10;
+    maxP = sys.allow_guest_photos ? (sys.default_guest_photo_limit ?? 0) : 0;
+  }
+  const gu = JSON.parse(localStorage.getItem("xrk_gu_" + todayKey()) || "{}");
+  usedC = gu.c || 0;
+  usedP = gu.p || 0;
+  updateRoleBadge();
+  updateQuota();
+}
+
+// ─── System Settings ───
+async function loadSys() {
+  try {
+    const s = await FBD.ref("system_settings").once("value");
+    sys = s.val() || {};
+  } catch { sys = {}; }
+  if (!refSys) {
+    refSys = FBD.ref("system_settings");
+    refSys.on("value", snap => {
+      sys = snap.val() || {};
+      if (!fbUser) applyGuestLimits();
+      else updateQuota();
+    });
+  }
+  if (!fbUser) applyGuestLimits();
+}
+
+// ─── Session ───
+function todayKey(){ return new Date(Date.now()+7*3600000).toISOString().slice(0,10); }
+
+async function initSes(fresh=false){
+  if(fresh||!sesId){sesId="s_"+Date.now();localStorage.setItem(LS_CUR,sesId);lsNewSes(sesId);}
+  else{const d=lsGet();if(!d[sesId])lsNewSes(sesId);}
+  if(refCfg)  {refCfg.off("value");  refCfg=null;}
+  if(refUsage){refUsage.off("value");refUsage=null;}
+  if(fbUser){
+    refCfg=FBD.ref(`users_config/${fbUser.uid}`);
+    refCfg.on("value",snap=>{
+      const c=snap.val()||{};
+      role=c.role||"MEMBER";
+      if(["ADMIN","OWNER"].includes(role)){maxC=99999;maxP=99999;}
+      else{maxC=c.max_chat_limit??50;maxP=c.max_photo_limit??5;}
+      if(role==="BANNED") {warn("⛔ Akun kamu dibanned.");maxC=0;maxP=0;}
+      if(role==="STOPPED"){warn("⏸️ Akun dihentikan sementara.");maxC=0;maxP=0;}
+      updateRoleBadge();updateQuota();
+    });
+    refUsage=FBD.ref(`daily_usage/${fbUser.uid}/${todayKey()}`);
+    refUsage.on("value",snap=>{
+      const d=snap.val()||{};
+      usedC=d.chats||0;usedP=d.photos||0;
+      updateQuota();
+    });
+  } else {
+    applyGuestLimits();
+  }
+  lsLoad();renderHist();
+}
+
+// ─── Auth ───
+FBA.onAuthStateChanged(async user=>{
+  fbUser=user;
+  if(user){
+    token=await user.getIdToken(true).catch(()=>null);
+    const n=user.displayName||user.email?.split("@")[0]||"User";
+    document.getElementById("uAva").textContent=n[0].toUpperCase();
+    document.getElementById("uName").textContent=n;
+    document.getElementById("loginBanner").style.display="none";
+    document.getElementById("authBtn").innerHTML="↩";
+    document.getElementById("authBtn").title="Logout";
+    closeAuth();
+    FBD.ref(`users_config/${user.uid}`).once("value").then(async snap=>{
+      if(!snap.exists()){
+        let cl=50,pl=5;
+        try{const rl=await FBD.ref("system_settings/role_limits/MEMBER").once("value"); if(rl.val()){cl=rl.val().max_chat_limit??50;pl=rl.val().max_photo_limit??5;}}catch{}
+        FBD.ref(`users_config/${user.uid}`).set({uid:user.uid,name:n,email:user.email||"",role:"MEMBER",max_chat_limit:cl,max_photo_limit:pl,status:"active",created_at:Date.now(),last_login:Date.now()}).catch(()=>{});
+      } else {
+        FBD.ref(`users_config/${user.uid}/last_login`).set(Date.now()).catch(()=>{});
+      }
+    }).catch(()=>{});
+  } else {
+    token=null;
+    if(refCfg)  {refCfg.off("value");  refCfg=null;}
+    if(refUsage){refUsage.off("value");refUsage=null;}
+    role="GUEST"; usedC=0; usedP=0;
+    document.getElementById("uAva").textContent="G";
+    document.getElementById("uName").textContent="Guest";
+    document.getElementById("uRole").textContent="👤 GUEST";
+    document.getElementById("loginBanner").style.display="flex";
+    document.getElementById("authBtn").innerHTML="👤";
+    document.getElementById("authBtn").title="Login";
+  }
+  await loadSys();
+  await initSes();
+});
+
+// ─── Auth Functions ───
+function openAuth(tab){document.getElementById("authModal").classList.add("open");document.body.style.overflow="hidden";switchTab(tab||"login");showAuthMsg("","");}
+function closeAuth(){document.getElementById("authModal").classList.remove("open");document.body.style.overflow="";}
+function switchTab(t){["login","register","reset"].forEach(x=>{const f=document.getElementById("form-"+x),b=document.getElementById("tab-"+x);if(f)f.style.display=(t===x)?"flex":"none";if(b)b.classList.toggle("active",t===x);});showAuthMsg("","");}
+function showAuthMsg(msg,type){const el=document.getElementById("authMsg");if(!el)return;if(!msg){el.style.display="none";return;}el.textContent=msg;el.className="auth-msg "+type;el.style.display="block";}
+function setBtnLoading(id,on,def){const b=document.getElementById(id);if(!b)return;b.disabled=on;b.innerHTML=on?'<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>':def;}
+function togglePW(id,btn){const i=document.getElementById(id);if(!i)return;i.type=i.type==="password"?"text":"password";btn.textContent=i.type==="password"?"👁":"🙈";}
+
+async function doLogin(){
+  const email=(document.getElementById("l-email")?.value||"").trim();
+  const pass=document.getElementById("l-pass")?.value||"";
+  if(!email||!pass){showAuthMsg("Email dan password wajib diisi.","err");return;}
+  setBtnLoading("btn-login",true,"→ Masuk"); showAuthMsg("","");
+  try{await FBA.signInWithEmailAndPassword(email,pass);}
+  catch(e){setBtnLoading("btn-login",false,"→ Masuk");const m={"auth/user-not-found":"Email tidak terdaftar.","auth/wrong-password":"Password salah.","auth/invalid-credential":"Email atau password salah.","auth/too-many-requests":"Terlalu banyak percobaan.","auth/invalid-email":"Format email tidak valid."};showAuthMsg(m[e.code]||"Login gagal: "+e.message,"err");}
+}
+async function doRegister(){
+  const name=(document.getElementById("r-name")?.value||"").trim();
+  const email=(document.getElementById("r-email")?.value||"").trim();
+  const pass=document.getElementById("r-pass")?.value||"";
+  const pass2=document.getElementById("r-pass2")?.value||"";
+  if(!name){showAuthMsg("Nama wajib diisi.","err");return;}
+  if(!email){showAuthMsg("Email wajib diisi.","err");return;}
+  if(pass.length<6){showAuthMsg("Password minimal 6 karakter.","err");return;}
+  if(pass!==pass2){showAuthMsg("Password tidak cocok.","err");return;}
+  setBtnLoading("btn-register",true,"+ Buat Akun");
+  try{const c=await FBA.createUserWithEmailAndPassword(email,pass);await c.user.updateProfile({displayName:name}).catch(()=>{});showAuthMsg("Akun berhasil dibuat! 🎉","ok");}
+  catch(e){setBtnLoading("btn-register",false,"+ Buat Akun");const m={"auth/email-already-in-use":"Email sudah terdaftar.","auth/invalid-email":"Format email tidak valid.","auth/weak-password":"Password terlalu lemah."};showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");}
+}
+async function doReset(){
+  const email=(document.getElementById("rs-email")?.value||"").trim();
+  if(!email){showAuthMsg("Masukkan email kamu.","err");return;}
+  setBtnLoading("btn-reset",true,"📧 Kirim Link Reset");
+  try{await FBA.sendPasswordResetEmail(email);showAuthMsg("Link dikirim ke "+email+" — cek inbox/spam!","ok");document.getElementById("rs-email").value="";}
+  catch(e){const m={"auth/user-not-found":"Email tidak terdaftar.","auth/invalid-email":"Format email tidak valid."};showAuthMsg(m[e.code]||"Gagal: "+e.message,"err");}
+  finally{setBtnLoading("btn-reset",false,"📧 Kirim Link Reset");}
+}
+
+// Event listeners
+document.getElementById("authBtn").addEventListener("click",()=>{if(fbUser){if(confirm("Logout dari XREZZKY AI?"))FBA.signOut();}else openAuth("login");});
+document.getElementById("loginBannerBtn").addEventListener("click",e=>{e.stopPropagation();openAuth("login");});
+document.getElementById("loginBanner").addEventListener("click",()=>openAuth("login"));
+document.getElementById("authModal").addEventListener("click",e=>{if(e.target===document.getElementById("authModal"))closeAuth();});
+document.getElementById("authModalX").addEventListener("click",closeAuth);
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||!document.getElementById("authModal").classList.contains("open"))return;
+  const t=document.querySelector(".auth-tab.active")?.id?.replace("tab-","");
+  if(t==="login")doLogin();if(t==="register")doRegister();if(t==="reset")doReset();
+});
+
+// ─── Widgets ───
 function updateWidgets(){
   const now=new Date();
   const el=document.getElementById("wDate");
@@ -571,7 +577,7 @@ function updateWidgets(){
 }
 updateWidgets();setInterval(updateWidgets,60000);
 
-/* ── SIDEBAR ── */
+// ─── Sidebar ───
 function openSB(){renderHist();document.getElementById("sidebar").classList.add("open");document.getElementById("overlay").style.display="block";}
 function closeSB(){document.getElementById("sidebar").classList.remove("open");document.getElementById("overlay").style.display="none";}
 document.getElementById("menuBtn").addEventListener("click",openSB);
@@ -608,7 +614,7 @@ document.getElementById("clearBtn").addEventListener("click",()=>{
   localStorage.setItem(LS_CUR,sesId);feed.innerHTML="";lastDate=null;lsLoad();renderHist();
 });
 
-/* ── WELCOME ── */
+// ─── Welcome ───
 function showWelcome(){
   const h=new Date().getHours();
   const gr=h<5||h>=19?"Malam":h<12?"Pagi":h<15?"Siang":"Sore";
@@ -616,13 +622,7 @@ function showWelcome(){
   feed.innerHTML=`<div class="welcome"><div class="w-logo">X</div><div class="w-title">Selamat ${gr} ${ic}<br><span>XREZZKY AI</span></div><div class="w-sub">Silakan ketik pertanyaan Anda.</div></div>`;
 }
 
-/* ── DATE SEP ── */
-function maybeSep(){
-  const t=new Date().toDateString();
-  if(t!==lastDate){lastDate=t;const s=document.createElement("div");s.className="dsep";s.innerHTML="<span>Hari ini</span>";feed.appendChild(s);}
-}
-
-/* ── MARKDOWN ── */
+// ─── Markdown ───
 function parseMD(t){
   return t
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
@@ -642,7 +642,11 @@ function parseMD(t){
     .replace(/\n/g,"<br>");
 }
 
-/* ── RENDER MESSAGE ── */
+// ─── Render Message ───
+function maybeSep(){
+  const t=new Date().toDateString();
+  if(t!==lastDate){lastDate=t;const s=document.createElement("div");s.className="dsep";s.innerHTML="<span>Hari ini</span>";feed.appendChild(s);}
+}
 function renderMsg(text,imgSrc,r,time){
   maybeSep();
   const row=document.createElement("div");row.className=`msg-row ${r} msg-in`;
@@ -663,7 +667,7 @@ function renderMsg(text,imgSrc,r,time){
 }
 function makeBtn(html){const b=document.createElement("button");b.className="act-btn";b.innerHTML=html;return b;}
 
-/* ── STREAMING ── */
+// ─── Streaming ───
 async function streamRender(fullText,bub){
   if(!bub||!fullText)return;
   const td=document.createElement("div");td.className="md";
@@ -677,7 +681,7 @@ async function streamRender(fullText,bub){
   cur.remove();td.innerHTML=parseMD(fullText);scrollBot();
 }
 
-/* ── TTS ── */
+// ─── TTS ───
 function cleanTTS(t){return t.replace(/```[\s\S]*?```/g,"").replace(/`[^`]+`/g,"").replace(/[*#_~]+/g,"").replace(/https?:\/\/\S+/g,"link").replace(/\s{2,}/g," ").trim();}
 function resetTTS(){document.querySelectorAll(".act-btn.stop").forEach(b=>{b.classList.remove("stop");b.textContent="🔊 Dengar";});ttsActive=null;}
 function toggleTTS(text,btn){
@@ -696,13 +700,13 @@ function toggleTTS(text,btn){
 window.speechSynthesis?.getVoices?.();
 if(window.speechSynthesis?.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
 
-/* ── IMAGE MODAL ── */
+// ─── Image Modal ───
 function openImgModal(src){document.getElementById("imgModalSrc").src=src;document.getElementById("imgModal").style.display="flex";setTimeout(()=>document.getElementById("imgModal").classList.add("open"),30);}
 function closeImgModal(){document.getElementById("imgModal").classList.remove("open");setTimeout(()=>{document.getElementById("imgModal").style.display="none";document.getElementById("imgModalSrc").src="";},200);}
 document.getElementById("imgModalX").addEventListener("click",closeImgModal);
 document.getElementById("imgModal").addEventListener("click",e=>{if(e.target===document.getElementById("imgModal"))closeImgModal();});
 
-/* ── IMAGE UPLOAD ── */
+// ─── Image Upload ───
 document.getElementById("uploadBtn").addEventListener("click",()=>document.getElementById("fileInput").click());
 document.getElementById("fileInput").addEventListener("change",function(){
   const f=this.files[0];if(!f)return;
@@ -723,7 +727,7 @@ document.getElementById("cancelImgBtn").addEventListener("click", function(){
   img64=null; document.getElementById("fileInput").value=""; document.getElementById("prevBar").style.display="none";
 });
 
-/* ── VOICE ── */
+// ─── Voice ───
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recog=null,isRec=false;
 const micBtn=document.getElementById("micBtn");
@@ -743,18 +747,12 @@ micBtn.addEventListener("click",e=>{
   if(isRec){recog.stop();}else{document.getElementById("msgInput").value="";document.getElementById("msgInput").style.height="auto";try{recog.start();}catch{recog.abort();setTimeout(()=>{try{recog.start();}catch{}},200);}}
 });
 
-/* ── TEXTAREA ── */
-const msgInput=document.getElementById("msgInput");
+// ─── Textarea ───
 msgInput.addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,140)+"px";});
 msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
-/* ══════════════════════════════════════════════════
-   SEND MESSAGE — cek realtime dari sys
-   ══════════════════════════════════════════════════ */
-const feed=document.getElementById("feed");
-const feedWrap=document.getElementById("feedWrap");
-
+// ─── Send Message ───
 async function sendMsg(){
   if(busy)return;
   const text=msgInput.value.trim();
@@ -841,12 +839,12 @@ async function sendMsg(){
   busy=false;
 }
 
-/* ── UTILS ── */
+// ─── Utils ───
 function scrollBot(){requestAnimationFrame(()=>{feedWrap.scrollTop=feedWrap.scrollHeight;});}
 function nowTime(){return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":","·");}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
-/* ── INIT ── */
+// ─── Init ───
 window.addEventListener("load",()=>{
   if(!sesId){sesId="s_"+Date.now();localStorage.setItem(LS_CUR,sesId);lsNewSes(sesId);}
   setTimeout(async()=>{
@@ -856,4 +854,4 @@ window.addEventListener("load",()=>{
 });
 </script>
 </body>
-                                                   </html>
+</html>
