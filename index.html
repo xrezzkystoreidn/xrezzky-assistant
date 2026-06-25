@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-/* (CSS SAMA PERSIS — TIDAK DIUBAH) */
 :root {
   --bg:#0b0f17;--surface:#111827;--card:#131a26;--card2:#1a2235;
   --border:rgba(37,99,235,.18);--border2:rgba(255,255,255,.06);
@@ -331,12 +330,11 @@ let lastDate  = null;
 let busy      = false;
 let fbUser    = null;
 let token     = null;
-let usedC=0, usedP=0, maxC=0, maxP=0;  // 🔥 SEMUA DARI BACKEND, default 0
+let usedC=0, usedP=0, maxC=0, maxP=0;
 let role  = "GUEST";
 let sys   = {};
 let refCfg=null, refUsage=null, refSys=null;
 let userUid = null;
-let limitFetched = false; // 🔥 Tandai sudah fetch limit
 
 // ─── DOM refs ───
 const feed = document.getElementById("feed");
@@ -380,32 +378,7 @@ function updateRoleBadge(){
   if(adminBtn){
     const isAdmin=["OWNER","ADMIN"].includes(role);
     adminBtn.style.display=isAdmin?"flex":"none";
-    if(role==="OWNER"){
-      adminBtn.style.borderColor="rgba(245,158,11,.4)";
-      adminBtn.style.color="#fcd34d";
-      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="var(--gold)";
-      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="⭐ Admin Dashboard";
-    } else {
-      adminBtn.style.borderColor="rgba(167,139,250,.3)";
-      adminBtn.style.color="#c4b5fd";
-      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="#a78bfa";
-      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="👑 Admin Dashboard";
-    }
   }
-}
-
-// 🔥 UPDATE QUOTA DARI BACKEND
-function updateQuotaFromBackend(data) {
-  if (data) {
-    maxC = data.max_chat_limit ?? 0;
-    maxP = data.max_photo_limit ?? 0;
-    usedC = data.used_chat ?? 0;
-    usedP = data.used_photo ?? 0;
-    if (data.role) role = data.role;
-    limitFetched = true;
-  }
-  updateQuotaUI();
-  updateRoleBadge();
 }
 
 function updateQuotaUI() {
@@ -421,7 +394,7 @@ function updateQuotaUI() {
   if (bP) { bP.style.width = pp + "%"; bP.className = "q-fill" + (pp >= 100 ? " over" : pp >= 80 ? " warn" : ""); }
 }
 
-// 🔥 AMBIL LIMIT DARI BACKEND
+// 🔥 FETCH LIMIT DARI BACKEND
 async function fetchLimitFromBackend() {
   try {
     if (fbUser) {
@@ -430,23 +403,35 @@ async function fetchLimitFromBackend() {
     const headers = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = "Bearer " + token;
     
-    const url = API + "?action=getUserData&uid=" + (fbUser?.uid || userUid || "");
+    const url = API + "?action=getUserData";
     const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
     if (!res.ok) return;
     const data = await res.json();
     if (data) {
-      updateQuotaFromBackend(data);
+      maxC = data.max_chat_limit ?? 0;
+      maxP = data.max_photo_limit ?? 0;
+      usedC = data.used_chat ?? 0;
+      usedP = data.used_photo ?? 0;
+      if (data.role) role = data.role;
+      updateQuotaUI();
+      updateRoleBadge();
+      // 🔥 Simpan ke localStorage buat guest
+      if (!fbUser) {
+        const k = "xrk_gu_" + todayKey();
+        const gu = JSON.parse(localStorage.getItem(k) || "{}");
+        gu.c = usedC;
+        gu.p = usedP;
+        localStorage.setItem(k, JSON.stringify(gu));
+      }
     }
   } catch (e) {
     console.warn("Failed to fetch limit from backend:", e.message);
   }
 }
 
-// ─── Guest Limits ───
+// ─── Guest Limits — TANPA HARDCORE ───
 function applyGuestLimits() {
   if (fbUser) return;
-  // 🔥 Gak ada hardcode — semua dari backend
-  // Tapi kita set default dulu biar UI gak kosong
   maxC = 0;
   maxP = 0;
   const gu = JSON.parse(localStorage.getItem("xrk_gu_" + todayKey()) || "{}");
@@ -454,8 +439,7 @@ function applyGuestLimits() {
   usedP = gu.p || 0;
   updateRoleBadge();
   updateQuotaUI();
-  // 🔥 Ambil dari backend
-  setTimeout(fetchLimitFromBackend, 1000);
+  setTimeout(fetchLimitFromBackend, 500);
 }
 
 // ─── System Settings ───
@@ -469,13 +453,14 @@ async function loadSys() {
     refSys.on("value", snap => {
       sys = snap.val() || {};
       if (!fbUser) {
-        // Guest — fetch ulang dari backend
         fetchLimitFromBackend();
       }
       updateLoginBanner();
     });
   }
-  if (!fbUser) applyGuestLimits();
+  if (!fbUser) {
+    setTimeout(fetchLimitFromBackend, 500);
+  }
   updateLoginBanner();
 }
 
@@ -512,10 +497,7 @@ async function initSes(fresh=false){
     refCfg.on("value",snap=>{
       const c=snap.val()||{};
       role=c.role||"MEMBER";
-      // 🔥 SEMUA LIMIT DARI BACKEND — bukan dari sini
-      // Tapi kita update role aja
       updateRoleBadge();
-      // Ambil limit dari backend
       fetchLimitFromBackend();
     });
     refUsage=FBD.ref(`daily_usage/${fbUser.uid}/${todayKey()}`);
@@ -543,8 +525,6 @@ FBA.onAuthStateChanged(async user=>{
     document.getElementById("authBtn").innerHTML="↩";
     document.getElementById("authBtn").title="Logout";
     closeAuth();
-    
-    // 🔥 Buat/update user_config — tapi tanpa hardcode limit
     FBD.ref(`users_config/${user.uid}`).once("value").then(async snap=>{
       if(!snap.exists()){
         FBD.ref(`users_config/${user.uid}`).set({
@@ -552,7 +532,7 @@ FBA.onAuthStateChanged(async user=>{
           name:n,
           email:user.email||"",
           role: user.isAnonymous ? "GUEST" : "MEMBER",
-          max_chat_limit: 0,  // 🔥 Akan diisi oleh backend dari role_limits
+          max_chat_limit: 0,
           max_photo_limit: 0,
           is_anonymous: user.isAnonymous || false,
           status:"active",
@@ -906,7 +886,7 @@ async function doSend(text, img) {
     const rep = data.response || "Tidak ada respons.";
     const bt = nowTime();
 
-    // 🔥 UPDATE LIMIT DARI BACKEND RESPONSE
+    // 🔥 UPDATE LIMIT DARI BACKEND
     if (data.max_chat_limit !== undefined) {
       maxC = data.max_chat_limit;
       maxP = data.max_photo_limit ?? maxP;
@@ -977,7 +957,7 @@ async function sendMsg() {
   if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
   if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat."); openAuth("login"); return; }
 
-  // 🔥 Cek limit chat — SEMUA DARI BACKEND
+  // 🔥 CEK LIMIT — SEMUA DARI BACKEND
   if (maxC > 0 && usedC >= maxC) {
     const msg = fbUser
       ? `Kapasitas chat harian habis (${usedC}/${maxC}). Coba lagi besok.`
@@ -987,7 +967,6 @@ async function sendMsg() {
     return;
   }
 
-  // 🔥 Cek limit foto
   if (img) {
     if (!fbUser && !sys.allow_guest_photos) {
       warn("Guest tidak bisa kirim foto. Login dulu atau minta admin aktifkan izin guest.");
@@ -1025,7 +1004,6 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
 // ─── Init ───
 window.addEventListener("load", ()=>{
   if (!sesId) { sesId = "s_"+Date.now(); localStorage.setItem(LS_CUR, sesId); lsNewSes(sesId); }
-  // 🔥 Ambil limit dari backend setelah load
   setTimeout(() => {
     if (fbUser) fetchLimitFromBackend();
     else applyGuestLimits();
