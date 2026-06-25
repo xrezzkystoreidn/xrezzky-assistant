@@ -314,9 +314,7 @@ const FBA = firebase.auth();
 const FBD = firebase.database();
 
 // ─── API & Constants ───
-const VERCEL  = "https://xrezzky-storeid.vercel.app";
-const API     = (location.protocol==="file:"||location.hostname==="localhost"||!location.hostname.includes("vercel.app"))
-                ? VERCEL+"/api/chat" : "/api/chat";
+const API = "/api/chat";  // pakai relative, sesuaikan dengan backend di Vercel
 const LS_KEY  = "xrk_sessions";
 const LS_CUR  = "xrk_cur";
 const MAX_MSG = 30;
@@ -646,7 +644,7 @@ function maybeSep(){
   const t=new Date().toDateString();
   if(t!==lastDate){lastDate=t;const s=document.createElement("div");s.className="dsep";s.innerHTML="<span>Hari ini</span>";feed.appendChild(s);}
 }
-function renderMsg(text,imgSrc,r,time){
+function renderMsg(text,imgSrc,r,time,extra){
   maybeSep();
   const row=document.createElement("div");row.className=`msg-row ${r} msg-in`;
   const wrap=document.createElement("div");wrap.className="bwrap";
@@ -661,6 +659,24 @@ function renderMsg(text,imgSrc,r,time){
     cp.addEventListener("click",()=>{navigator.clipboard.writeText(text).then(()=>{cp.classList.add("ok");cp.textContent="✅ Disalin";setTimeout(()=>{cp.classList.remove("ok");cp.textContent="📋 Salin";},2200);});});
     foot.appendChild(cp);
     const tt=makeBtn("🔊 Dengar");tt.addEventListener("click",()=>toggleTTS(text,tt));foot.appendChild(tt);
+    if(extra && extra.retry){ // jika ada tombol coba lagi
+      const retryBtn=makeBtn("🔄 Coba lagi");
+      retryBtn.addEventListener("click",()=>{
+        // cari pesan user terakhir dan kirim ulang
+        const lastUser = Array.from(feed.querySelectorAll('.msg-row.user')).pop();
+        if(lastUser){
+          const textEl = lastUser.querySelector('.bubble .md');
+          const imgEl = lastUser.querySelector('.bubble .chat-img');
+          const userText = textEl ? textEl.textContent : '';
+          const userImg = imgEl ? imgEl.src : null;
+          // hapus pesan error ini
+          row.remove();
+          // kirim ulang
+          sendRaw(userText, userImg);
+        }
+      });
+      foot.appendChild(retryBtn);
+    }
   }
   wrap.appendChild(foot);row.appendChild(wrap);feed.appendChild(row);scrollBot();
 }
@@ -751,136 +767,183 @@ msgInput.addEventListener("input",function(){this.style.height="auto";this.style
 msgInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
 
-// ─── Send Message (DIPERBAIKI: kirim history percakapan) ───
-async function sendMsg(){
-  if(busy)return;
-  const text=msgInput.value.trim();
-  const img=img64;
-  if(!text&&!img)return;
+// ─── Send Message (dengan retry & fallback) ───
+async function sendRaw(text, img) {
+  // fungsi internal untuk kirim ulang
+  busy = true;
+  // render ulang pesan user? sudah ada, kita langsung proses ke backend
+  // tapi kita perlu ambil history terbaru
+  await doSend(text, img);
+}
 
-  if(sys.maintenance_mode)      {warn("Sistem sedang maintenance, coba lagi nanti.");return;}
-  if(sys.login_required&&!fbUser){warn("Kamu harus login untuk chat.");openAuth("login");return;}
-
-  if(maxC>0&&usedC>=maxC){
-    warn(fbUser?"Kapasitas chat harian habis. Coba lagi besok.":"Kapasitas chat habis. Login untuk limit lebih banyak.");
-    if(!fbUser)openAuth("login");
-    return;
+async function doSend(text, img) {
+  // text dan img sudah disiapkan, kita proses
+  // kita sudah punya text dan img dari parameter, tapi jika tidak ada, ambil dari input
+  if (!text && !img) {
+    text = msgInput.value.trim();
+    img = img64;
   }
+  if (!text && !img) { busy = false; return; }
 
-  if(img){
-    if(!fbUser&&!sys.allow_guest_photos){warn("Guest tidak bisa kirim foto. Login dulu.");openAuth("login");return;}
-    if(maxP>0&&usedP>=maxP){warn("Limit foto hari ini habis.");return;}
-  }
+  // simpan pesan user ke localStorage dulu (tapi kalau sudah dirender, jangan double)
+  // di sini kita asumsikan pesan user sudah dirender di luar fungsi ini
+  // kita hanya proses ke backend
 
-  busy=true;
-  feed.querySelector(".welcome")?.remove();
-  const time=nowTime();
-  msgInput.value="";msgInput.style.height="auto";
-  const sentImg=img64;
-  img64=null;document.getElementById("fileInput").value="";document.getElementById("prevBar").style.display="none";
-
-  renderMsg(text,sentImg,"user",time);
-  lsSaveMsg(text,sentImg,"user",time);
-  renderHist();
-
-  // ─── AMBIL HISTORY PERCAKAPAN ───
-  const d = lsGet();
-  const sessData = d[sesId];
-  let history = [];
-  if (sessData && sessData.msgs && sessData.msgs.length > 0) {
-    // Ambil maksimal 20 pesan terakhir biar ga kebanyakan
-    const msgs = sessData.msgs.slice(-20);
-    for (const m of msgs) {
-      if (!m.text) continue;
-      history.push({
-        role: m.r === 'user' ? 'user' : 'assistant',
-        content: m.text
-      });
-    }
-  }
-  // Tambahkan pesan user saat ini ke history (biar backend langsung proses)
-  if (text) {
-    history.push({ role: 'user', content: text });
-  }
-
-  const tid="t"+Date.now();
-  const trow=document.createElement("div");trow.id=tid;trow.className="msg-row bot msg-in";
-  trow.innerHTML=`<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
-  feed.appendChild(trow);scrollBot();
+  const tid = "t"+Date.now();
+  const trow = document.createElement("div"); trow.id = tid; trow.className = "msg-row bot msg-in";
+  trow.innerHTML = `<div class="bwrap"><div class="bubble thinking"><div class="dots"><span></span><span></span><span></span></div><span class="think-lbl">${THINK[0]}</span></div></div>`;
+  feed.appendChild(trow); scrollBot();
   let ti=0;
-  const tiv=setInterval(()=>{ti=(ti+1)%THINK.length;const el=document.querySelector(`#${tid} .think-lbl`);if(el)el.textContent=THINK[ti];else clearInterval(tiv);},950);
+  const tiv = setInterval(()=>{
+    ti = (ti+1) % THINK.length;
+    const el = document.querySelector(`#${tid} .think-lbl`);
+    if (el) el.textContent = THINK[ti]; else clearInterval(tiv);
+  }, 950);
 
-  try{
-    if(fbUser){try{token=await fbUser.getIdToken(false);}catch{token=null;}}
-    const headers={"Content-Type":"application/json"};
-    if(token)headers["Authorization"]="Bearer "+token;
+  try {
+    // ambil history
+    const d = lsGet();
+    const sessData = d[sesId];
+    let history = [];
+    if (sessData && sessData.msgs && sessData.msgs.length > 0) {
+      const msgs = sessData.msgs.slice(-20);
+      for (const m of msgs) {
+        if (!m.text) continue;
+        history.push({ role: m.r === 'user' ? 'user' : 'assistant', content: m.text });
+      }
+    }
+    if (text) history.push({ role: 'user', content: text });
 
-    // Kirim history + pesan + gambar
+    if (fbUser) { try { token = await fbUser.getIdToken(false); } catch { token = null; } }
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = "Bearer " + token;
+
     const payload = {
       user_message: text || "",
-      user_image: sentImg || null,
+      user_image: img || null,
       sess: sesId,
-      history: history,           // <-- INI YANG DITAMBAHKAN
+      history: history,
       timestamp: Date.now()
     };
 
-    const res=await fetch(API,{method:"POST",headers,body:JSON.stringify(payload)});
-    clearInterval(tiv);document.getElementById(tid)?.remove();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-    if(res.status===403){const e=await res.json().catch(()=>({}));warn(e.reason||"Akses ditolak.");busy=false;return;}
-    if(res.status===429){const e=await res.json().catch(()=>({}));warn(e.reason||"Limit habis.");busy=false;return;}
-    if(res.status===503){warn("Sistem maintenance.");busy=false;return;}
-    if(!res.ok)throw new Error("HTTP "+res.status);
+    const res = await fetch(API, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
 
-    const data=await res.json();
-    const rep=data.response||"Tidak ada respons.";
-    const bt=nowTime();
+    clearInterval(tiv);
+    document.getElementById(tid)?.remove();
 
-    if(!fbUser){
-      usedC++;if(sentImg)usedP++;
+    if (res.status === 403) { const e = await res.json().catch(()=>({})); warn(e.reason || "Akses ditolak."); busy=false; return; }
+    if (res.status === 429) { const e = await res.json().catch(()=>({})); warn(e.reason || "Limit habis."); busy=false; return; }
+    if (res.status === 503) { warn("Sistem maintenance."); busy=false; return; }
+    if (!res.ok) throw new Error("HTTP "+res.status);
+
+    const data = await res.json();
+    const rep = data.response || "Tidak ada respons.";
+    const bt = nowTime();
+
+    // update quota
+    if (!fbUser) {
+      usedC++; if (img) usedP++;
       updateQuota();
-      const k="xrk_gu_"+todayKey();
-      const gu=JSON.parse(localStorage.getItem(k)||"{}");
-      gu.c=(gu.c||0)+1;if(sentImg)gu.p=(gu.p||0)+1;
-      localStorage.setItem(k,JSON.stringify(gu));
+      const k = "xrk_gu_"+todayKey();
+      const gu = JSON.parse(localStorage.getItem(k) || "{}");
+      gu.c = (gu.c||0)+1; if (img) gu.p = (gu.p||0)+1;
+      localStorage.setItem(k, JSON.stringify(gu));
     }
 
     maybeSep();
-    const row=document.createElement("div");row.className="msg-row bot msg-in";
-    const wrap=document.createElement("div");wrap.className="bwrap";
-    const bub=document.createElement("div");bub.className="bubble";
-    if(data.searched){const sb=document.createElement("div");sb.className="search-badge";sb.textContent="🔍 Mencari di web…";bub.appendChild(sb);}
+    const row = document.createElement("div"); row.className = "msg-row bot msg-in";
+    const wrap = document.createElement("div"); wrap.className = "bwrap";
+    const bub = document.createElement("div"); bub.className = "bubble";
+    if (data.searched) { const sb = document.createElement("div"); sb.className = "search-badge"; sb.textContent = "🔍 Mencari di web…"; bub.appendChild(sb); }
     wrap.appendChild(bub);
-    const foot=document.createElement("div");foot.className="bfoot";
-    const tm=document.createElement("span");tm.className="msg-time";tm.textContent=bt;foot.appendChild(tm);
-    const cp=makeBtn("📋 Salin");
-    cp.addEventListener("click",()=>{navigator.clipboard.writeText(rep).then(()=>{cp.classList.add("ok");cp.textContent="✅ Disalin";setTimeout(()=>{cp.classList.remove("ok");cp.textContent="📋 Salin";},2200);});});
+    const foot = document.createElement("div"); foot.className = "bfoot";
+    const tm = document.createElement("span"); tm.className = "msg-time"; tm.textContent = bt; foot.appendChild(tm);
+    const cp = makeBtn("📋 Salin");
+    cp.addEventListener("click", ()=>{
+      navigator.clipboard.writeText(rep).then(()=>{
+        cp.classList.add("ok"); cp.textContent = "✅ Disalin";
+        setTimeout(()=>{ cp.classList.remove("ok"); cp.textContent = "📋 Salin"; }, 2200);
+      });
+    });
     foot.appendChild(cp);
-    const tt=makeBtn("🔊 Dengar");tt.addEventListener("click",()=>toggleTTS(rep,tt));foot.appendChild(tt);
-    wrap.appendChild(foot);row.appendChild(wrap);feed.appendChild(row);
-    await streamRender(rep,bub);
-    lsSaveMsg(rep,null,"bot",bt);renderHist();
-  }catch(e){
-    clearInterval(tiv);document.getElementById(tid)?.remove();
-    renderMsg("Gagal terhubung ke server. Cek koneksi kamu.",null,"bot",nowTime());
+    const tt = makeBtn("🔊 Dengar");
+    tt.addEventListener("click", ()=>toggleTTS(rep, tt));
+    foot.appendChild(tt);
+    wrap.appendChild(foot); row.appendChild(wrap); feed.appendChild(row);
+    await streamRender(rep, bub);
+    lsSaveMsg(rep, null, "bot", bt);
+    renderHist();
+  } catch (e) {
+    clearInterval(tiv);
+    document.getElementById(tid)?.remove();
+    // Tampilkan pesan error yang ramah dengan tombol coba lagi
+    const errMsg = e.name === 'AbortError' ? 'Server tidak merespons (timeout).' : 'Gagal terhubung ke server.';
+    renderMsg(errMsg + ' Coba lagi nanti.', null, 'bot', nowTime(), { retry: true });
     console.error(e);
   }
-  busy=false;
+  busy = false;
 }
 
+// Fungsi utama sendMsg
+async function sendMsg() {
+  if (busy) return;
+  const text = msgInput.value.trim();
+  const img = img64;
+  if (!text && !img) return;
+
+  if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
+  if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat."); openAuth("login"); return; }
+
+  if (maxC > 0 && usedC >= maxC) {
+    warn(fbUser ? "Kapasitas chat harian habis. Coba lagi besok." : "Kapasitas chat habis. Login untuk limit lebih banyak.");
+    if (!fbUser) openAuth("login");
+    return;
+  }
+  if (img) {
+    if (!fbUser && !sys.allow_guest_photos) { warn("Guest tidak bisa kirim foto. Login dulu."); openAuth("login"); return; }
+    if (maxP > 0 && usedP >= maxP) { warn("Limit foto hari ini habis."); return; }
+  }
+
+  // Clear input dan render pesan user
+  const time = nowTime();
+  msgInput.value = ""; msgInput.style.height = "auto";
+  const sentImg = img64;
+  img64 = null; document.getElementById("fileInput").value = ""; document.getElementById("prevBar").style.display = "none";
+  renderMsg(text, sentImg, "user", time);
+  lsSaveMsg(text, sentImg, "user", time);
+  renderHist();
+
+  // Kirim ke backend
+  await doSend(text, sentImg);
+}
+
+// ─── Fallback sederhana jika server down (opsional) ───
+// tidak perlu, karena sudah ada tombol retry
+
 // ─── Utils ───
-function scrollBot(){requestAnimationFrame(()=>{feedWrap.scrollTop=feedWrap.scrollHeight;});}
-function nowTime(){return new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}).replace(":","·");}
-function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function scrollBot(){ requestAnimationFrame(()=>{ feedWrap.scrollTop = feedWrap.scrollHeight; }); }
+function nowTime(){ return new Date().toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" }).replace(":","·"); }
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 // ─── Init ───
-window.addEventListener("load",()=>{
-  if(!sesId){sesId="s_"+Date.now();localStorage.setItem(LS_CUR,sesId);lsNewSes(sesId);}
-  setTimeout(async()=>{
-    try{const r=await fetch(API+"?action=ping",{signal:AbortSignal.timeout(5000)});if(!r.ok)warn("Server tidak merespons. Pastikan Vercel sudah di-deploy.",8000);}
-    catch{warn("Tidak bisa menjangkau server. Cek koneksi atau Vercel deploy.",8000);}
-  },2500);
+window.addEventListener("load", ()=>{
+  if (!sesId) { sesId = "s_"+Date.now(); localStorage.setItem(LS_CUR, sesId); lsNewSes(sesId); }
+  setTimeout(async ()=>{
+    try {
+      const r = await fetch(API+"?action=ping", { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) warn("Server tidak merespons. Pastikan Vercel sudah di-deploy.", 8000);
+    } catch { warn("Tidak bisa menjangkau server. Cek koneksi atau Vercel deploy.", 8000); }
+  }, 2500);
 });
 </script>
 </body>
-</html>
+  </html>
