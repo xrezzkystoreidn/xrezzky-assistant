@@ -201,6 +201,44 @@ body{display:flex}
   opacity:.5;
   display:block;
 }
+.sb-version .env {
+  color:var(--text-muted);
+  font-size:8px;
+  display:block;
+  margin-top:1px;
+}
+.sb-version .status-line {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin-top:2px;
+  font-size:8px;
+}
+.sb-version .status-dot {
+  display:inline-block;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+}
+.sb-version .status-dot.online { background:var(--green); }
+.sb-version .status-dot.maintenance { background:var(--gold); }
+.sb-version .status-dot.offline { background:var(--red); }
+.sb-version .status-dot.beta { background:var(--purple); }
+
+/* ─── HEADER BETA TAG ─── */
+.header-beta {
+  font-size:9px;
+  font-weight:600;
+  background:rgba(167,139,250,.15);
+  padding:1px 8px;
+  border-radius:8px;
+  border:1px solid rgba(167,139,250,.25);
+  color:#c4b5fd;
+  display:none;
+  letter-spacing:.05em;
+}
+.header-beta.show { display:inline-block; }
 </style>
 </head>
 <body>
@@ -237,7 +275,12 @@ body{display:flex}
   <div class="sb-version">
     <span class="name">XREZZKY AI</span>
     <span class="ver" id="sidebarVersion">—</span>
+    <span class="env" id="sidebarEnv">—</span>
     <span class="build" id="sidebarBuild">—</span>
+    <div class="status-line">
+      <span class="status-dot online" id="sidebarStatusDot"></span>
+      <span id="sidebarStatusText">online</span>
+    </div>
   </div>
 </div>
 <div class="overlay" id="overlay"></div>
@@ -248,7 +291,7 @@ body{display:flex}
     <div class="brand">
       <div class="brand-mark">X</div>
       <h1>XREZZKY AI</h1>
-      <span id="headerVersion" style="font-size:9px;color:var(--text-muted);font-weight:400;background:rgba(167,139,250,.1);padding:1px 8px;border-radius:8px;border:1px solid rgba(167,139,250,.15);display:none;">BETA</span>
+      <span class="header-beta" id="headerBeta">BETA</span>
       <div class="brand-dot"></div>
     </div>
     <div class="hdr-center">
@@ -521,36 +564,52 @@ async function loadAppInfo() {
     const snap = await FBD.ref("system_settings/app_info").once("value");
     const info = snap.val() || {};
     
-    // ─── HEADER VERSION ───
-    const headerVer = document.getElementById("headerVersion");
-    if (headerVer) {
-      const ver = info.version || "";
-      if (ver) {
-        const isBeta = ver.includes("beta") || ver.includes("BETA") || ver.includes("alpha") || ver.includes("Alpha");
-        headerVer.textContent = isBeta ? "BETA" : ver;
-        headerVer.style.display = "inline-block";
-        headerVer.style.background = isBeta ? "rgba(167,139,250,.15)" : "rgba(34,197,94,.12)";
-        headerVer.style.borderColor = isBeta ? "rgba(167,139,250,.25)" : "rgba(34,197,94,.2)";
-        headerVer.style.color = isBeta ? "#c4b5fd" : "var(--green)";
+    const version = info.version || "";
+    const isBeta = version.toLowerCase().includes("beta") || version.toLowerCase().includes("alpha");
+    
+    // ─── HEADER ───
+    const headerBeta = document.getElementById("headerBeta");
+    if (headerBeta) {
+      if (version && isBeta) {
+        headerBeta.textContent = "BETA";
+        headerBeta.className = "header-beta show";
       } else {
-        headerVer.textContent = "";
-        headerVer.style.display = "none";
+        headerBeta.className = "header-beta";
+        headerBeta.textContent = "";
       }
     }
     
-    // ─── SIDEBAR VERSION ───
+    // ─── SIDEBAR ───
     const verEl = document.getElementById("sidebarVersion");
     if (verEl) {
-      const ver = info.version || "";
-      verEl.textContent = ver || "—";
+      if (version) {
+        verEl.textContent = "Version " + version.replace(/^(v|V)/, '');
+        verEl.style.display = "block";
+      } else {
+        verEl.textContent = "—";
+        verEl.style.display = "block";
+      }
+    }
+    
+    const envEl = document.getElementById("sidebarEnv");
+    if (envEl) {
+      envEl.textContent = info.environment || "production";
     }
     
     const buildEl = document.getElementById("sidebarBuild");
     if (buildEl) {
-      const build = info.build ? "Build: " + info.build : "";
-      buildEl.textContent = build || "";
+      buildEl.textContent = info.build ? "Build " + info.build : "";
       buildEl.style.display = info.build ? "block" : "none";
     }
+    
+    // ─── STATUS ───
+    const status = info.status || "online";
+    const statusDot = document.getElementById("sidebarStatusDot");
+    const statusText = document.getElementById("sidebarStatusText");
+    if (statusDot) {
+      statusDot.className = "status-dot " + status;
+    }
+    if (statusText) statusText.textContent = status;
     
   } catch {}
 }
@@ -1114,4 +1173,4 @@ window.addEventListener("load", ()=>{
 });
 </script>
 </body>
-</html>
+  </html>
