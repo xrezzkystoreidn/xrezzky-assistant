@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>XREZZKY AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -174,6 +174,42 @@ body{display:flex}
   .feed-wrap{padding:13px 10px}.bubble{font-size:13.5px;padding:10px 13px}.bwrap{max-width:90%}
   .input-area{padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
 }
+
+/* ─── FOOTER VERSI ─── */
+.app-footer {
+  text-align:center;
+  padding:6px 12px;
+  border-top:1px solid var(--border2);
+  background:var(--card);
+  font-size:10px;
+  color:var(--text-muted);
+  flex-shrink:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.app-footer .version {
+  font-weight:600;
+  background:rgba(167,139,250,.12);
+  padding:2px 10px;
+  border-radius:10px;
+  border:1px solid rgba(167,139,250,.2);
+  color:#c4b5fd;
+}
+.app-footer .status-dot {
+  display:inline-block;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  margin-right:4px;
+  vertical-align:middle;
+}
+.app-footer .status-dot.online { background:var(--green); }
+.app-footer .status-dot.maintenance { background:var(--gold); }
+.app-footer .status-dot.offline { background:var(--red); }
+.app-footer .status-dot.beta { background:var(--purple); }
 </style>
 </head>
 <body>
@@ -211,7 +247,12 @@ body{display:flex}
 <div class="main">
   <div class="header">
     <button class="icon-btn" id="menuBtn">☰</button>
-    <div class="brand"><div class="brand-mark">X</div><h1>XREZZKY AI</h1><div class="brand-dot"></div></div>
+    <div class="brand">
+      <div class="brand-mark">X</div>
+      <h1>XREZZKY AI</h1>
+      <span id="headerVersion" style="font-size:9px;color:var(--text-muted);font-weight:400;background:rgba(167,139,250,.1);padding:1px 8px;border-radius:8px;border:1px solid rgba(167,139,250,.15);">BETA</span>
+      <div class="brand-dot"></div>
+    </div>
     <div class="hdr-center">
       <div class="widget">📅 <span id="wDate">–</span></div>
       <div class="widget"><span id="wIcon">🌤️</span> <span id="wLoc">Indonesia</span></div>
@@ -253,17 +294,18 @@ body{display:flex}
       <div class="input-hint">Enter kirim · Shift+Enter baris baru</div>
     </div>
   </div>
-</div>
 
-<!-- FOOTER VERSI & STATUS -->
-<div style="text-align:center;padding:8px 12px;border-top:1px solid var(--border2);background:var(--card);font-size:10px;color:var(--text-muted);flex-shrink:0;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-  <span id="appVersion">v1.0.0</span>
-  <span id="appBuild">Build: —</span>
-  <span id="appEnv">production</span>
-  <span id="appStatus" style="display:flex;align-items:center;gap:4px;">
-    <span id="appStatusDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>
-    <span id="appStatusText">online</span>
-  </span>
+  <!-- ─── FOOTER VERSI ─── -->
+  <div class="app-footer">
+    <span>XREZZKY AI</span>
+    <span class="version" id="appVersion">v1.0.0</span>
+    <span id="appEnv">production</span>
+    <span id="appStatus">
+      <span class="status-dot online" id="appStatusDot"></span>
+      <span id="appStatusText">online</span>
+    </span>
+    <span id="appBuild" style="font-size:9px;color:var(--text-muted)">Build: —</span>
+  </div>
 </div>
 
 <div class="img-modal" id="imgModal">
@@ -492,21 +534,53 @@ async function loadAppInfo() {
   try {
     const snap = await FBD.ref("system_settings/app_info").once("value");
     const info = snap.val() || {};
-    document.getElementById("appVersion").textContent = info.version || "v1.0.0";
-    document.getElementById("appBuild").textContent = "Build: " + (info.build || Date.now().toString().slice(0,8));
-    document.getElementById("appEnv").textContent = info.environment || "production";
+    
+    // Versi di header (BETA label)
+    const headerVer = document.getElementById("headerVersion");
+    if (headerVer) {
+      const ver = info.version || "";
+      if (ver) {
+        const isBeta = ver.includes("beta") || ver.includes("BETA") || ver.includes("alpha") || ver.includes("Alpha");
+        headerVer.textContent = isBeta ? "BETA" : ver;
+        headerVer.style.display = "inline-block";
+        headerVer.style.background = isBeta ? "rgba(167,139,250,.15)" : "rgba(34,197,94,.12)";
+        headerVer.style.borderColor = isBeta ? "rgba(167,139,250,.25)" : "rgba(34,197,94,.2)";
+        headerVer.style.color = isBeta ? "#c4b5fd" : "var(--green)";
+      } else {
+        headerVer.textContent = "";
+        headerVer.style.display = "none";
+      }
+    }
+    
+    // Footer
+    const verEl = document.getElementById("appVersion");
+    if (verEl) {
+      verEl.textContent = info.version || "—";
+      verEl.style.display = info.version ? "inline-block" : "none";
+    }
+    
+    const buildEl = document.getElementById("appBuild");
+    if (buildEl) {
+      buildEl.textContent = info.build ? "Build: " + info.build : "";
+      buildEl.style.display = info.build ? "inline-block" : "none";
+    }
+    
+    const envEl = document.getElementById("appEnv");
+    if (envEl) {
+      envEl.textContent = info.environment || "";
+      envEl.style.display = info.environment ? "inline-block" : "none";
+    }
     
     const status = info.status || "online";
     const statusDot = document.getElementById("appStatusDot");
     const statusText = document.getElementById("appStatusText");
     if (statusDot) {
-      const colors = { online: "var(--green)", maintenance: "var(--gold)", offline: "var(--red)", beta: "var(--purple)" };
-      statusDot.style.background = colors[status] || "var(--green)";
+      statusDot.className = "status-dot " + status;
     }
     if (statusText) statusText.textContent = status;
+    
   } catch {}
-}
-
+  }
 function updateLoginBanner() {
   const banner = document.getElementById("loginBanner");
   if (!banner) return;
@@ -857,16 +931,13 @@ micBtn.addEventListener("click",e=>{
 // ─── Textarea ───
 msgInput.addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,140)+"px";});
 
-// 🔥 ENTER FIX UNTUK HP — Enter = kirim, Shift+Enter = baris baru
+// 🔥 ENTER FIX UNTUK HP
 msgInput.addEventListener("keydown", function(e) {
-  // Jika tekan Enter tanpa Shift → kirim
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
-    // Cek apakah textarea kosong
     if (!this.value.trim()) return;
     sendMsg();
   }
-  // Shift+Enter → baris baru (default behavior, biarkan)
 });
 
 document.getElementById("sendBtn").addEventListener("click",sendMsg);
@@ -941,7 +1012,6 @@ async function doSend(text, img) {
     const rep = data.response || "Tidak ada respons.";
     const bt = nowTime();
 
-    // 🔥 UPDATE LIMIT DARI BACKEND
     if (data.max_chat_limit !== undefined) {
       maxC = data.max_chat_limit;
       maxP = data.max_photo_limit ?? maxP;
@@ -1011,7 +1081,6 @@ async function sendMsg() {
   if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
   if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat."); openAuth("login"); return; }
 
-  // 🔥 CEK LIMIT — SEMUA DARI BACKEND/FIREBASE
   if (maxC > 0 && usedC >= maxC) {
     const msg = fbUser
       ? `Kapasitas chat harian habis (${usedC}/${maxC}). Coba lagi besok.`
@@ -1033,7 +1102,6 @@ async function sendMsg() {
     }
   }
 
-  // ─── HAPUS WELCOME ───
   const welcomeEl = feed.querySelector(".welcome");
   if (welcomeEl) welcomeEl.remove();
 
@@ -1072,4 +1140,4 @@ window.addEventListener("load", ()=>{
 });
 </script>
 </body>
-  </html>
+</html>
