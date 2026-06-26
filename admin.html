@@ -1181,13 +1181,13 @@ async function saveToggles(){
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
 
-// 🔥 LOAD APP INFO
+// 🔥 LOAD APP INFO — TANPA DEFAULT
 function loadAppInfo() {
   const info = G.settings.app_info || {};
-  document.getElementById("app-version").value = info.version || "v1.0.0";
+  document.getElementById("app-version").value = info.version || "";
   document.getElementById("app-status").value = info.status || "online";
   document.getElementById("app-env").value = info.environment || "production";
-}
+  }
 
 // 🔥 SAVE APP INFO
 async function saveAppInfo() {
