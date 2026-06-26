@@ -2,10 +2,11 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>XREZZKY · Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -76,8 +77,8 @@ input,select{font-family:inherit}
 .panel-head{padding:13px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .panel-head h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap}
 .panel-body{padding:16px 18px}
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:600px}
 thead th{padding:9px 13px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border2);transition:background .12s}
 tbody tr:last-child{border-bottom:none}
@@ -226,7 +227,68 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
   .page{padding:14px}
   .stat-grid{grid-template-columns:1fr 1fr}
   tbody td{padding:8px 9px}
+  .act{font-size:10px;padding:4px 8px}
+  .act-grp{gap:3px}
+  .tbl-wrap table{min-width:480px}
 }
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .page{padding:10px}
+  .panel-head{padding:10px 12px}
+  .panel-body{padding:10px 12px}
+  tbody td{padding:6px 8px;font-size:11px}
+  .sc{padding:12px 14px}
+  .sc-val{font-size:20px}
+  .tbl-wrap table{min-width:400px}
+  .act{font-size:9px;padding:3px 6px}
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .search-wrap{min-width:auto}
+}
+
+/* ─── NOTIFIKASI ─── */
+#notifContainer {
+  position:fixed;
+  top:70px;
+  right:20px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-width:340px;
+  pointer-events:none;
+}
+.notif {
+  padding:12px 16px;
+  border-radius:var(--radius-sm);
+  border:1px solid;
+  pointer-events:auto;
+  animation:notifIn .35s ease;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:12px;
+  line-height:1.5;
+  max-width:340px;
+}
+.notif .n-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.notif .n-body{flex:1;min-width:0}
+.notif .n-title{font-weight:700;font-size:12px}
+.notif .n-desc{color:var(--text-sub);margin-top:2px}
+.notif .n-time{font-size:9px;color:var(--text-muted);margin-top:3px}
+.notif.info{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.3);color:var(--text)}
+.notif.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:var(--text)}
+.notif.success{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--text)}
+.notif.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:var(--text)}
+@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes notifOut{to{opacity:0;transform:translateX(20px)}}
+
+/* ─── CHART CONTAINER ─── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.chart-grid{grid-template-columns:1fr}}
+.chart-box{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:16px;position:relative}
+.chart-box h5{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.chart-box canvas{width:100%!important;height:auto!important;max-height:200px}
 </style>
 </head>
 <body>
@@ -350,6 +412,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 </div>
 
 <div id="toasts"></div>
+<div id="notifContainer"></div>
 <div id="sideOverlay"></div>
 
 <!-- APP -->
@@ -411,6 +474,19 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           </div>
         </div>
       </div>
+
+      <!-- 📊 GRAFIK DASHBOARD -->
+      <div class="chart-grid">
+        <div class="chart-box">
+          <h5>📈 Aktivitas Chat 7 Hari Terakhir</h5>
+          <canvas id="chartDaily"></canvas>
+        </div>
+        <div class="chart-box">
+          <h5>🧑‍💻 Distribusi Role User</h5>
+          <canvas id="chartRole"></canvas>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-head"><h4>🟢 User Aktif (1 Jam Terakhir)</h4><span style="font-size:11px;color:var(--text-muted)">realtime</span></div>
         <div class="tbl-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Chat / Foto</th><th>Bergabung</th><th></th></tr></thead><tbody id="onlineTbl"><tr><td colspan="6" class="tbl-empty">Memuat...</td></tr></tbody></table></div>
@@ -762,6 +838,8 @@ let G = { users:{}, traffic:{}, guests:{}, settings:{}, dailyUsage:{}, me:null, 
 let currentSessionData = null;
 let currentUid = null;
 let chatHistoryLimit = 20;
+let chartDaily = null;
+let chartRole = null;
 
 const PAGES = {
   dashboard:{ title:"Dashboard",           sub:"Ringkasan sistem XREZZKY AI" },
@@ -806,12 +884,6 @@ function getEmail(uid, userData, trafficData){
   if(isGuest(uid)) return "—";
   return userData?.email || trafficData?.email || "—";
 }
-function getGuestId(uid, trafficData){
-  if(isGuest(uid)){
-    return trafficData?.guest_id || uid || "Guest";
-  }
-  return null;
-}
 function statusDot(ts){
   if(!ts) return `<span class="online-dot off"></span> Offline`;
   const now = Date.now();
@@ -822,6 +894,27 @@ function statusDot(ts){
 function statusDotSimple(ts){
   if(!ts) return `<span class="online-dot off"></span>`;
   return isOnline(ts) ? `<span class="online-dot on"></span>` : `<span class="online-dot off"></span>`;
+}
+
+// ─── NOTIFIKASI ───
+function addNotif(title, desc, type = "info", timeout = 5000) {
+  const container = document.getElementById("notifContainer");
+  const el = document.createElement("div");
+  const icons = { info: "ℹ️", warn: "⚠️", success: "✅", danger: "❌" };
+  el.className = `notif ${type}`;
+  el.innerHTML = `
+    <div class="n-icon">${icons[type] || "ℹ️"}</div>
+    <div class="n-body">
+      <div class="n-title">${title}</div>
+      <div class="n-desc">${desc}</div>
+      <div class="n-time">${new Date().toLocaleTimeString("id-ID", {hour:"2-digit", minute:"2-digit"})}</div>
+    </div>
+  `;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = "notifOut .3s ease forwards";
+    setTimeout(() => el.remove(), 350);
+  }, timeout);
 }
 
 // ══ TOAST ══
@@ -960,8 +1053,8 @@ function initApp(){
   else ava.textContent=(G.me.displayName?.[0]||"A").toUpperCase();
   setText("sbName",G.me.displayName||G.me.email?.split("@")[0]||"Admin");
   
-  const roleEmojis = { OWNER: "⭐", ADMIN: "👑", SELLER: "🏪", CS: "🛡️", MEMBER: "✅", GUEST: "👤" };
-  const roleColors = { OWNER: "var(--gold)", ADMIN: "var(--accent)", SELLER: "var(--cyan)", CS: "#06b6d4", MEMBER: "var(--green)", GUEST: "var(--text-muted)" };
+  const roleEmojis = { OWNER: "⭐", ADMIN: "👑", SELLER: "🏪", CS: "🛡️", MEMBER: "✅", GUEST: "👤", BANNED: "🚫", STOPPED: "⏸️" };
+  const roleColors = { OWNER: "var(--gold)", ADMIN: "var(--accent)", SELLER: "var(--cyan)", CS: "#06b6d4", MEMBER: "var(--green)", GUEST: "var(--text-muted)", BANNED: "var(--red)", STOPPED: "var(--gold)" };
   
   const roleEl = document.getElementById("sbRole");
   if(roleEl) {
@@ -995,12 +1088,23 @@ function initApp(){
   renderOnlineUsers(); renderDailyUsage(); renderTopUsers();
   renderUsers(); renderAnalytics(); renderMonitorUser(); renderMonitorGuest();
   checkAllApiKeys();
+  
+  // 🔥 RENDER CHART
+  renderCharts();
 
-  db.ref("users_config").on("value",snap=>{ G.users=snap.val()||{}; refreshStats(); renderUsers(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); });
-  db.ref("analytics/traffic").on("value",snap=>{ G.traffic=snap.val()||{}; refreshStats(); renderAnalytics(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); renderMonitorGuest(); });
+  db.ref("users_config").on("value",snap=>{ G.users=snap.val()||{}; refreshStats(); renderUsers(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); renderCharts(); });
+  db.ref("analytics/traffic").on("value",snap=>{ G.traffic=snap.val()||{}; refreshStats(); renderAnalytics(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); renderMonitorGuest(); renderCharts(); });
   db.ref("system_settings").on("value",snap=>{ G.settings=snap.val()||{}; refreshStats(); applySettingsUI(); });
-  db.ref("daily_usage").on("value",snap=>{ G.dailyUsage=snap.val()||{}; renderDailyUsage(); });
+  db.ref("daily_usage").on("value",snap=>{ G.dailyUsage=snap.val()||{}; renderDailyUsage(); renderCharts(); });
   db.ref("analytics/guests").on("value",snap=>{ G.guests=snap.val()||{}; refreshStats(); renderMonitorGuest(); });
+  
+  // 🔔 NOTIFIKASI AWAL
+  setTimeout(() => {
+    const total = Object.keys(G.users).length;
+    const guests = Object.keys(G.guests).length;
+    if(total > 0) addNotif("📊 Dashboard Siap", `${total} user terdaftar, ${guests} guest`, "info", 4000);
+    if(total > 10) addNotif("🔥 Sistem Aktif", `${total} user aktif di platform`, "success", 4000);
+  }, 3000);
 }
 
 function openMobileSidebar(){ document.getElementById("sidebar")?.classList.add("mob-open"); document.getElementById("sideOverlay").style.display="block"; }
@@ -1020,7 +1124,145 @@ function switchPage(name){
   if(name==="monitor-user") renderMonitorUser();
   if(name==="monitor-guest") renderMonitorGuest();
   if(name==="api-keys") checkAllApiKeys();
+  if(name==="dashboard") renderCharts();
   closeMobileSidebar();
+}
+
+// ══ 📊 RENDER CHARTS ══
+function renderCharts(){
+  renderDailyChart();
+  renderRoleChart();
+}
+
+function renderDailyChart(){
+  const canvas = document.getElementById("chartDaily");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  
+  // Ambil data 7 hari terakhir dari daily_usage
+  const days = [];
+  const chatData = [];
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    days.push(d.toLocaleDateString("id-ID", {weekday:"short", day:"numeric"}));
+    
+    let total = 0;
+    Object.values(G.dailyUsage).forEach(u => {
+      if(u[key]) total += (u[key].chats || 0);
+    });
+    chatData.push(total);
+  }
+  
+  if(chartDaily) { chartDaily.destroy(); chartDaily = null; }
+  
+  chartDaily = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'Total Chat',
+        data: chatData,
+        backgroundColor: 'rgba(37,99,235,0.6)',
+        borderColor: 'rgba(37,99,235,1)',
+        borderWidth: 2,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#8fa3c0', font: { size: 9 } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#8fa3c0', font: { size: 9 } }
+        }
+      }
+    }
+  });
+}
+
+function renderRoleChart(){
+  const canvas = document.getElementById("chartRole");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  
+  const roles = { OWNER:0, ADMIN:0, SELLER:0, CS:0, MEMBER:0, GUEST:0, BANNED:0, STOPPED:0 };
+  Object.values(G.users).forEach(u => {
+    const r = u.role || "GUEST";
+    if(roles[r] !== undefined) roles[r]++;
+    else roles["GUEST"]++;
+  });
+  
+  const labels = Object.keys(roles).filter(r => roles[r] > 0);
+  const data = labels.map(r => roles[r]);
+  const colors = {
+    OWNER: 'rgba(167,139,250,0.7)',
+    ADMIN: 'rgba(245,158,11,0.7)',
+    SELLER: 'rgba(56,189,248,0.7)',
+    CS: 'rgba(6,182,212,0.7)',
+    MEMBER: 'rgba(34,197,94,0.7)',
+    GUEST: 'rgba(148,163,184,0.5)',
+    BANNED: 'rgba(239,68,68,0.7)',
+    STOPPED: 'rgba(245,158,11,0.5)'
+  };
+  const borderColors = {
+    OWNER: 'rgba(167,139,250,1)',
+    ADMIN: 'rgba(245,158,11,1)',
+    SELLER: 'rgba(56,189,248,1)',
+    CS: 'rgba(6,182,212,1)',
+    MEMBER: 'rgba(34,197,94,1)',
+    GUEST: 'rgba(148,163,184,0.8)',
+    BANNED: 'rgba(239,68,68,1)',
+    STOPPED: 'rgba(245,158,11,0.8)'
+  };
+  
+  if(chartRole) { chartRole.destroy(); chartRole = null; }
+  
+  if(data.length === 0){
+    canvas.parentElement.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada data user</div>`;
+    return;
+  }
+  
+  chartRole = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: labels.map(l => colors[l] || 'rgba(148,163,184,0.5)'),
+        borderColor: labels.map(l => borderColors[l] || 'rgba(148,163,184,0.8)'),
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            color: '#8fa3c0',
+            font: { size: 10 },
+            boxWidth: 12,
+            padding: 8
+          }
+        }
+      }
+    }
+  });
 }
 
 // ══ SAVE CHAT HISTORY LIMIT ══
@@ -1113,6 +1355,14 @@ function renderDailyUsage(){
     const pct=maxC>0?Math.min((r.chats/maxC)*100,100):0;
     const barC=pct>=100?"var(--red)":pct>=80?"var(--gold)":"var(--accent)";
     const displayName = r.isGuest ? `🆔 ${r.name}` : r.name;
+    
+    // 🔔 NOTIFIKASI LIMIT
+    if(pct >= 80 && pct < 100){
+      addNotif(`⚠️ ${r.name} approaching limit`, `Chat: ${r.chats}/${maxC} (${Math.round(pct)}%)`, "warn", 6000);
+    }
+    if(pct >= 100){
+      addNotif(`🚫 ${r.name} limit habis`, `Chat: ${r.chats}/${maxC} — silakan reset kuota`, "danger", 6000);
+    }
     
     return `<tr>
       <td>${uCell(displayName, r.email, r.uid)}${r.isGuest ? ' <span style="font-size:9px;color:var(--text-muted)">(Guest)</span>' : ''}</td>
@@ -1275,7 +1525,7 @@ function renderMonitorUser(){
   }).join("");
 }
 
-// ══ MONITOR GUEST ══ (DENGAN TOMBOL AKSI)
+// ══ MONITOR GUEST ══
 function renderMonitorGuest(){
   const q=(document.getElementById("mgSearch")?.value||"").toLowerCase();
   let rows=Object.entries(G.guests).map(([id,g])=>({id,...g}));
@@ -1335,28 +1585,28 @@ async function doSave(uid,name){
 async function doBan(uid,name){
   const ok=await confirm2(`Ban <strong>${esc(name)}</strong>?`,"User tidak bisa mengirim pesan setelah dibanned.","🚫");
   if(!ok) return;
-  try{ await db.ref(`users_config/${uid}`).update({role:"BANNED"}); toast(`${name} dibanned.`,"ok"); }
+  try{ await db.ref(`users_config/${uid}`).update({role:"BANNED"}); toast(`${name} dibanned.`,"ok"); addNotif("🚫 User Dibanned", `${name} telah dibanned`, "danger", 5000); }
   catch(e){ toast("Gagal ban: "+e.message,"err"); }
 }
 async function doUnban(uid,name){
-  try{ await db.ref(`users_config/${uid}`).update({role:"MEMBER"}); toast(`${name} diunban → MEMBER.`,"ok"); }
+  try{ await db.ref(`users_config/${uid}`).update({role:"MEMBER"}); toast(`${name} diunban → MEMBER.`,"ok"); addNotif("🔓 User Diunban", `${name} sekarang MEMBER`, "success", 5000); }
   catch(e){ toast("Gagal unban: "+e.message,"err"); }
 }
 async function doStop(uid,name){
   const ok=await confirm2(`Stop <strong>${esc(name)}</strong>?`,"User tidak bisa chat sampai di-resume.","⏸️");
   if(!ok) return;
-  try{ await db.ref(`users_config/${uid}`).update({role:"STOPPED"}); toast(`${name} dihentikan.`,"inf"); }
+  try{ await db.ref(`users_config/${uid}`).update({role:"STOPPED"}); toast(`${name} dihentikan.`,"inf"); addNotif("⏸️ User Dihentikan", `${name} di-stop`, "warn", 5000); }
   catch(e){ toast("Gagal stop: "+e.message,"err"); }
 }
 async function doResume(uid,name){
-  try{ await db.ref(`users_config/${uid}`).update({role:"MEMBER"}); toast(`${name} di-resume → MEMBER.`,"ok"); }
+  try{ await db.ref(`users_config/${uid}`).update({role:"MEMBER"}); toast(`${name} di-resume → MEMBER.`,"ok"); addNotif("▶️ User Diresume", `${name} aktif kembali`, "success", 5000); }
   catch(e){ toast("Gagal resume: "+e.message,"err"); }
 }
 async function doResetQuota(uid,name){
   if(!uid||uid==="—") return;
   const ok=await confirm2(`Reset kuota <strong>${esc(name)}</strong>?`,"Counter chat & foto harian akan direset ke 0.","🔄");
   if(!ok) return;
-  try{ await db.ref(`daily_usage/${uid}`).remove(); toast(`Kuota ${name} direset!`,"ok"); }
+  try{ await db.ref(`daily_usage/${uid}`).remove(); toast(`Kuota ${name} direset!`,"ok"); addNotif("🔄 Kuota Direset", `${name} bisa chat lagi`, "success", 4000); }
   catch(e){ toast("Gagal reset: "+e.message,"err"); }
 }
 
@@ -1382,7 +1632,7 @@ async function doResetToGlobal(uid, name){
 async function doResetAll(){
   const ok=await confirm2("Reset Semua Kuota Harian?","Semua counter chat & foto seluruh user direset. Tidak bisa dibatalkan!","⚠️");
   if(!ok) return;
-  try{ await db.ref("daily_usage").remove(); toast("Semua kuota direset!","ok"); }
+  try{ await db.ref("daily_usage").remove(); toast("Semua kuota direset!","ok"); addNotif("🔄 Reset Massal", "Semua kuota user direset", "success", 4000); }
   catch(e){ toast("Gagal reset global: "+e.message,"err"); }
 }
 
@@ -1414,6 +1664,7 @@ async function doCreateUser(){
     await db.ref(`users_config/${d.localId}`).set({uid:d.localId,name,email,role,max_chat_limit:lim.c,max_photo_limit:lim.p,status:"active",created_at:Date.now(),created_by:G.me?.uid||"admin",last_login:null});
     showCuMsg(`✅ Akun "${name}" (${role}) berhasil dibuat!`,true);
     toast(`${name} berhasil dibuat sebagai ${role}`,"ok");
+    addNotif("➕ User Baru", `${name} dibuat sebagai ${role}`, "success", 4000);
     ["cu-name","cu-email","cu-pass"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   } catch(e){ showCuMsg("❌ Gagal: "+e.message,false); }
 }
@@ -1878,4 +2129,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-                                                                                                                                                          </html>
+        </html>
