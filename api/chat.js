@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  XREZZKY AI — api/chat.js  (Vercel Serverless)
 //  ⚡ Multi-Provider AI · Web Search · Image Analysis · Role-based Limits
-//  📌 SUPPORT role_limit & role_limits — SEMUA DARI FIREBASE
+//  📌 PRIORITAS: role_limit DULU — baru users_config
 //  🔥 TIDAK ADA BATASAN MAKSIMUM — ADMIN BISA SETTING BERAPA AJA
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -317,8 +317,7 @@ function buildQueue(hasImage, history = []) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  🔥 FIREBASE HELPERS — SUPPORT role_limit & role_limits
-//  🔥 TIDAK ADA BATASAN MAKSIMUM — BISA SETTING BERAPA AJA
+//  🔥 FIREBASE HELPERS — PRIORITAS role_limit DULU
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── 🔥 AMBIL ROLE LIMITS (SUPPORT role_limits & role_limit) ──
@@ -326,7 +325,6 @@ async function getRoleLimits() {
   try {
     const snap = await db.ref("system_settings").once("value");
     const data = snap.val() || {};
-    // Coba baca dari role_limits dulu, kalo ga ada pakai role_limit
     return data.role_limits || data.role_limit || {};
   } catch {
     return {};
@@ -341,7 +339,7 @@ async function getSystemSettings() {
   } catch { return {}; }
 }
 
-// ── 🔥 AMBIL LIMIT USER — TANPA BATASAN ──
+// ── 🔥🔥🔥 AMBIL LIMIT USER — PRIORITAS role_limit DULU ──
 async function getUserLimits(uid, role, userConfig) {
   const roleLimits = await getRoleLimits();
 
@@ -350,19 +348,20 @@ async function getUserLimits(uid, role, userConfig) {
     return { chatLimit: 99999, photoLimit: 99999 };
   }
 
-  // Cek user_config dulu (admin bisa set per-user)
-  if (userConfig) {
-    const chatLimit = userConfig.max_chat_limit;
-    const photoLimit = userConfig.max_photo_limit;
-    if (chatLimit !== undefined && chatLimit !== null) {
-      return { chatLimit, photoLimit };
+  // 🔥 PRIORITAS: role_limit DULU (biar admin setting berlaku global)
+  const roleLimit = roleLimits[role] || {};
+  let chatLimit = roleLimit.chat_limit ?? roleLimit.max_chat_limit ?? 0;
+  let photoLimit = roleLimit.photo_limit ?? roleLimit.max_photo_limit ?? 0;
+
+  // Kalo di role_limit 0, cek user_config (bisa override per user)
+  if (chatLimit === 0 && userConfig) {
+    const ucChat = userConfig.max_chat_limit;
+    const ucPhoto = userConfig.max_photo_limit;
+    if (ucChat !== undefined && ucChat !== null && ucChat > 0) {
+      chatLimit = ucChat;
+      photoLimit = ucPhoto ?? 0;
     }
   }
-
-  // 🔥 DARI FIREBASE — BISA BERAPA AJA (0 - 999999)
-  const roleLimit = roleLimits[role] || {};
-  const chatLimit = roleLimit.chat_limit ?? roleLimit.max_chat_limit ?? 0;
-  const photoLimit = roleLimit.photo_limit ?? roleLimit.max_photo_limit ?? 0;
 
   return { chatLimit, photoLimit };
 }
@@ -384,18 +383,14 @@ async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v || 0) + 1);
 }
 
-// ── 🔥 ENSURE USER CONFIG — TANPA BATASAN ──
+// ── 🔥 ENSURE USER CONFIG — TANPA LIMIT (biar pake role_limit) ──
 async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
   const ref = db.ref(`users_config/${uid}`);
   const snap = await ref.once("value");
 
   if (!snap.exists()) {
-    const roleLimits = await getRoleLimits();
-    const rl = roleLimits[defaultRole] || {};
     const cfg = {
       role: defaultRole,
-      max_chat_limit: rl.chat_limit ?? rl.max_chat_limit ?? 0,
-      max_photo_limit: rl.photo_limit ?? rl.max_photo_limit ?? 0,
       name: meta.name || "",
       email: meta.email || "",
       is_anonymous: meta.is_anonymous || false,
@@ -524,7 +519,7 @@ export default async function handler(req, res) {
   });
   const role = userCfg.role || defaultRole;
 
-  // ── 🔥 AMBIL LIMIT DARI FIREBASE ──────────────────────────────────────
+  // ── 🔥 AMBIL LIMIT DARI FIREBASE (PRIORITAS role_limit) ──────────────
   const { chatLimit, photoLimit } = await getUserLimits(uid, role, userCfg);
 
   // ── GET ──────────────────────────────────────────────────────────────────
@@ -833,4 +828,4 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
   }
 
   return res.status(405).json({ error: "Method Not Allowed" });
-     }
+}
