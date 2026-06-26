@@ -186,15 +186,19 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .ud-act{flex:1;min-width:110px;padding:10px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;border:1px solid;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
 #sideOverlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:29;display:none}
 #mobileMenuBtn{display:none;background:none;border:none;color:var(--text-sub);font-size:18px;cursor:pointer;width:36px;height:36px;border-radius:8px;align-items:center;justify-content:center;flex-shrink:0}
-.api-key-card{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:10px}
+.api-key-card{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:10px;transition:all .2s}
+.api-key-card:hover{background:rgba(255,255,255,.05)}
 .api-key-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.api-key-card .provider{font-weight:700;font-size:13px}
-.api-key-card .key-status{font-size:11px;padding:2px 10px;border-radius:12px}
-.api-key-card .key-status.ok{background:rgba(34,197,94,.15);color:var(--green)}
-.api-key-card .key-status.err{background:rgba(239,68,68,.15);color:var(--red)}
-.api-key-card .models{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.api-key-card .models .model-tag{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:2px 10px;font-size:10px;color:var(--text-sub)}
+.api-key-card .provider{font-weight:700;font-size:13px;color:var(--text)}
+.api-key-card .key-status{font-size:11px;padding:2px 12px;border-radius:12px;font-weight:600}
+.api-key-card .key-status.ok{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.api-key-card .key-status.err{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+.api-key-card .key-status.warn{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
 .api-key-card .region{font-size:10px;color:var(--text-muted);margin-top:4px}
+.api-key-card .models{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.api-key-card .models .model-tag{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:2px 10px;font-size:10px;color:#22c55e;font-weight:500}
+.api-key-card .models .model-tag.free{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:#f59e0b}
+.api-key-card .models .model-tag.vision{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);color:#a78bfa}
 @media(max-width:900px){
   .sidebar{position:fixed;left:0;top:0;height:100%;z-index:30;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.mob-open{transform:translateX(0)}
@@ -450,26 +454,66 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
-    <!-- SETTINGS -->
+    <!-- 🔥 SETTINGS — SATU TEMPAT SETTING LIMIT -->
     <div class="page" id="page-settings">
-      <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Login Wajib untuk Kirim Foto</strong><br>Backend sudah memvalidasi Bearer Token.<br><span style="color:var(--gold)">💡 Agar Guest wajib login, set <strong>chat_limit = 0</strong> di role_limit/GUEST.</span></div></div>
+      <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
+
+      <!-- 🔘 KONTROL GLOBAL -->
       <div class="panel">
         <div class="panel-head"><h4>🔘 Kontrol Global</h4></div>
         <div class="panel-body">
-          <div class="toggle-row"><div class="toggle-info"><strong>Izinkan Guest Kirim Foto</strong><span>User tanpa login bisa upload gambar saat chat</span></div><label class="toggle"><input type="checkbox" id="tog-gphoto"><div class="toggle-track"></div></label></div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <strong>Izinkan Guest Kirim Foto</strong>
+              <span>User tanpa login bisa upload gambar saat chat</span>
+              <span style="font-size:10px;color:var(--text-muted);display:block;margin-top:2px">
+                ✅ ON  = Guest BISA kirim foto (tapi tetap terbatas <strong>Limit Foto Guest</strong>)<br>
+                ❌ OFF = Guest TIDAK BISA kirim foto sama sekali
+              </span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="tog-gphoto">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
           <div class="toggle-row"><div class="toggle-info"><strong>Mode Maintenance</strong><span>Nonaktifkan semua interaksi chat sementara</span></div><label class="toggle"><input type="checkbox" id="tog-maint"><div class="toggle-track"></div></label></div>
           <div class="toggle-row"><div class="toggle-info"><strong>Wajib Login untuk Chat</strong><span>Guest tidak bisa mengirim pesan — harus login dahulu</span></div><label class="toggle"><input type="checkbox" id="tog-loginreq"><div class="toggle-track"></div></label></div>
           <button class="save-btn" onclick="saveToggles()">💾 Simpan Toggle</button>
         </div>
       </div>
+
+      <!-- 🔥 SATU-SATUNYA TEMPAT SETTING LIMIT GLOBAL -->
       <div class="panel">
-        <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">berlaku untuk user baru — bisa diatur BERAPA AJA</span></div>
+        <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">✨ SATU-SATUNYA TEMPAT SETTING LIMIT — berlaku GLOBAL</span></div>
         <div class="panel-body">
           <div class="role-grid" id="roleGrid"></div>
           <div class="info-box gold" style="margin-top:12px">👑 <span>ADMIN & OWNER tidak memiliki batasan — semua limit diabaikan di backend.</span></div>
           <button class="save-btn" onclick="saveRoleLimits()">💾 Simpan Limit Role</button>
         </div>
       </div>
+
+      <!-- 📊 RINGKASAN LIMIT (READ-ONLY) -->
+      <div class="panel">
+        <div class="panel-head"><h4>📊 Ringkasan Limit per Role</h4><span style="font-size:11px;color:var(--text-muted)">Lihat limit yang sedang aktif — READ ONLY</span></div>
+        <div class="panel-body">
+          <div style="overflow-x:auto;margin-bottom:14px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead><tr>
+                <th style="padding:8px 12px;text-align:left;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Role</th>
+                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Max Chat/Hari</th>
+                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Max Foto/Hari</th>
+                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Boleh Foto</th>
+              </tr></thead>
+              <tbody id="appLimitTbl"></tbody>
+            </table>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);padding:8px 12px;background:rgba(255,255,255,.02);border-radius:var(--radius-sm)">
+            💡 Ubah limit di bagian <strong>⚙️ Batas Default per Role</strong> di atas.
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔐 RULES -->
       <div class="panel">
         <div class="panel-head"><h4>🔐 Firebase Database Rules</h4></div>
         <div class="panel-body">
@@ -521,24 +565,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     }
   }
 }</pre>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h4>💬 Pengaturan Chat App</h4><span style="font-size:11px;color:var(--text-muted)">Kontrol langsung untuk index.html</span></div>
-        <div class="panel-body">
-          <div style="overflow-x:auto;margin-bottom:14px">
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead><tr>
-                <th style="padding:8px 12px;text-align:left;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Role</th>
-                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Max Chat/Hari</th>
-                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Max Foto/Hari</th>
-                <th style="padding:8px 12px;text-align:center;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border2);color:var(--text-muted);font-size:10px;text-transform:uppercase">Boleh Foto</th>
-              </tr></thead>
-              <tbody id="appLimitTbl"></tbody>
-            </table>
-          </div>
-          <button class="save-btn" onclick="saveAppSettings()">💾 Simpan Pengaturan App</button>
-          <div id="appSettingsMsg" style="display:none;margin-top:10px;font-size:12px;padding:8px 12px;border-radius:8px"></div>
         </div>
       </div>
     </div>
@@ -930,7 +956,7 @@ function renderAnalytics(){
   }).join("");
 }
 
-// ══ USERS ══
+// ══ 🔥 USERS — DENGAN STATUS GLOBAL/CUSTOM ══
 function renderUsers(){
   const q=(document.getElementById("usrSearch")?.value||"").toLowerCase();
   const fr=document.getElementById("usrRole")?.value||"";
@@ -939,23 +965,41 @@ function renderUsers(){
   if(fr) rows=rows.filter(u=>(u.role||"GUEST")===fr);
   setText("usrCount",rows.length+" user");
   const tbody=document.getElementById("usrTbl"); if(!tbody) return;
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="6" class="tbl-empty">Tidak ada user${q?" yang cocok":""} terdaftar.</td></tr>`; return; }
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="7" class="tbl-empty">Tidak ada user${q?" yang cocok":""} terdaftar.</td></tr>`; return; }
+  
+  const globalLimits = G.settings.role_limit || {};
+  
   tbody.innerHTML=rows.map(u=>{
     const role=u.role||"GUEST", tr=G.traffic[u.uid]||{};
     const name=u.name||tr.name||"—", email=u.email||tr.email||"—";
     const isAdmin=role==="ADMIN"||role==="OWNER", isBanned=role==="BANNED", isStopped=role==="STOPPED";
+    const globalLimit = globalLimits[role] || {};
+    const globalChat = globalLimit.chat_limit ?? 0;
+    const globalPhoto = globalLimit.photo_limit ?? 0;
+    const userChat = u.max_chat_limit ?? 0;
+    const userPhoto = u.max_photo_limit ?? 0;
+    const isOverridden = userChat !== globalChat || userPhoto !== globalPhoto;
+    
     return `<tr id="row-${u.uid}">
       <td>${uCell(name,email,u.uid)}</td>
       <td><select class="tbl-select" id="r-${u.uid}" onchange="onRoleChg('${u.uid}')">
         ${["OWNER","ADMIN","SELLER","CS","MEMBER","GUEST","BANNED","STOPPED"].map(r=>`<option value="${r}"${r===role?" selected":""}>${r}</option>`).join("")}
       </select></td>
-      <td><input type="number" class="tbl-inp" id="c-${u.uid}" value="${isAdmin?"":u.max_chat_limit??0}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
-      <td><input type="number" class="tbl-inp" id="p-${u.uid}" value="${isAdmin?"":u.max_photo_limit??0}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
+      <td><input type="number" class="tbl-inp" id="c-${u.uid}" value="${isAdmin?"":userChat}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
+      <td><input type="number" class="tbl-inp" id="p-${u.uid}" value="${isAdmin?"":userPhoto}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
       <td><span class="badge ${isBanned?"BANNED":isStopped?"STOPPED":"MEMBER"}">${isBanned?"BANNED":isStopped?"STOPPED":"AKTIF"}</span></td>
+      <td style="font-size:11px;color:var(--text-muted)">
+        ${isAdmin ? '∞' : 
+          isOverridden ? 
+          `<span style="color:var(--gold)">⚡ Custom</span><br><span style="font-size:9px">Global: ${globalChat}/${globalPhoto}` : 
+          `<span style="color:var(--text-muted)">✅ Global</span>`
+        }
+      </td>
       <td><div class="act-grp">
         <button class="act pri" data-action="save"   data-uid="${u.uid}" data-name="${esc(name)}">✓ Simpan</button>
         <button class="act pur" data-action="detail" data-uid="${u.uid}">👁️</button>
         <button class="act cyn" data-action="reset"  data-uid="${u.uid}" data-name="${esc(name)}">🔄</button>
+        ${!isAdmin && isOverridden ? `<button class="act yel" data-action="resetGlobal" data-uid="${u.uid}" data-name="${esc(name)}" title="Reset ke limit global">↺ Global</button>` : ''}
         ${isBanned?`<button class="act grn" data-action="unban"  data-uid="${u.uid}" data-name="${esc(name)}">🔓</button>`:`<button class="act red" data-action="ban"   data-uid="${u.uid}" data-name="${esc(name)}">🚫</button>`}
         ${isStopped?`<button class="act grn" data-action="resume" data-uid="${u.uid}" data-name="${esc(name)}">▶️</button>`:(!isBanned?`<button class="act yel" data-action="stop" data-uid="${u.uid}" data-name="${esc(name)}">⏸️</button>`:"")}
       </div></td>
@@ -968,7 +1012,7 @@ function onRoleChg(uid){
   const ci=document.getElementById(`c-${uid}`), pi=document.getElementById(`p-${uid}`);
   if(!ci||!pi) return;
   if(role==="ADMIN"||role==="OWNER"){ ci.value=""; ci.placeholder="∞"; ci.disabled=true; pi.value=""; pi.placeholder="∞"; pi.disabled=true; }
-  else { ci.disabled=false; pi.disabled=false; const rl=(G.settings.role_limits||G.settings.role_limit||{})[role]||{}; if(!ci.value||ci.value==="∞") ci.value=rl.chat_limit??rl.max_chat_limit??0; if(!pi.value||pi.value==="∞") pi.value=rl.photo_limit??rl.max_photo_limit??0; }
+  else { ci.disabled=false; pi.disabled=false; const rl=(G.settings.role_limit||{})[role]||{}; if(!ci.value||ci.value==="∞") ci.value=rl.chat_limit??0; if(!pi.value||pi.value==="∞") pi.value=rl.photo_limit??0; }
 }
 
 // ══ EVENT DELEGATION ══
@@ -978,6 +1022,7 @@ document.addEventListener("click",async e=>{
   if(action==="save")   await doSave(uid,name);
   if(action==="detail") openUD(uid);
   if(action==="reset")  await doResetQuota(uid,name);
+  if(action==="resetGlobal") await doResetToGlobal(uid,name);
   if(action==="ban")    await doBan(uid,name);
   if(action==="unban")  await doUnban(uid,name);
   if(action==="stop")   await doStop(uid,name);
@@ -1018,6 +1063,36 @@ async function doResetQuota(uid,name){
   try{ await db.ref(`daily_usage/${uid}`).remove(); toast(`Kuota ${name} direset!`,"ok"); }
   catch(e){ toast("Gagal reset: "+e.message,"err"); }
 }
+
+// 🔥 RESET USER KE GLOBAL LIMIT
+async function doResetToGlobal(uid, name){
+  if(!uid||uid==="—") return;
+  const ok=await confirm2(`Reset <strong>${esc(name)}</strong> ke limit global?`,"Limit user akan direset mengikuti role_limit di Firebase.","🔄");
+  if(!ok) return;
+  
+  try {
+    const userSnap = await db.ref(`users_config/${uid}`).once("value");
+    const userData = userSnap.val();
+    if (!userData) { toast("User tidak ditemukan!","err"); return; }
+    
+    const role = userData.role || "GUEST";
+    const globalLimits = G.settings.role_limit || {};
+    const globalLimit = globalLimits[role] || {};
+    const globalChat = globalLimit.chat_limit ?? 0;
+    const globalPhoto = globalLimit.photo_limit ?? 0;
+    
+    await db.ref(`users_config/${uid}`).update({
+      max_chat_limit: globalChat,
+      max_photo_limit: globalPhoto
+    });
+    
+    toast(`${name} direset ke limit global (${role}: ${globalChat}/${globalPhoto})`, "ok");
+    renderUsers();
+  } catch(e) {
+    toast("Gagal reset: "+e.message, "err");
+  }
+}
+
 async function doResetAll(){
   const ok=await confirm2("Reset Semua Kuota Harian?","Semua counter chat & foto seluruh user direset. Tidak bisa dibatalkan!","⚠️");
   if(!ok) return;
@@ -1070,55 +1145,89 @@ async function saveToggles(){
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
 
-const ROLES_DEF=[{role:"SELLER"},{role:"CS"},{role:"MEMBER"},{role:"GUEST"}];
-function defForRole(role,type){ return({SELLER:{chat:0,photo:0},CS:{chat:0,photo:0},MEMBER:{chat:0,photo:0},GUEST:{chat:0,photo:0}}[role]||{})[type]??0; }
+const ROLES_DEF=["SELLER","CS","MEMBER","GUEST"];
+const ROLE_ICONS={SELLER:"🏪",CS:"🛡️",MEMBER:"✅",GUEST:"👤"};
 
+// 🔥 RENDER ROLE GRID — PAKAI role_limit
 function renderRoleGrid(){
-  const grid=document.getElementById("roleGrid"); if(!grid) return;
-  const icons={SELLER:"🏪",CS:"🛡️",MEMBER:"✅",GUEST:"👤"};
-  const roleLimits = G.settings.role_limits || G.settings.role_limit || {};
-  grid.innerHTML=ROLES_DEF.map(({role})=>{
-    const rl=roleLimits[role]||{};
-    return `<div class="role-card"><div class="role-card-head"><span style="font-size:16px">${icons[role]||"👤"}</span><span class="badge ${role}">${role}</span></div><div class="rlc-row"><span class="rlc-lbl">Max Chat/hari</span><input type="number" class="rlc-inp" id="rl-c-${role}" value="${rl.chat_limit??rl.max_chat_limit??0}" min="0"></div><div class="rlc-row"><span class="rlc-lbl">Max Foto/hari</span><input type="number" class="rlc-inp" id="rl-p-${role}" value="${rl.photo_limit??rl.max_photo_limit??0}" min="0"></div><div class="rlc-note">berlaku untuk user baru dengan role ini</div></div>`;
+  const grid=document.getElementById("roleGrid");
+  if(!grid) return;
+
+  const roleLimits = G.settings.role_limit || {};
+
+  grid.innerHTML = ROLES_DEF.map(role => {
+    const rl = roleLimits[role] || {};
+    const chatVal = rl.chat_limit ?? 0;
+    const photoVal = rl.photo_limit ?? 0;
+
+    return `<div class="role-card">
+      <div class="role-card-head">
+        <span style="font-size:16px">${ROLE_ICONS[role] || "👤"}</span>
+        <span class="badge ${role}">${role}</span>
+      </div>
+      <div class="rlc-row">
+        <span class="rlc-lbl">Max Chat/hari</span>
+        <input type="number" class="rlc-inp" id="rl-c-${role}" value="${chatVal}" min="0">
+      </div>
+      <div class="rlc-row">
+        <span class="rlc-lbl">Max Foto/hari</span>
+        <input type="number" class="rlc-inp" id="rl-p-${role}" value="${photoVal}" min="0">
+      </div>
+      <div class="rlc-note">💡 Isi <strong>0</strong> untuk matikan fitur<br>Isi angka positif untuk batasi jumlah</div>
+    </div>`;
   }).join("");
-}
-async function saveRoleLimits(){
-  const upd={};
-  ROLES_DEF.forEach(({role})=>{
-    upd[`role_limit/${role}`]={
-      chat_limit: parseInt(document.getElementById(`rl-c-${role}`)?.value)||0,
-      photo_limit: parseInt(document.getElementById(`rl-p-${role}`)?.value)||0
-    };
-  });
-  try{ await db.ref("system_settings").update(upd); toast("Limit per role tersimpan!","ok"); }
-  catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
 
-// ══ APP LIMIT TABLE ══
-function renderAppLimitTable(){
-  const tbody=document.getElementById("appLimitTbl"); if(!tbody) return;
-  const s=G.settings;
-  const roleLimits = s.role_limits || s.role_limit || {};
-  tbody.innerHTML=["OWNER","ADMIN","SELLER","CS","MEMBER","GUEST"].map(role=>{
-    const rl=roleLimits[role]||{}, isAdmin=["OWNER","ADMIN"].includes(role);
-    const chatVal=isAdmin?"∞":(rl.chat_limit??rl.max_chat_limit??0);
-    const photoVal=isAdmin?"∞":(rl.photo_limit??rl.max_photo_limit??0);
-    const okPhoto=role==="OWNER"||role==="ADMIN"||(parseInt(photoVal)||0)>0;
-    return `<tr style="border-bottom:1px solid var(--border2)"><td style="padding:8px 12px"><span class="badge ${role}">${role}</span></td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-c-${role}" value="${chatVal}" min="0">`}</td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-p-${role}" value="${photoVal}" min="0">`}</td><td style="padding:8px 12px;text-align:center">${okPhoto?"✅":"❌"}</td></tr>`;
-  }).join("");
-}
-async function saveAppSettings(){
-  const upd={};
-  ["SELLER","CS","MEMBER","GUEST"].forEach(role=>{
-    upd[`role_limit/${role}`]={
-      chat_limit: parseInt(document.getElementById(`app-c-${role}`)?.value)||0,
-      photo_limit: parseInt(document.getElementById(`app-p-${role}`)?.value)||0
-    };
+// 🔥 SAVE ROLE LIMITS — SIMPAN KE role_limit
+async function saveRoleLimits() {
+  const updates = {};
+
+  ROLES_DEF.forEach(role => {
+    const chatVal = document.getElementById(`rl-c-${role}`)?.value;
+    const photoVal = document.getElementById(`rl-p-${role}`)?.value;
+
+    if (chatVal !== undefined) {
+      updates[`role_limit/${role}`] = {
+        chat_limit: parseInt(chatVal) || 0,
+        photo_limit: parseInt(photoVal) || 0
+      };
+    }
   });
-  try{
-    await db.ref("system_settings").update(upd); toast("Pengaturan app tersimpan!","ok");
-    const m=document.getElementById("appSettingsMsg"); if(m){ m.textContent="✅ Tersimpan!"; m.style.cssText="display:block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 12px;border-radius:8px;font-size:12px"; setTimeout(()=>m.style.display="none",2500); }
-  } catch(e){ toast("Gagal simpan: "+e.message,"err"); }
+
+  try {
+    await db.ref("system_settings").update(updates);
+    toast("Limit per role tersimpan! ✅", "ok");
+
+    const snap = await db.ref("system_settings").once("value");
+    G.settings = snap.val() || {};
+    renderRoleGrid();
+    renderAppLimitTable();
+  } catch (e) {
+    toast("Gagal simpan: " + e.message, "err");
+  }
+}
+
+// ══ RINGKASAN LIMIT (READ-ONLY) ══
+function renderAppLimitTable() {
+  const tbody = document.getElementById("appLimitTbl");
+  if (!tbody) return;
+
+  const roleLimits = G.settings.role_limit || {};
+
+  tbody.innerHTML = ["OWNER", "ADMIN", "SELLER", "CS", "MEMBER", "GUEST"].map(role => {
+    const rl = roleLimits[role] || {};
+    const isAdmin = ["OWNER", "ADMIN"].includes(role);
+    const chatVal = isAdmin ? "∞" : (rl.chat_limit ?? 0);
+    const photoVal = isAdmin ? "∞" : (rl.photo_limit ?? 0);
+    const okPhoto = role === "OWNER" || role === "ADMIN" || (parseInt(photoVal) || 0) > 0;
+
+    return `<tr style="border-bottom:1px solid var(--border2)">
+      <td style="padding:8px 12px"><span class="badge ${role}">${role}</span></td>
+      <td style="padding:8px 12px;text-align:center;font-weight:600;color:${isAdmin ? 'var(--gold)' : 'var(--cyan)'}">${chatVal}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:600;color:${isAdmin ? 'var(--gold)' : 'var(--cyan)'}">${photoVal}</td>
+      <td style="padding:8px 12px;text-align:center">${okPhoto ? "✅" : "❌"}</td>
+    </tr>`;
+  }).join("");
 }
 
 // ══ USER DETAIL MODAL ══
@@ -1257,46 +1366,59 @@ async function checkAllApiKeys() {
     const grKeysAvailable = grKeyIndexes.filter(k => k.status);
 
     const regionMap = {
-      'OR/gemini-2.0-flash': '🇺🇸 USA',
-      'OR/deepseek-v3': '🇨🇳 China',
-      'OR/claude-3-haiku': '🇺🇸 USA',
-      'OR/gemini-2.5-pro': '🇺🇸 USA',
-      'OR/llama-3.1-free': '🇺🇸 USA',
-      'Groq/llama-3.3-70b': '🇺🇸 USA',
-      'Groq/llama-3.1-8b': '🇺🇸 USA'
+      'OR/gemini-2.0-flash': '🇺🇸 USA (Google)',
+      'OR/deepseek-v3': '🇨🇳 China (DeepSeek)',
+      'OR/claude-3-haiku': '🇺🇸 USA (Anthropic)',
+      'OR/gemini-2.5-pro': '🇺🇸 USA (Google)',
+      'OR/llama-3.1-free': '🇺🇸 USA (Meta)',
+      'OR/mistral-7b-free': '🇪🇺 Europe (Mistral)',
+      'Groq/llama-3.3-70b': '🇺🇸 USA (Groq)',
+      'Groq/llama-3.1-8b': '🇺🇸 USA (Groq)'
     };
 
-    const modelList = activeQueue.map(q => {
-      return q.replace('OR/', '').replace('Groq/', '');
-    });
+    const orModels = [
+      { name: 'gemini-2.0-flash', type: 'free' },
+      { name: 'gemini-flash-1.5', type: 'free' },
+      { name: 'claude-3-haiku', type: 'paid' },
+      { name: 'gemini-2.5-pro', type: 'paid' },
+      { name: 'deepseek-chat', type: 'free' },
+      { name: 'llama-3.1-8b', type: 'free' },
+      { name: 'mistral-7b', type: 'free' },
+      { name: 'llama-3.2-11b-vision', type: 'vision' }
+    ];
 
+    const groqModels = [
+      { name: 'llama-3.3-70b', type: 'free' },
+      { name: 'llama-3.1-8b', type: 'free' }
+    ];
+
+    // OpenRouter Keys
     if (orKeysAvailable.length > 0) {
       hasAnyKey = true;
       html += `<div style="margin-bottom:16px"><strong style="color:var(--cyan);font-size:14px">🔗 OpenRouter API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${orKeysAvailable.length} key aktif</span></div>`;
       
       orKeysAvailable.forEach((k) => {
-        const isWorking = providerTest[`OR/${Object.keys(providerTest).find(p => p.startsWith('OR/'))}`]?.includes('✓') || false;
+        const isWorking = providerTest[`OR/${Object.keys(providerTest).find(p => p.startsWith('OR/') && !p.includes('DISABLED'))}`]?.includes('✓') || false;
+        const firstWorking = Object.keys(providerTest).find(p => p.startsWith('OR/') && providerTest[p]?.includes('✓'));
+        const region = regionMap[firstWorking] || '🌐 Global';
         
         html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
           <div class="header">
             <span class="provider">🔑 OPENROUTER_API_KEY_${k.index}</span>
-            <span class="key-status ${isWorking ? 'ok' : 'err'}">${isWorking ? '✅ Aktif' : '⚠️ Cek Limit'}</span>
+            <span class="key-status ${isWorking ? 'ok' : 'warn'}">${isWorking ? '✅ AKTIF' : '⚠️ CHECK LIMIT'}</span>
           </div>
-          <div class="region">🌍 Region: ${regionMap['OR/gemini-2.0-flash'] || '🌐 Global'}</div>
+          <div class="region">🌍 Region: ${region}</div>
           <div class="models">
-            <span class="model-tag">gemini-2.0-flash</span>
-            <span class="model-tag">gemini-flash-1.5</span>
-            <span class="model-tag">claude-3-haiku</span>
-            <span class="model-tag">gemini-2.5-pro</span>
-            <span class="model-tag">deepseek-chat</span>
-            <span class="model-tag">llama-3.1-8b</span>
-            <span class="model-tag">mistral-7b</span>
+            ${orModels.map(m => `<span class="model-tag ${m.type}">${m.name}</span>`).join('')}
           </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">🔹 Bisa akses semua model OpenRouter (Gemini, Claude, Llama, DeepSeek, dll)</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">
+            🔹 Akses semua model OpenRouter (Gemini, Claude, Llama, DeepSeek, Mistral, Vision)
+          </div>
         </div>`;
       });
     }
 
+    // Groq Keys
     if (grKeysAvailable.length > 0) {
       hasAnyKey = true;
       html += `<div style="margin-bottom:16px;margin-top:16px"><strong style="color:var(--green);font-size:14px">⚡ Groq API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${grKeysAvailable.length} key aktif</span></div>`;
@@ -1307,17 +1429,33 @@ async function checkAllApiKeys() {
         html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
           <div class="header">
             <span class="provider">🔑 GROQ_API_KEY_${k.index}</span>
-            <span class="key-status ${isWorking ? 'ok' : 'err'}">${isWorking ? '✅ Aktif' : '⚠️ Cek Limit'}</span>
+            <span class="key-status ${isWorking ? 'ok' : 'warn'}">${isWorking ? '✅ AKTIF' : '⚠️ CHECK LIMIT'}</span>
           </div>
-          <div class="region">🌍 Region: 🇺🇸 USA (Cloud)</div>
+          <div class="region">🌍 Region: 🇺🇸 USA (Groq Cloud)</div>
           <div class="models">
-            <span class="model-tag">llama-3.3-70b</span>
-            <span class="model-tag">llama-3.1-8b</span>
+            ${groqModels.map(m => `<span class="model-tag ${m.type}">${m.name}</span>`).join('')}
           </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">🔹 Model Llama dari Meta — cepat & gratis</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">
+            🔹 Model Llama dari Meta — cepat & gratis via Groq
+          </div>
         </div>`;
       });
     }
+
+    // Summary
+    const totalKeys = orKeysAvailable.length + grKeysAvailable.length;
+    const modelCount = activeQueue.length;
+
+    html += `
+      <div style="margin-top:16px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
+          <div>🔑 Total Key Aktif: <strong style="color:var(--green)">${totalKeys}</strong></div>
+          <div>🔗 OpenRouter: <strong style="color:var(--cyan)">${orKeysAvailable.length}</strong></div>
+          <div>⚡ Groq: <strong style="color:var(--green)">${grKeysAvailable.length}</strong></div>
+          <div>🤖 Model Tersedia: <strong style="color:var(--text)">${modelCount || '—'}</strong></div>
+        </div>
+      </div>
+    `;
 
     if (!hasAnyKey) {
       html = `<div style="text-align:center;padding:30px;color:var(--text-muted);border:1px solid var(--border2);border-radius:var(--radius-sm)">
@@ -1328,17 +1466,6 @@ async function checkAllApiKeys() {
     }
 
     container.innerHTML = html;
-
-    const summary = document.createElement('div');
-    summary.style.cssText = 'margin-top:12px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)';
-    summary.innerHTML = `
-      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
-        <div>🔑 Total OpenRouter Key: <strong style="color:var(--cyan)">${orKeysAvailable.length}</strong></div>
-        <div>🔑 Total Groq Key: <strong style="color:var(--green)">${grKeysAvailable.length}</strong></div>
-        <div>🤖 Model Tersedia: <strong style="color:var(--text)">${modelList.length || '—'}</strong></div>
-      </div>
-    `;
-    container.appendChild(summary);
 
   } catch (e) {
     container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm)">
@@ -1376,4 +1503,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-                                                                                                                            </html>
+      </html>
