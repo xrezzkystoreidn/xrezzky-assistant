@@ -352,6 +352,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     </nav>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">↩ Logout</button>
+      <!-- 🔥 TOMBOL KEMBALI KE INDEX -->
+      <a href="/" target="_self" style="display:block;margin-top:6px;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text-sub);font-size:12px;font-weight:600;text-align:center;text-decoration:none;transition:all .15s;font-family:inherit;cursor:pointer">
+        ← Kembali ke XREZZKY AI
+      </a>
     </div>
   </aside>
 
@@ -454,7 +458,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
-    <!-- 🔥 SETTINGS — DENGAN FITUR VERSI BETA/RILIS -->
+    <!-- 🔥 SETTINGS -->
     <div class="page" id="page-settings">
       <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
 
@@ -513,7 +517,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- 📦 VERSI & INFO APLIKASI — BETA/RILIS LOGIC -->
+      <!-- 📦 VERSI & INFO APLIKASI -->
       <div class="panel">
         <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di sidebar index.html</span></div>
         <div class="panel-body">
@@ -862,8 +866,18 @@ function initApp(){
   if(G.me.photoURL) ava.innerHTML=`<img src="${G.me.photoURL}">`;
   else ava.textContent=(G.me.displayName?.[0]||"A").toUpperCase();
   setText("sbName",G.me.displayName||G.me.email?.split("@")[0]||"Admin");
-  const roleEmojis={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",CS:"🛡️",MEMBER:"✅"};
-  setText("sbRole",`${roleEmojis[G.myRole]||"👑"} ${G.myRole||"ADMIN"}`);
+  
+  // 🔥 ROLE BADGE DI SIDEBAR ADMIN
+  const roleEmojis = { OWNER: "⭐", ADMIN: "👑", SELLER: "🏪", CS: "🛡️", MEMBER: "✅", GUEST: "👤" };
+  const roleColors = { OWNER: "var(--gold)", ADMIN: "var(--accent)", SELLER: "var(--cyan)", CS: "#06b6d4", MEMBER: "var(--green)", GUEST: "var(--text-muted)" };
+  
+  const roleEl = document.getElementById("sbRole");
+  if(roleEl) {
+    const emoji = roleEmojis[G.myRole] || "👑";
+    const color = roleColors[G.myRole] || "var(--accent)";
+    roleEl.textContent = `${emoji} ${G.myRole || "ADMIN"}`;
+    roleEl.style.color = color;
+  }
 
   db.ref(".info/connected").on("value",snap=>{
     const ok=snap.val()===true, badge=document.getElementById("liveBadge");
@@ -1188,7 +1202,7 @@ async function saveToggles(){
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
 
-// 🔥 LOAD APP INFO — DENGAN BETA/RILIS LOGIC
+// 🔥 LOAD APP INFO
 function loadAppInfo() {
   const info = G.settings.app_info || {};
   document.getElementById("app-version").value = info.version || "";
@@ -1587,4 +1601,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-        </html>
+  </html>
