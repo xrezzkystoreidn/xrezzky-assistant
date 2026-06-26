@@ -24,7 +24,12 @@ const auth = admin.auth();
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════
 const GITHUB_RAW = "https://raw.githubusercontent.com/xrezzkystoreidn/xrezzky-assistant/main/prompt";
-const UNLIMITED_ROLES = ["OWNER","ADMIN"];
+
+// 🔥 UNLIMITED ROLES — hanya OWNER & ADMIN
+const UNLIMITED_ROLES = ["OWNER", "ADMIN"];
+
+// 🔥 TIDAK ADA DEFAULT ROLE LIMITS — SEMUA DARI FIREBASE
+const DEFAULT_ROLE_LIMITS = {};
 
 const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten dari XREZZKY OFFICIAL STORE — platform jual beli digital gaming (akun, item, boosting, top-up).
 
@@ -112,7 +117,7 @@ async function fetchSystemPrompt() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  WEB SEARCH
+//  WEB SEARCH — Google Custom Search API
 // ═══════════════════════════════════════════════════════════════════════════
 async function webSearch(query) {
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
@@ -169,6 +174,7 @@ function needsMath(msg) {
 //  AI PROVIDERS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── OpenRouter (utama — support vision & teks) ──
 async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImage, history = []) {
   let userContent;
   if (userImage?.includes(",")) {
@@ -215,6 +221,7 @@ async function callOpenRouter(apiKey, model, systemPrompt, userMessage, userImag
   return data.choices[0].message.content;
 }
 
+// ── Groq (backup — teks cepat) ──
 async function callGroq(apiKey, model, systemPrompt, userMessage, history = []) {
   const messages = [
     { role: "system", content: systemPrompt },
@@ -246,7 +253,7 @@ async function callGroq(apiKey, model, systemPrompt, userMessage, history = []) 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  BUILD QUEUE
+//  BUILD QUEUE — PRIORITAS: OpenRouter → Groq
 // ═══════════════════════════════════════════════════════════════════════════
 function buildQueue(hasImage, history = []) {
   const orKeys = getKeys("OPENROUTER_API_KEY");
@@ -254,6 +261,7 @@ function buildQueue(hasImage, history = []) {
   const q = [];
 
   if (hasImage) {
+    // HANYA OpenRouter yang support vision
     if (orKeys.length) {
       const visionModels = [
         "google/gemini-2.0-flash-001",
@@ -273,6 +281,8 @@ function buildQueue(hasImage, history = []) {
     return q;
   }
 
+  // ── TEKS ──
+  // 1. OpenRouter (utama)
   if (orKeys.length) {
     const orModels = [
       "google/gemini-2.0-flash-001",
@@ -290,6 +300,7 @@ function buildQueue(hasImage, history = []) {
     }
   }
 
+  // 2. Groq (backup)
   if (grKeys.length) {
     const grModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     for (const model of grModels) {
@@ -320,6 +331,7 @@ async function getRoleLimits() {
   }
 }
 
+// ── 🔥 AMBIL SYSTEM SETTINGS ──
 async function getSystemSettings() {
   try {
     const snap = await db.ref("system_settings").once("value");
@@ -331,10 +343,12 @@ async function getSystemSettings() {
 async function getUserLimits(uid, role, userConfig) {
   const roleLimits = await getRoleLimits();
 
+  // ADMIN/OWNER unlimited
   if (UNLIMITED_ROLES.includes(role)) {
     return { chatLimit: 99999, photoLimit: 99999 };
   }
 
+  // Cek user_config dulu (admin bisa set per-user)
   if (userConfig) {
     const chatLimit = userConfig.max_chat_limit;
     const photoLimit = userConfig.max_photo_limit;
@@ -343,14 +357,15 @@ async function getUserLimits(uid, role, userConfig) {
     }
   }
 
+  // 🔥 HARUS DARI FIREBASE — SUPPORT dua format
   const roleLimit = roleLimits[role] || {};
-  // 🔥 SUPPORT dua format: chat_limit / max_chat_limit
   const chatLimit = roleLimit.chat_limit ?? roleLimit.max_chat_limit ?? 0;
   const photoLimit = roleLimit.photo_limit ?? roleLimit.max_photo_limit ?? 0;
 
   return { chatLimit, photoLimit };
 }
 
+// ── 🔥 AMBIL COUNTER HARIAN ──
 async function getDailyCounter(uid) {
   const key = todayWIB();
   const ref = db.ref(`daily_usage/${uid}/${key}`);
@@ -362,10 +377,12 @@ async function getDailyCounter(uid) {
   return snap.val();
 }
 
+// ── 🔥 INCREMENT COUNTER ──
 async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v || 0) + 1);
 }
 
+// ── 🔥 ENSURE USER CONFIG — SUPPORT dua format ──
 async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
   const ref = db.ref(`users_config/${uid}`);
   const snap = await ref.once("value");
@@ -392,6 +409,7 @@ async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
   return cfg;
 }
 
+// ── 🔥 SAVE CHAT ──
 async function pushChat(uid, sessId, role, text, hasImg) {
   await db.ref(`user_sessions/${uid}/${sessId}/chats`).push({
     role,
@@ -401,6 +419,7 @@ async function pushChat(uid, sessId, role, text, hasImg) {
   });
 }
 
+// ── 🔥 ENSURE SESSION META ──
 async function ensureSessionMeta(uid, sessId, firstMsg) {
   const ref = db.ref(`user_sessions/${uid}/${sessId}/meta`);
   const snap = await ref.once("value");
@@ -414,6 +433,7 @@ async function ensureSessionMeta(uid, sessId, firstMsg) {
   }
 }
 
+// ── 🔥 RECORD ANALYTICS ──
 async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
   const path = isGuest ? `analytics/guests/${uid}` : `analytics/traffic/${uid}`;
   await db.ref(path).transaction(cur => {
@@ -440,6 +460,7 @@ async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
 //  MAIN HANDLER
 // ═══════════════════════════════════════════════════════════════════════════
 export default async function handler(req, res) {
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -449,6 +470,7 @@ export default async function handler(req, res) {
     req.socket?.remoteAddress ||
     "unknown";
 
+  // ── AUTH ──────────────────────────────────────────────────────────────────
   let uid = "GUEST_" + ip.replace(/[.:]/g, "_");
   let uName = "Guest",
     uEmail = "",
@@ -476,6 +498,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── SYSTEM SETTINGS ──────────────────────────────────────────────────────
   const sysCfg = await getSystemSettings();
 
   if (sysCfg.maintenance_mode) {
@@ -491,6 +514,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // ── USER CONFIG ──────────────────────────────────────────────────────────
   const defaultRole = isGuest ? "GUEST" : "MEMBER";
   const userCfg = await ensureUserConfig(uid, defaultRole, {
     name: uName,
@@ -499,7 +523,7 @@ export default async function handler(req, res) {
   });
   const role = userCfg.role || defaultRole;
 
-  // 🔥 AMBIL LIMIT DARI FIREBASE
+  // ── 🔥 AMBIL LIMIT DARI FIREBASE ──────────────────────────────────────
   const { chatLimit, photoLimit } = await getUserLimits(uid, role, userCfg);
 
   // ── GET ──────────────────────────────────────────────────────────────────
@@ -524,6 +548,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // ── DEBUG ──
     if (action === "debug") {
       const env = {
         OPENROUTER: [1, 2, 3, 4, 5].map(i =>
@@ -574,6 +599,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // ── PING ──
     if (action === "ping") {
       return res.status(200).json({
         status: "ok",
@@ -581,6 +607,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // ── GET SESSION DATA ──
     const counter = await getDailyCounter(uid).catch(() => ({ chats: 0, photos: 0 }));
     let chats = [],
       allSessions = [];
@@ -623,7 +650,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // ── POST ──────────────────────────────────────────────────────────────────
+  // ── POST — CHAT ──────────────────────────────────────────────────────────
   if (req.method === "POST") {
     const {
       user_message = "",
@@ -636,7 +663,7 @@ export default async function handler(req, res) {
     const counter = await getDailyCounter(uid).catch(() => ({ chats: 0, photos: 0 }));
     const isUnlimited = UNLIMITED_ROLES.includes(role);
 
-    // 🔥 CEK LIMIT CHAT
+    // ── 🔥 CEK LIMIT CHAT ──
     if (!isUnlimited && (counter.chats || 0) >= chatLimit && chatLimit > 0) {
       return res.status(429).json({
         reason: `Kapasitas chat harian kamu sudah habis! (${counter.chats}/${chatLimit})`,
@@ -645,7 +672,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 🔥 CEK LIMIT FOTO
+    // ── 🔥 CEK LIMIT FOTO ──
     if (hasPhoto) {
       if (isGuest && !sysCfg.allow_guest_photos) {
         return res.status(429).json({
@@ -661,6 +688,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── CEK ROLE BANNED/STOPPED ──
     if (["BANNED", "STOPPED"].includes(role)) {
       return res.status(403).json({
         reason: role === "BANNED" ?
@@ -669,6 +697,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // ── FETCH SYSTEM PROMPT ──
     let systemPrompt = DEFAULT_SYSTEM_PROMPT;
     try {
       const p = await fetchSystemPrompt();
@@ -683,6 +712,7 @@ export default async function handler(req, res) {
 - Gak usah sebut nama model AI atau provider ke user.
 - PALING PENTING: kalau ada history percakapan di atas, GUNAKAN untuk paham konteks.`;
 
+    // ── INJECT WAKTU ──
     const zones = nowAllZones();
     systemPrompt = `${systemPrompt}
 
@@ -698,6 +728,7 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
         `\n\n[MODE MATEMATIKA AKTIF]: Kerjakan soal dengan teliti. Tampilkan langkah-langkah penyelesaian secara sistematis.`;
     }
 
+    // ── WEB SEARCH ──
     let searchResults = null;
     let didSearch = false;
     if (!hasPhoto && needsSearch(user_message)) {
@@ -711,6 +742,7 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       } catch {}
     }
 
+    // ── AMBIL HISTORY ──
     let history = [];
     if (historyFromFrontend && Array.isArray(historyFromFrontend)) {
       history = historyFromFrontend.map(h => ({
@@ -731,6 +763,7 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       } catch (e) { console.warn("History fetch:", e.message); }
     }
 
+    // ── CALL AI ──
     const queue = buildQueue(hasPhoto, history);
     let aiReply = null;
     let usedProvider = null;
@@ -759,9 +792,11 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       });
     }
 
+    // ── INCREMENT COUNTERS ──
     try { await incrCounter(uid, "chats"); } catch {}
     if (hasPhoto) { try { await incrCounter(uid, "photos"); } catch {} }
 
+    // ── SAVE TO FIREBASE ──
     if (sessId) {
       try {
         await ensureSessionMeta(uid, sessId, user_message);
@@ -770,6 +805,7 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       } catch (e) { console.error("Save session:", e.message); }
     }
 
+    // ── ANALYTICS ──
     try {
       await recordAnalytics(uid, {
         name: uName,
@@ -780,6 +816,7 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       });
     } catch {}
 
+    // ── READ UPDATED COUNTER ──
     const updated = await getDailyCounter(uid).catch(() => counter);
 
     return res.status(200).json({
@@ -795,4 +832,4 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
   }
 
   return res.status(405).json({ error: "Method Not Allowed" });
-      }
+    }
