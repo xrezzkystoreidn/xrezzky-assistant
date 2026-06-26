@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  XREZZKY AI — api/chat.js  (Vercel Serverless)
 //  ⚡ Multi-Provider AI · Web Search · Image Analysis · Role-based Limits
-//  📌 PRIORITAS: role_limit DULU — baru users_config
-//  🔥 TIDAK ADA BATASAN MAKSIMUM — ADMIN BISA SETTING BERAPA AJA
+//  📌 SEMUA LIMIT DARI FIREBASE — TIDAK ADA HARDCORE
+//  🔥 Guest Photo: allow_guest_photos = ON/OFF · photo_limit = 0/angka
 // ═══════════════════════════════════════════════════════════════════════════
 
 import admin from "firebase-admin";
@@ -28,9 +28,6 @@ const GITHUB_RAW = "https://raw.githubusercontent.com/xrezzkystoreidn/xrezzky-as
 
 // 🔥 UNLIMITED ROLES — hanya OWNER & ADMIN
 const UNLIMITED_ROLES = ["OWNER", "ADMIN"];
-
-// 🔥 TIDAK ADA DEFAULT ROLE LIMITS — SEMUA DARI FIREBASE
-const DEFAULT_ROLE_LIMITS = {};
 
 const DEFAULT_SYSTEM_PROMPT = `Kamu adalah XREZZKY AI, asisten dari XREZZKY OFFICIAL STORE — platform jual beli digital gaming (akun, item, boosting, top-up).
 
@@ -262,7 +259,6 @@ function buildQueue(hasImage, history = []) {
   const q = [];
 
   if (hasImage) {
-    // HANYA OpenRouter yang support vision
     if (orKeys.length) {
       const visionModels = [
         "google/gemini-2.0-flash-001",
@@ -282,8 +278,6 @@ function buildQueue(hasImage, history = []) {
     return q;
   }
 
-  // ── TEKS ──
-  // 1. OpenRouter (utama)
   if (orKeys.length) {
     const orModels = [
       "google/gemini-2.0-flash-001",
@@ -301,7 +295,6 @@ function buildQueue(hasImage, history = []) {
     }
   }
 
-  // 2. Groq (backup)
   if (grKeys.length) {
     const grModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     for (const model of grModels) {
@@ -317,10 +310,10 @@ function buildQueue(hasImage, history = []) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  🔥 FIREBASE HELPERS — PRIORITAS role_limit DULU
+//  🔥 FIREBASE HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── 🔥 AMBIL ROLE LIMITS (SUPPORT role_limits & role_limit) ──
+// ── 🔥 AMBIL ROLE LIMITS — SUPPORT role_limit & role_limits ──
 async function getRoleLimits() {
   try {
     const snap = await db.ref("system_settings").once("value");
@@ -339,16 +332,14 @@ async function getSystemSettings() {
   } catch { return {}; }
 }
 
-// ── 🔥🔥🔥 AMBIL LIMIT USER — PRIORITAS role_limit DULU ──
+// ── 🔥 AMBIL LIMIT USER — PRIORITAS role_limit DULU ──
 async function getUserLimits(uid, role, userConfig) {
   const roleLimits = await getRoleLimits();
 
-  // OWNER & ADMIN UNLIMITED
   if (UNLIMITED_ROLES.includes(role)) {
     return { chatLimit: 99999, photoLimit: 99999 };
   }
 
-  // 🔥 PRIORITAS: role_limit DULU (biar admin setting berlaku global)
   const roleLimit = roleLimits[role] || {};
   let chatLimit = roleLimit.chat_limit ?? roleLimit.max_chat_limit ?? 0;
   let photoLimit = roleLimit.photo_limit ?? roleLimit.max_photo_limit ?? 0;
@@ -383,14 +374,18 @@ async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v || 0) + 1);
 }
 
-// ── 🔥 ENSURE USER CONFIG — TANPA LIMIT (biar pake role_limit) ──
+// ── 🔥 ENSURE USER CONFIG ──
 async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
   const ref = db.ref(`users_config/${uid}`);
   const snap = await ref.once("value");
 
   if (!snap.exists()) {
+    const roleLimits = await getRoleLimits();
+    const rl = roleLimits[defaultRole] || {};
     const cfg = {
       role: defaultRole,
+      max_chat_limit: rl.chat_limit ?? rl.max_chat_limit ?? 0,
+      max_photo_limit: rl.photo_limit ?? rl.max_photo_limit ?? 0,
       name: meta.name || "",
       email: meta.email || "",
       is_anonymous: meta.is_anonymous || false,
@@ -456,7 +451,6 @@ async function recordAnalytics(uid, { name, email, ip, sentPhoto, isGuest }) {
 //  MAIN HANDLER
 // ═══════════════════════════════════════════════════════════════════════════
 export default async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -519,14 +513,14 @@ export default async function handler(req, res) {
   });
   const role = userCfg.role || defaultRole;
 
-  // ── 🔥 AMBIL LIMIT DARI FIREBASE (PRIORITAS role_limit) ──────────────
+  // ── 🔥 AMBIL LIMIT DARI FIREBASE ──────────────────────────────────────
   const { chatLimit, photoLimit } = await getUserLimits(uid, role, userCfg);
 
   // ── GET ──────────────────────────────────────────────────────────────────
   if (req.method === "GET") {
     const { action, sess } = req.query;
 
-    // 🔥 GET USER DATA — buat frontend
+    // 🔥 GET USER DATA
     if (action === "getUserData") {
       const counter = await getDailyCounter(uid).catch(() => ({ chats: 0, photos: 0 }));
       return res.status(200).json({
@@ -544,7 +538,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── DEBUG ──
     if (action === "debug") {
       const env = {
         OPENROUTER: [1, 2, 3, 4, 5].map(i =>
@@ -595,7 +588,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── PING ──
     if (action === "ping") {
       return res.status(200).json({
         status: "ok",
@@ -603,7 +595,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── GET SESSION DATA ──
     const counter = await getDailyCounter(uid).catch(() => ({ chats: 0, photos: 0 }));
     let chats = [],
       allSessions = [];
@@ -668,19 +659,35 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── 🔥 CEK LIMIT FOTO ──
+    // ── 🔥🔥🔥 CEK LIMIT FOTO — FIX ──
     if (hasPhoto) {
+      // 1. CEK IZIN GUEST
       if (isGuest && !sysCfg.allow_guest_photos) {
         return res.status(429).json({
-          reason: "Guest tidak bisa kirim foto. Login dulu atau minta admin aktifkan izin guest."
+          reason: "Guest tidak bisa kirim foto. Owner/Admin menonaktifkan izin kirim foto untuk Guest."
         });
       }
-      if (!isUnlimited && (counter.photos || 0) >= photoLimit && photoLimit > 0) {
-        return res.status(429).json({
-          reason: `Limit kirim foto kamu hari ini sudah habis! (${counter.photos}/${photoLimit})`,
-          used_photo: counter.photos,
-          max_photo_limit: photoLimit
-        });
+
+      // 2. CEK LIMIT FOTO
+      if (!isUnlimited) {
+        const maxPhoto = photoLimit || 0;
+
+        // Kalo limit 0 → tolak
+        if (maxPhoto === 0) {
+          return res.status(429).json({
+            reason: "Limit kirim foto kamu adalah 0 — tidak bisa kirim foto.",
+            max_photo_limit: 0
+          });
+        }
+
+        // Kalo udah mencapai limit → tolak
+        if ((counter.photos || 0) >= maxPhoto) {
+          return res.status(429).json({
+            reason: `Limit kirim foto hari ini sudah habis! (${counter.photos}/${maxPhoto})`,
+            used_photo: counter.photos,
+            max_photo_limit: maxPhoto
+          });
+        }
       }
     }
 
@@ -708,7 +715,6 @@ export default async function handler(req, res) {
 - Gak usah sebut nama model AI atau provider ke user.
 - PALING PENTING: kalau ada history percakapan di atas, GUNAKAN untuk paham konteks.`;
 
-    // ── INJECT WAKTU ──
     const zones = nowAllZones();
     systemPrompt = `${systemPrompt}
 
@@ -812,7 +818,6 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
       });
     } catch {}
 
-    // ── READ UPDATED COUNTER ──
     const updated = await getDailyCounter(uid).catch(() => counter);
 
     return res.status(200).json({
@@ -828,4 +833,4 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
   }
 
   return res.status(405).json({ error: "Method Not Allowed" });
-}
+     }
