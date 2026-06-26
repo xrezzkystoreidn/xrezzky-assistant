@@ -133,6 +133,9 @@ body{display:flex}
 }
 .admin-btn:hover{background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(245,158,11,.14));border-color:rgba(167,139,250,.5);}
 .admin-btn .ab-dot{width:6px;height:6px;border-radius:50%;background:#a78bfa;animation:blink 2s infinite;flex-shrink:0}
+.admin-btn .admin-label{flex:1;min-width:0}
+.admin-btn .admin-title{font-weight:700;font-size:12px;line-height:1.3}
+.admin-btn .admin-sub{font-size:9.5px;opacity:.6;margin-top:1px}
 .img-modal{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .img-modal img{max-width:100%;max-height:88vh;border-radius:10px;transform:scale(.92);transition:transform .2s}
 .img-modal.open img{transform:scale(1)}
@@ -259,14 +262,17 @@ body{display:flex}
     <div class="q-row"><span>🖼️ Foto</span><span id="qPhoto">0/0</span></div>
     <div class="q-bar"><div class="q-fill" id="qPhotoFill" style="width:0%"></div></div>
   </div>
+  
+  <!-- 🔥 ADMIN BUTTON — LABEL SESUAI ROLE -->
   <a class="admin-btn" id="adminBtn" href="admin.html" target="_blank">
     <div class="ab-dot"></div>
-    <div style="flex:1">
-      <div>Admin Dashboard</div>
-      <div style="font-size:9.5px;color:rgba(196,181,253,.55);margin-top:1px">Panel kontrol sistem</div>
+    <div class="admin-label">
+      <div class="admin-title" id="adminBtnTitle">👑 Admin Dashboard</div>
+      <div class="admin-sub" id="adminBtnSub">Panel kontrol sistem</div>
     </div>
     <span style="font-size:11px;opacity:.5">↗</span>
   </a>
+  
   <button class="new-btn" id="newChatBtn">＋ Percakapan Baru</button>
   <div class="hist-label">Riwayat</div>
   <div class="hist-list" id="histList"></div>
@@ -456,20 +462,29 @@ function updateRoleBadge(){
   const em={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",CS:"🛡️",MEMBER:"✅",GUEST:"👤",BANNED:"🚫",STOPPED:"⏸️"};
   const el=document.getElementById("uRole");
   if(el) el.textContent=(em[role]||"👤")+" "+role;
-  const adminBtn=document.getElementById("adminBtn");
+  
+  // 🔥 UPDATE ADMIN BUTTON LABEL SESUAI ROLE
+  const adminBtn = document.getElementById("adminBtn");
   if(adminBtn){
-    const isAdmin=["OWNER","ADMIN"].includes(role);
-    adminBtn.style.display=isAdmin?"flex":"none";
-    if(role==="OWNER"){
-      adminBtn.style.borderColor="rgba(245,158,11,.4)";
-      adminBtn.style.color="#fcd34d";
-      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="var(--gold)";
-      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="⭐ Admin Dashboard";
-    } else {
-      adminBtn.style.borderColor="rgba(167,139,250,.3)";
-      adminBtn.style.color="#c4b5fd";
-      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="#a78bfa";
-      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="👑 Admin Dashboard";
+    const isAdmin = ["OWNER","ADMIN"].includes(role);
+    adminBtn.style.display = isAdmin ? "flex" : "none";
+    
+    const titleEl = document.getElementById("adminBtnTitle");
+    const subEl = document.getElementById("adminBtnSub");
+    const dotEl = adminBtn.querySelector(".ab-dot");
+    
+    if(role === "OWNER"){
+      adminBtn.style.borderColor = "rgba(245,158,11,.4)";
+      adminBtn.style.color = "#fcd34d";
+      if(dotEl) dotEl.style.background = "var(--gold)";
+      if(titleEl) titleEl.textContent = "⭐ Owner Dashboard";
+      if(subEl) subEl.textContent = "Kontrol penuh sistem";
+    } else if(role === "ADMIN"){
+      adminBtn.style.borderColor = "rgba(167,139,250,.3)";
+      adminBtn.style.color = "#c4b5fd";
+      if(dotEl) dotEl.style.background = "#a78bfa";
+      if(titleEl) titleEl.textContent = "👑 Admin Dashboard";
+      if(subEl) subEl.textContent = "Panel kontrol sistem";
     }
   }
 }
@@ -582,13 +597,7 @@ async function loadAppInfo() {
     // ─── SIDEBAR ───
     const verEl = document.getElementById("sidebarVersion");
     if (verEl) {
-      if (version) {
-        verEl.textContent = "Version " + version.replace(/^(v|V)/, '');
-        verEl.style.display = "block";
-      } else {
-        verEl.textContent = "—";
-        verEl.style.display = "block";
-      }
+      verEl.textContent = version ? "Version " + version.replace(/^(v|V)/, '') : "—";
     }
     
     const envEl = document.getElementById("sidebarEnv");
