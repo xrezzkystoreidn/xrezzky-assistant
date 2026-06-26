@@ -13,7 +13,7 @@
   --bg:#0b0f17;--surface:#111827;--card:#131a26;--card2:#1a2235;
   --border:rgba(37,99,235,.18);--border2:rgba(255,255,255,.06);
   --accent:#2563eb;--accent-lo:rgba(37,99,235,.12);
-  --cyan:#38bdf8;--green:#22c55e;--red:#ef4444;--gold:#f59e0b;--purple:#a78bfa;
+  --cyan:#38bdf8;--green:#22c55e;--gold:#f59e0b;--red:#ef4444;--purple:#a78bfa;
   --text:#f1f5f9;--sub:#94a3b8;--muted:#475569;--r:12px;--sidebar:268px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -175,41 +175,32 @@ body{display:flex}
   .input-area{padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
 }
 
-/* ─── FOOTER VERSI ─── */
-.app-footer {
-  text-align:center;
-  padding:6px 12px;
+/* ─── SIDEBAR VERSI ─── */
+.sb-version {
+  padding:10px 12px;
   border-top:1px solid var(--border2);
-  background:var(--card);
+  margin-top:auto;
+  text-align:center;
   font-size:10px;
   color:var(--text-muted);
-  flex-shrink:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
 }
-.app-footer .version {
+.sb-version .name {
   font-weight:600;
-  background:rgba(167,139,250,.12);
-  padding:2px 10px;
-  border-radius:10px;
-  border:1px solid rgba(167,139,250,.2);
-  color:#c4b5fd;
+  color:var(--text-sub);
+  font-size:11px;
 }
-.app-footer .status-dot {
-  display:inline-block;
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  margin-right:4px;
-  vertical-align:middle;
+.sb-version .ver {
+  color:var(--text-muted);
+  font-size:9px;
+  display:block;
+  margin-top:1px;
 }
-.app-footer .status-dot.online { background:var(--green); }
-.app-footer .status-dot.maintenance { background:var(--gold); }
-.app-footer .status-dot.offline { background:var(--red); }
-.app-footer .status-dot.beta { background:var(--purple); }
+.sb-version .build {
+  color:var(--text-muted);
+  font-size:8px;
+  opacity:.5;
+  display:block;
+}
 </style>
 </head>
 <body>
@@ -241,6 +232,13 @@ body{display:flex}
   <button class="new-btn" id="newChatBtn">＋ Percakapan Baru</button>
   <div class="hist-label">Riwayat</div>
   <div class="hist-list" id="histList"></div>
+  
+  <!-- ─── SIDEBAR VERSI ─── -->
+  <div class="sb-version">
+    <span class="name">XREZZKY AI</span>
+    <span class="ver" id="sidebarVersion">—</span>
+    <span class="build" id="sidebarBuild">—</span>
+  </div>
 </div>
 <div class="overlay" id="overlay"></div>
 
@@ -250,7 +248,7 @@ body{display:flex}
     <div class="brand">
       <div class="brand-mark">X</div>
       <h1>XREZZKY AI</h1>
-      <span id="headerVersion" style="font-size:9px;color:var(--text-muted);font-weight:400;background:rgba(167,139,250,.1);padding:1px 8px;border-radius:8px;border:1px solid rgba(167,139,250,.15);">BETA</span>
+      <span id="headerVersion" style="font-size:9px;color:var(--text-muted);font-weight:400;background:rgba(167,139,250,.1);padding:1px 8px;border-radius:8px;border:1px solid rgba(167,139,250,.15);display:none;">BETA</span>
       <div class="brand-dot"></div>
     </div>
     <div class="hdr-center">
@@ -293,18 +291,6 @@ body{display:flex}
       </div>
       <div class="input-hint">Enter kirim · Shift+Enter baris baru</div>
     </div>
-  </div>
-
-  <!-- ─── FOOTER VERSI ─── -->
-  <div class="app-footer">
-    <span>XREZZKY AI</span>
-    <span class="version" id="appVersion">v1.0.0</span>
-    <span id="appEnv">production</span>
-    <span id="appStatus">
-      <span class="status-dot online" id="appStatusDot"></span>
-      <span id="appStatusText">online</span>
-    </span>
-    <span id="appBuild" style="font-size:9px;color:var(--text-muted)">Build: —</span>
   </div>
 </div>
 
@@ -529,13 +515,13 @@ async function loadSys() {
   loadAppInfo(); // 🔥 LOAD VERSI
 }
 
-// ─── 🔥 LOAD APP INFO ───
+// ─── 🔥 LOAD APP INFO (SIDEBAR + HEADER) ───
 async function loadAppInfo() {
   try {
     const snap = await FBD.ref("system_settings/app_info").once("value");
     const info = snap.val() || {};
     
-    // Versi di header (BETA label)
+    // ─── HEADER VERSION ───
     const headerVer = document.getElementById("headerVersion");
     if (headerVer) {
       const ver = info.version || "";
@@ -552,35 +538,23 @@ async function loadAppInfo() {
       }
     }
     
-    // Footer
-    const verEl = document.getElementById("appVersion");
+    // ─── SIDEBAR VERSION ───
+    const verEl = document.getElementById("sidebarVersion");
     if (verEl) {
-      verEl.textContent = info.version || "—";
-      verEl.style.display = info.version ? "inline-block" : "none";
+      const ver = info.version || "";
+      verEl.textContent = ver || "—";
     }
     
-    const buildEl = document.getElementById("appBuild");
+    const buildEl = document.getElementById("sidebarBuild");
     if (buildEl) {
-      buildEl.textContent = info.build ? "Build: " + info.build : "";
-      buildEl.style.display = info.build ? "inline-block" : "none";
+      const build = info.build ? "Build: " + info.build : "";
+      buildEl.textContent = build || "";
+      buildEl.style.display = info.build ? "block" : "none";
     }
-    
-    const envEl = document.getElementById("appEnv");
-    if (envEl) {
-      envEl.textContent = info.environment || "";
-      envEl.style.display = info.environment ? "inline-block" : "none";
-    }
-    
-    const status = info.status || "online";
-    const statusDot = document.getElementById("appStatusDot");
-    const statusText = document.getElementById("appStatusText");
-    if (statusDot) {
-      statusDot.className = "status-dot " + status;
-    }
-    if (statusText) statusText.textContent = status;
     
   } catch {}
-  }
+}
+
 function updateLoginBanner() {
   const banner = document.getElementById("loginBanner");
   if (!banner) return;
