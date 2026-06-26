@@ -454,7 +454,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
-    <!-- 🔥 SETTINGS — DENGAN FITUR VERSI -->
+    <!-- 🔥 SETTINGS — DENGAN FITUR VERSI BETA/RILIS -->
     <div class="page" id="page-settings">
       <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
 
@@ -513,25 +513,15 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- 📦 VERSI & INFO APLIKASI -->
+      <!-- 📦 VERSI & INFO APLIKASI — BETA/RILIS LOGIC -->
       <div class="panel">
-        <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di footer index.html</span></div>
+        <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di sidebar index.html</span></div>
         <div class="panel-body">
           <div class="settings-grid" style="grid-template-columns:1fr 1fr 1fr">
             <div class="s-item">
               <div class="s-label">Versi</div>
-              <input type="text" class="field-inp" id="app-version" value="v1.0.0" style="width:100%">
-              <div class="s-desc">Contoh: v1.0.0, v2.3.1, v1.5.0-beta</div>
-            </div>
-            <div class="s-item">
-              <div class="s-label">Status</div>
-              <select class="field-inp" id="app-status" style="width:100%;padding:9px 11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);outline:none">
-                <option value="online">🟢 Online</option>
-                <option value="maintenance">🟡 Maintenance</option>
-                <option value="offline">🔴 Offline</option>
-                <option value="beta">🧪 Beta</option>
-              </select>
-              <div class="s-desc">Status yang tampil di footer</div>
+              <input type="text" class="field-inp" id="app-version" value="" style="width:100%" placeholder="contoh: v1.0.0, 0.0.0.1-beta, alpha-1.2">
+              <div class="s-desc">💡 Masukkan <strong>beta</strong> atau <strong>alpha</strong> untuk menampilkan badge BETA di header</div>
             </div>
             <div class="s-item">
               <div class="s-label">Environment</div>
@@ -541,6 +531,23 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
                 <option value="development">💻 Development</option>
               </select>
               <div class="s-desc">Environment aplikasi</div>
+            </div>
+            <div class="s-item">
+              <div class="s-label">Build</div>
+              <input type="text" class="field-inp" id="app-build" value="" style="width:100%" placeholder="contoh: 17824494, 2024.06.26">
+              <div class="s-desc">Bebas diisi admin</div>
+            </div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="s-item">
+              <div class="s-label">Status</div>
+              <select class="field-inp" id="app-status" style="width:100%;padding:9px 11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);outline:none">
+                <option value="online">🟢 Online</option>
+                <option value="maintenance">🟡 Maintenance</option>
+                <option value="offline">🔴 Offline</option>
+                <option value="beta">🧪 Beta</option>
+              </select>
+              <div class="s-desc">Status yang tampil di sidebar</div>
             </div>
           </div>
           <button class="save-btn" onclick="saveAppInfo()" style="margin-top:10px">💾 Simpan Info Aplikasi</button>
@@ -1181,33 +1188,36 @@ async function saveToggles(){
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
 
-// 🔥 LOAD APP INFO — TANPA DEFAULT
+// 🔥 LOAD APP INFO — DENGAN BETA/RILIS LOGIC
 function loadAppInfo() {
   const info = G.settings.app_info || {};
   document.getElementById("app-version").value = info.version || "";
-  document.getElementById("app-status").value = info.status || "online";
   document.getElementById("app-env").value = info.environment || "production";
-  }
+  document.getElementById("app-build").value = info.build || "";
+  document.getElementById("app-status").value = info.status || "online";
+}
 
 // 🔥 SAVE APP INFO
 async function saveAppInfo() {
-  const version = document.getElementById("app-version")?.value?.trim() || "v1.0.0";
-  const status = document.getElementById("app-status")?.value || "online";
+  const version = document.getElementById("app-version")?.value?.trim() || "";
   const environment = document.getElementById("app-env")?.value || "production";
+  const build = document.getElementById("app-build")?.value?.trim() || "";
+  const status = document.getElementById("app-status")?.value || "online";
   
   try {
     await db.ref("system_settings/app_info").set({
       version: version,
-      status: status,
       environment: environment,
-      build: Date.now().toString().slice(0,8),
+      build: build,
+      status: status,
       updated_at: Date.now()
     });
     
     toast("Info aplikasi tersimpan! ✅", "ok");
     const msg = document.getElementById("appInfoMsg");
     if(msg) {
-      msg.textContent = `✅ Tersimpan! Versi: ${version} | Status: ${status} | Env: ${environment}`;
+      const isBeta = version.toLowerCase().includes("beta") || version.toLowerCase().includes("alpha");
+      msg.textContent = `✅ Tersimpan! Versi: ${version || "—"} ${isBeta ? '[BETA]' : ''} | Env: ${environment} | Build: ${build || "—"}`;
       msg.style.cssText = "display:block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 12px;border-radius:8px;font-size:12px";
       setTimeout(() => msg.style.display = "none", 3000);
     }
@@ -1577,4 +1587,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-  </html>
+        </html>
