@@ -378,6 +378,17 @@ function updateRoleBadge(){
   if(adminBtn){
     const isAdmin=["OWNER","ADMIN"].includes(role);
     adminBtn.style.display=isAdmin?"flex":"none";
+    if(role==="OWNER"){
+      adminBtn.style.borderColor="rgba(245,158,11,.4)";
+      adminBtn.style.color="#fcd34d";
+      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="var(--gold)";
+      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="⭐ Admin Dashboard";
+    } else {
+      adminBtn.style.borderColor="rgba(167,139,250,.3)";
+      adminBtn.style.color="#c4b5fd";
+      const dot=adminBtn.querySelector(".ab-dot"); if(dot) dot.style.background="#a78bfa";
+      const title=adminBtn.querySelector("div>div:first-child"); if(title) title.textContent="👑 Admin Dashboard";
+    }
   }
 }
 
@@ -394,7 +405,7 @@ function updateQuotaUI() {
   if (bP) { bP.style.width = pp + "%"; bP.className = "q-fill" + (pp >= 100 ? " over" : pp >= 80 ? " warn" : ""); }
 }
 
-// 🔥 FETCH LIMIT DARI BACKEND
+// ─── 🔥 FETCH LIMIT DARI BACKEND ───
 async function fetchLimitFromBackend() {
   try {
     if (fbUser) {
@@ -415,7 +426,6 @@ async function fetchLimitFromBackend() {
       if (data.role) role = data.role;
       updateQuotaUI();
       updateRoleBadge();
-      // 🔥 Simpan ke localStorage buat guest
       if (!fbUser) {
         const k = "xrk_gu_" + todayKey();
         const gu = JSON.parse(localStorage.getItem(k) || "{}");
@@ -429,7 +439,7 @@ async function fetchLimitFromBackend() {
   }
 }
 
-// ─── Guest Limits — TANPA HARDCORE ───
+// ─── Guest Limits ───
 function applyGuestLimits() {
   if (fbUser) return;
   maxC = 0;
@@ -897,7 +907,6 @@ async function doSend(text, img) {
       updateRoleBadge();
     }
 
-    // update guest quota di localStorage
     if (!fbUser) {
       usedC++; if (img) usedP++;
       updateQuotaUI();
@@ -957,7 +966,7 @@ async function sendMsg() {
   if (sys.maintenance_mode) { warn("Sistem sedang maintenance, coba lagi nanti."); return; }
   if (sys.login_required && !fbUser) { warn("Kamu harus login untuk chat."); openAuth("login"); return; }
 
-  // 🔥 CEK LIMIT — SEMUA DARI BACKEND
+  // 🔥 CEK LIMIT — SEMUA DARI BACKEND/FIREBASE
   if (maxC > 0 && usedC >= maxC) {
     const msg = fbUser
       ? `Kapasitas chat harian habis (${usedC}/${maxC}). Coba lagi besok.`
@@ -1018,4 +1027,4 @@ window.addEventListener("load", ()=>{
 });
 </script>
 </body>
-  </html>
+</html>
