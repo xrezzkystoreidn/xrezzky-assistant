@@ -90,13 +90,14 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .badge.OWNER{background:rgba(167,139,250,.2);color:#c4b5fd;border-color:rgba(167,139,250,.4)}
 .badge.ADMIN{background:rgba(245,158,11,.15);color:var(--gold);border-color:rgba(245,158,11,.25)}
 .badge.SELLER{background:rgba(56,189,248,.12);color:var(--cyan);border-color:rgba(56,189,248,.2)}
+.badge.CS{background:rgba(6,182,212,.12);color:#06b6d4;border-color:rgba(6,182,212,.2)}
 .badge.MEMBER{background:rgba(34,197,94,.12);color:var(--green);border-color:rgba(34,197,94,.2)}
 .badge.GUEST{background:rgba(255,255,255,.05);color:var(--text-sub);border-color:var(--border2)}
 .badge.BANNED{background:rgba(239,68,68,.12);color:var(--red);border-color:rgba(239,68,68,.25)}
 .badge.STOPPED{background:rgba(245,158,11,.1);color:var(--gold);border-color:rgba(245,158,11,.2)}
 .tbl-select{padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;outline:none;cursor:pointer}
 .tbl-select option{background:#111d2e;color:var(--text)}
-.tbl-inp{width:72px;padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;text-align:center;outline:none}
+.tbl-inp{width:90px;padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;text-align:center;outline:none}
 .tbl-inp:disabled{opacity:.4;cursor:not-allowed}
 .field-inp{width:100%;padding:9px 13px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
 .field-inp:focus{border-color:rgba(37,99,235,.5)}
@@ -147,7 +148,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .role-card-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
 .rlc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
 .rlc-lbl{font-size:11px;color:var(--text-sub)}
-.rlc-inp{width:78px;padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;text-align:center;outline:none}
+.rlc-inp{width:90px;padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;text-align:center;outline:none}
 .rlc-note{font-size:10px;color:var(--text-muted);font-style:italic}
 .info-box{padding:13px 16px;border-radius:var(--radius-sm);font-size:12px;line-height:1.65;display:flex;align-items:flex-start;gap:10px}
 .info-box.blue{background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);color:var(--text-sub)}
@@ -185,6 +186,15 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .ud-act{flex:1;min-width:110px;padding:10px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;border:1px solid;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
 #sideOverlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:29;display:none}
 #mobileMenuBtn{display:none;background:none;border:none;color:var(--text-sub);font-size:18px;cursor:pointer;width:36px;height:36px;border-radius:8px;align-items:center;justify-content:center;flex-shrink:0}
+.api-key-card{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:10px}
+.api-key-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.api-key-card .provider{font-weight:700;font-size:13px}
+.api-key-card .key-status{font-size:11px;padding:2px 10px;border-radius:12px}
+.api-key-card .key-status.ok{background:rgba(34,197,94,.15);color:var(--green)}
+.api-key-card .key-status.err{background:rgba(239,68,68,.15);color:var(--red)}
+.api-key-card .models{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.api-key-card .models .model-tag{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:2px 10px;font-size:10px;color:var(--text-sub)}
+.api-key-card .region{font-size:10px;color:var(--text-muted);margin-top:4px}
 @media(max-width:900px){
   .sidebar{position:fixed;left:0;top:0;height:100%;z-index:30;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.mob-open{transform:translateX(0)}
@@ -333,6 +343,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       <div class="nav-sec">Konfigurasi</div>
       <div class="nav-item" data-page="settings">⚙️ Pengaturan Sistem</div>
       <div class="nav-item" data-page="providers">🤖 Monitor Provider</div>
+      <div class="nav-item" data-page="api-keys">🔑 API Keys & Models</div>
       <div class="nav-item" data-page="guests">👁️ Pengunjung Guest</div>
     </nav>
     <div class="sb-foot">
@@ -355,7 +366,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         <div class="sc"><div class="sc-glow" style="background:var(--accent)"></div><div class="sc-icon blue">👥</div><div class="sc-val" id="s-users">0</div><div class="sc-label">Total User</div><div class="sc-sub" id="s-users-sub">Memuat...</div></div>
         <div class="sc"><div class="sc-glow" style="background:var(--cyan)"></div><div class="sc-icon cyan">💬</div><div class="sc-val" id="s-chats">0</div><div class="sc-label">Total Chat</div><div class="sc-sub">Akumulasi semua user</div></div>
         <div class="sc"><div class="sc-glow" style="background:var(--green)"></div><div class="sc-icon green">🖼️</div><div class="sc-val" id="s-photos">0</div><div class="sc-label">Total Foto</div><div class="sc-sub">Akumulasi semua user</div></div>
-        <div class="sc"><div class="sc-glow" style="background:var(--gold)"></div><div class="sc-icon gold">📷</div><div class="sc-val" id="s-gphoto">⏳</div><div class="sc-label">Foto Guest</div><div class="sc-sub" id="s-gphoto-sub">sistem_settings</div></div>
+        <div class="sc"><div class="sc-glow" style="background:var(--gold)"></div><div class="sc-icon gold">📷</div><div class="sc-val" id="s-gphoto">⏳</div><div class="sc-label">Foto Guest</div><div class="sc-sub" id="s-gphoto-sub">system_settings</div></div>
         <div class="sc"><div class="sc-glow" style="background:var(--red)"></div><div class="sc-icon red">🚫</div><div class="sc-val" id="s-banned">0</div><div class="sc-label">User Dibanned</div><div class="sc-sub">role = BANNED/STOPPED</div></div>
         <div class="sc" style="grid-column:span 2"><div class="sc-glow" style="background:var(--cyan)"></div><div class="sc-icon cyan" style="display:inline-flex">👁️</div>
           <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap">
@@ -402,8 +413,9 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         <select class="filter-sel" id="usrRole" onchange="renderUsers()">
           <option value="">Semua Role</option>
           <option value="OWNER">OWNER</option><option value="ADMIN">ADMIN</option>
-          <option value="SELLER">SELLER</option><option value="MEMBER">MEMBER</option>
-          <option value="GUEST">GUEST</option><option value="BANNED">BANNED</option><option value="STOPPED">STOPPED</option>
+          <option value="SELLER">SELLER</option><option value="CS">CS</option>
+          <option value="MEMBER">MEMBER</option><option value="GUEST">GUEST</option>
+          <option value="BANNED">BANNED</option><option value="STOPPED">STOPPED</option>
         </select>
         <button class="act pri" onclick="exportCSV('users')">⬇️ Export</button>
         <button class="act yel" onclick="doResetAll()">🔄 Reset Semua Kuota</button>
@@ -416,7 +428,13 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
             <div style="display:flex;flex-direction:column;gap:5px"><label style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em">Email</label><input type="email" id="cu-email" placeholder="email@contoh.com" class="field-inp" style="width:100%"></div>
             <div style="display:flex;flex-direction:column;gap:5px"><label style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em">Password</label><input type="password" id="cu-pass" placeholder="Min. 6 karakter" class="field-inp" style="width:100%"></div>
             <div style="display:flex;flex-direction:column;gap:5px"><label style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em">Role</label>
-              <select id="cu-role" class="tbl-select" style="width:100%;padding:9px 11px"><option value="MEMBER" selected>MEMBER</option><option value="SELLER">SELLER</option><option value="ADMIN">ADMIN</option><option value="GUEST">GUEST</option></select>
+              <select id="cu-role" class="tbl-select" style="width:100%;padding:9px 11px">
+                <option value="MEMBER" selected>MEMBER</option>
+                <option value="SELLER">SELLER</option>
+                <option value="CS">CS</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="GUEST">GUEST</option>
+              </select>
             </div>
           </div>
           <div id="cuMsg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px"></div>
@@ -434,7 +452,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
-      <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Login Wajib untuk Kirim Foto</strong><br>Backend sudah memvalidasi Bearer Token.<br><span style="color:var(--gold)">💡 Agar Guest wajib login, set <strong>default_guest_chat_limit = 0</strong>.</span></div></div>
+      <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Login Wajib untuk Kirim Foto</strong><br>Backend sudah memvalidasi Bearer Token.<br><span style="color:var(--gold)">💡 Agar Guest wajib login, set <strong>chat_limit = 0</strong> di role_limit/GUEST.</span></div></div>
       <div class="panel">
         <div class="panel-head"><h4>🔘 Kontrol Global</h4></div>
         <div class="panel-body">
@@ -445,23 +463,11 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">berlaku untuk user baru</span></div>
+        <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">berlaku untuk user baru — bisa diatur BERAPA AJA</span></div>
         <div class="panel-body">
           <div class="role-grid" id="roleGrid"></div>
-          <div class="info-box gold" style="margin-top:12px">👑 <span>ADMIN tidak memiliki batasan — semua limit diabaikan di backend.</span></div>
+          <div class="info-box gold" style="margin-top:12px">👑 <span>ADMIN & OWNER tidak memiliki batasan — semua limit diabaikan di backend.</span></div>
           <button class="save-btn" onclick="saveRoleLimits()">💾 Simpan Limit Role</button>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h4>➕ Default Limit Member & Guest Baru</h4></div>
-        <div class="panel-body">
-          <div class="settings-grid">
-            <div class="s-item"><div class="s-label">Chat Limit — Member</div><input type="number" class="field-inp" id="def-mc" value="50" min="0" max="9999"><div class="s-desc">Limit harian chat untuk member baru</div></div>
-            <div class="s-item"><div class="s-label">Foto Limit — Member</div><input type="number" class="field-inp" id="def-mp" value="5" min="0" max="9999"><div class="s-desc">Limit harian foto untuk member baru</div></div>
-            <div class="s-item"><div class="s-label">Chat Limit — Guest</div><input type="number" class="field-inp" id="def-gc" value="10" min="0" max="999"><div class="s-desc">0 = wajib login untuk chat</div></div>
-            <div class="s-item"><div class="s-label">Foto Limit — Guest</div><input type="number" class="field-inp" id="def-gp" value="0" min="0" max="999"><div class="s-desc">0 = tidak diizinkan kirim foto</div></div>
-          </div>
-          <button class="save-btn" onclick="saveDefaults()">💾 Simpan Default</button>
         </div>
       </div>
       <div class="panel">
@@ -470,8 +476,49 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <div class="info-box blue" style="margin-bottom:12px">🛡️ Paste rules berikut di Firebase Console → Realtime Database → Rules.</div>
           <pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:11px;color:#a5f3fc;overflow-x:auto;line-height:1.6">{
   "rules": {
-    ".read":  "auth != null",
-    ".write": "auth != null"
+    "system_settings": {
+      ".read": true,
+      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
+    },
+    "role_limits": {
+      ".read": true,
+      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
+    },
+    "role_limit": {
+      ".read": true,
+      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
+    },
+    "users_config": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')"
+      }
+    },
+    "daily_usage": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",
+        ".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"
+      }
+    },
+    "user_sessions": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",
+        ".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"
+      }
+    },
+    "analytics": {
+      ".read": "auth != null && (root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",
+      "guests": {
+        "$guestId": {
+          ".write": true
+        }
+      },
+      "traffic": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    }
   }
 }</pre>
         </div>
@@ -517,6 +564,28 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
+    <!-- 🔑 API KEYS & MODELS -->
+    <div class="page" id="page-api-keys">
+      <div class="panel">
+        <div class="panel-head">
+          <h4>🔑 API Keys & Models</h4>
+          <button class="act pri" onclick="checkAllApiKeys()" id="btnCheckApiKeys">🔄 Cek Semua Key</button>
+        </div>
+        <div class="panel-body">
+          <div style="font-size:12px;color:var(--text-sub);margin-bottom:14px">
+            Menampilkan semua API Key yang terdaftar di environment variables (OpenRouter & Groq).<br>
+            Setiap key akan dicek model apa saja yang tersedia.
+          </div>
+          <div id="apiKeysContainer">
+            <div style="text-align:center;padding:30px;color:var(--text-muted)">
+              <div class="spinner" style="margin-bottom:10px"></div>
+              Memuat data API Keys...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- GUESTS -->
     <div class="page" id="page-guests">
       <div class="filter-bar">
@@ -550,7 +619,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-// ══ CONFIG — ganti dengan milik kamu ══
+// ══ CONFIG ══
 const FB_CONFIG = {
   apiKey:            "AIzaSyDC0DSJ88fhxIJDCyqxpX9goh4W1gX2fQQ",
   authDomain:        "xrezzky-ai.firebaseapp.com",
@@ -560,11 +629,7 @@ const FB_CONFIG = {
   messagingSenderId: "8326769744",
   appId:             "1:8326769744:web:448856076321154986f555",
 };
-const ADMIN_UIDS = [
-  // "ISI_UID_KAMU_DI_SINI",
-];
-// ══════════════════════════════════════
-
+const ADMIN_UIDS = [];
 firebase.initializeApp(FB_CONFIG);
 const auth = firebase.auth();
 const db   = firebase.database();
@@ -577,6 +642,7 @@ const PAGES = {
   users:     { title:"Manajemen User",     sub:"Kelola role, limit, ban, dan status user" },
   settings:  { title:"Pengaturan Sistem",  sub:"Konfigurasi global & batas kuota" },
   providers: { title:"Monitor Provider AI",sub:"Status & health check semua AI provider" },
+  "api-keys":{ title:"API Keys & Models",  sub:"Cek semua API Key dan model yang tersedia" },
   guests:    { title:"Pengunjung Guest",   sub:"Visitor tanpa akun — aktivitas & IP" },
 };
 
@@ -592,17 +658,6 @@ function fmtD(ts){
   return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})+" "+d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
 }
 function dateStr(){ return new Date().toISOString().slice(0,10).replace(/-/g,""); }
-function uCell(name,email,uid){
-  const colors=["#2563eb","#7c3aed","#0891b2","#059669","#d97706"];
-  const c=colors[(uid||"").charCodeAt(0)%colors.length]||"#2563eb";
-  return `<div class="u-cell"><div class="u-ava" style="background:${c}">${(name[0]||"?").toUpperCase()}</div><div><div class="u-name">${esc(name)}</div><div class="u-email">${esc(email)}</div></div></div>`;
-}
-function timeSince(ts){
-  if(!ts) return "—";
-  const diff=Date.now()-ts, m=Math.floor(diff/60000), h=Math.floor(diff/3600000);
-  if(m<1) return "Baru saja"; if(m<60) return `${m} mnt lalu`; if(h<24) return `${h} jam lalu`;
-  return fmtD(ts);
-}
 
 // ══ TOAST ══
 function toast(msg,type="inf"){
@@ -626,7 +681,7 @@ function confirm2(title,msg,icon="⚠️"){
   });
 }
 
-// ══ LOGIN FUNCTIONS (FIX: sebelumnya tidak terdefinisi) ══
+// ══ LOGIN ══
 async function doEmailLoginAdmin(){
   const email=document.getElementById("ladmin-email")?.value?.trim();
   const pass=document.getElementById("ladmin-pass")?.value;
@@ -739,8 +794,7 @@ function initApp(){
   if(G.me.photoURL) ava.innerHTML=`<img src="${G.me.photoURL}">`;
   else ava.textContent=(G.me.displayName?.[0]||"A").toUpperCase();
   setText("sbName",G.me.displayName||G.me.email?.split("@")[0]||"Admin");
-  // FIX: hapus typo MIN"}` yang ada di kode asli
-  const roleEmojis={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",MEMBER:"✅"};
+  const roleEmojis={OWNER:"⭐",ADMIN:"👑",SELLER:"🏪",CS:"🛡️",MEMBER:"✅"};
   setText("sbRole",`${roleEmojis[G.myRole]||"👑"} ${G.myRole||"ADMIN"}`);
 
   db.ref(".info/connected").on("value",snap=>{
@@ -754,13 +808,13 @@ function initApp(){
   document.querySelectorAll(".nav-item[data-page]").forEach(el=>{
     el.addEventListener("click",()=>{ switchPage(el.dataset.page); closeMobileSidebar(); });
   });
-  // FIX: getElementById("sidebar") — sebelumnya sidebar tidak punya id
   document.getElementById("mobileMenuBtn")?.addEventListener("click",openMobileSidebar);
   document.getElementById("sideOverlay")?.addEventListener("click",closeMobileSidebar);
 
   refreshStats(); renderRoleGrid(); renderAppLimitTable();
   renderOnlineUsers(); renderDailyUsage(); renderTopUsers();
   renderUsers(); renderAnalytics(); renderGuests();
+  checkAllApiKeys();
 
   db.ref("users_config").on("value",snap=>{ G.users=snap.val()||{}; refreshStats(); renderUsers(); renderTopUsers(); renderOnlineUsers(); });
   db.ref("analytics/traffic").on("value",snap=>{ G.traffic=snap.val()||{}; refreshStats(); renderAnalytics(); renderTopUsers(); renderOnlineUsers(); });
@@ -769,7 +823,6 @@ function initApp(){
   db.ref("analytics/guests").on("value",snap=>{ G.guests=snap.val()||{}; refreshStats(); renderGuests(); });
 }
 
-// FIX: openMobileSidebar & closeMobileSidebar — pakai id="sidebar" bukan class
 function openMobileSidebar(){ document.getElementById("sidebar")?.classList.add("mob-open"); document.getElementById("sideOverlay").style.display="block"; }
 function closeMobileSidebar(){ document.getElementById("sidebar")?.classList.remove("mob-open"); document.getElementById("sideOverlay").style.display="none"; }
 
@@ -785,6 +838,7 @@ function switchPage(name){
   if(name==="users")    renderUsers();
   if(name==="analytics")renderAnalytics();
   if(name==="guests")   renderGuests();
+  if(name==="api-keys") checkAllApiKeys();
   closeMobileSidebar();
 }
 
@@ -796,11 +850,11 @@ function refreshStats(){
   uids.forEach(uid=>{ const r=G.users[uid]?.role||"GUEST"; if(r==="BANNED"||r==="STOPPED") banned++; });
   Object.values(G.traffic).forEach(t=>{ totalChat+=(t.total_chats_sent||0); totalPhoto+=(t.total_photos_sent||0); if((t.last_visit||0)>=cutoff) today++; });
   const gp=G.settings.allow_guest_photos??false;
-  const roles={ADMIN:0,SELLER:0,MEMBER:0,GUEST:0,BANNED:0,STOPPED:0};
+  const roles={ADMIN:0,SELLER:0,CS:0,MEMBER:0,GUEST:0,BANNED:0,STOPPED:0};
   uids.forEach(uid=>{ const r=G.users[uid]?.role||"GUEST"; roles[r]=(roles[r]||0)+1; });
   const gc=Object.keys(G.guests).length;
   setText("s-users",String(uids.length));
-  setText("s-users-sub",`A:${roles.ADMIN} S:${roles.SELLER} M:${roles.MEMBER} B:${roles.BANNED} | ${gc} visitor`);
+  setText("s-users-sub",`A:${roles.ADMIN} S:${roles.SELLER} CS:${roles.CS} M:${roles.MEMBER} B:${roles.BANNED} | ${gc} visitor`);
   setText("s-chats",fmtN(totalChat)); setText("s-photos",fmtN(totalPhoto));
   setText("s-banned",String(banned)); setText("s-today",String(today));
   setText("s-gphoto",gp?"ON":"OFF"); setText("s-gphoto-sub",gp?"✓ Guest boleh kirim foto":"✗ Guest diblokir kirim foto");
@@ -819,6 +873,13 @@ function renderOnlineUsers(){
     const dot=isNow?`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:5px;vertical-align:middle"></span>`:`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-muted);margin-right:5px;vertical-align:middle"></span>`;
     return `<tr><td>${uCell(t.name||"Guest",t.email||t.uid,t.uid)}</td><td><span class="badge ${role}">${role}</span></td><td>${dot}${isNow?"🟢 Online":timeSince(t.last_visit)}</td><td><strong style="color:var(--cyan)">${fmtN(t.total_chats_sent||0)}</strong> / ${fmtN(t.total_photos_sent||0)}</td><td><button class="act pur" data-action="detail" data-uid="${t.uid}">👁️</button></td></tr>`;
   }).join("");
+}
+
+function timeSince(ts){
+  if(!ts) return "—";
+  const diff=Date.now()-ts, m=Math.floor(diff/60000), h=Math.floor(diff/3600000);
+  if(m<1) return "Baru saja"; if(m<60) return `${m} mnt lalu`; if(h<24) return `${h} jam lalu`;
+  return fmtD(ts);
 }
 
 // ══ DAILY USAGE ══
@@ -882,14 +943,14 @@ function renderUsers(){
   tbody.innerHTML=rows.map(u=>{
     const role=u.role||"GUEST", tr=G.traffic[u.uid]||{};
     const name=u.name||tr.name||"—", email=u.email||tr.email||"—";
-    const isAdmin=role==="ADMIN", isBanned=role==="BANNED", isStopped=role==="STOPPED";
+    const isAdmin=role==="ADMIN"||role==="OWNER", isBanned=role==="BANNED", isStopped=role==="STOPPED";
     return `<tr id="row-${u.uid}">
       <td>${uCell(name,email,u.uid)}</td>
       <td><select class="tbl-select" id="r-${u.uid}" onchange="onRoleChg('${u.uid}')">
-        ${["OWNER","ADMIN","SELLER","MEMBER","GUEST","BANNED","STOPPED"].map(r=>`<option value="${r}"${r===role?" selected":""}>${r}</option>`).join("")}
+        ${["OWNER","ADMIN","SELLER","CS","MEMBER","GUEST","BANNED","STOPPED"].map(r=>`<option value="${r}"${r===role?" selected":""}>${r}</option>`).join("")}
       </select></td>
-      <td><input type="number" class="tbl-inp" id="c-${u.uid}" value="${isAdmin?"":u.max_chat_limit??50}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0" max="9999"></td>
-      <td><input type="number" class="tbl-inp" id="p-${u.uid}" value="${isAdmin?"":u.max_photo_limit??5}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0" max="9999"></td>
+      <td><input type="number" class="tbl-inp" id="c-${u.uid}" value="${isAdmin?"":u.max_chat_limit??0}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
+      <td><input type="number" class="tbl-inp" id="p-${u.uid}" value="${isAdmin?"":u.max_photo_limit??0}" placeholder="${isAdmin?"∞":""}" ${isAdmin?"disabled":""} min="0"></td>
       <td><span class="badge ${isBanned?"BANNED":isStopped?"STOPPED":"MEMBER"}">${isBanned?"BANNED":isStopped?"STOPPED":"AKTIF"}</span></td>
       <td><div class="act-grp">
         <button class="act pri" data-action="save"   data-uid="${u.uid}" data-name="${esc(name)}">✓ Simpan</button>
@@ -906,8 +967,8 @@ function onRoleChg(uid){
   const role=document.getElementById(`r-${uid}`)?.value;
   const ci=document.getElementById(`c-${uid}`), pi=document.getElementById(`p-${uid}`);
   if(!ci||!pi) return;
-  if(role==="ADMIN"){ ci.value=""; ci.placeholder="∞"; ci.disabled=true; pi.value=""; pi.placeholder="∞"; pi.disabled=true; }
-  else { ci.disabled=false; pi.disabled=false; const rl=(G.settings.role_limits||{})[role]||{}; if(!ci.value||ci.value==="∞") ci.value=rl.max_chat_limit??defForRole(role,"chat"); if(!pi.value||pi.value==="∞") pi.value=rl.max_photo_limit??defForRole(role,"photo"); }
+  if(role==="ADMIN"||role==="OWNER"){ ci.value=""; ci.placeholder="∞"; ci.disabled=true; pi.value=""; pi.placeholder="∞"; pi.disabled=true; }
+  else { ci.disabled=false; pi.disabled=false; const rl=(G.settings.role_limits||G.settings.role_limit||{})[role]||{}; if(!ci.value||ci.value==="∞") ci.value=rl.chat_limit??rl.max_chat_limit??0; if(!pi.value||pi.value==="∞") pi.value=rl.photo_limit??rl.max_photo_limit??0; }
 }
 
 // ══ EVENT DELEGATION ══
@@ -925,8 +986,8 @@ document.addEventListener("click",async e=>{
 
 async function doSave(uid,name){
   const role=document.getElementById(`r-${uid}`)?.value||"MEMBER";
-  const chat=role==="ADMIN"?9999:parseInt(document.getElementById(`c-${uid}`)?.value)||0;
-  const photo=role==="ADMIN"?9999:parseInt(document.getElementById(`p-${uid}`)?.value)||0;
+  const chat=role==="ADMIN"||role==="OWNER"?9999:parseInt(document.getElementById(`c-${uid}`)?.value)||0;
+  const photo=role==="ADMIN"||role==="OWNER"?9999:parseInt(document.getElementById(`p-${uid}`)?.value)||0;
   try{ await db.ref(`users_config/${uid}`).update({role,max_chat_limit:chat,max_photo_limit:photo}); toast(`${name} berhasil diupdate!`,"ok"); }
   catch(e){ toast("Gagal update: "+e.message,"err"); }
 }
@@ -982,13 +1043,13 @@ async function doCreateUser(){
   if(!name){ showCuMsg("Nama wajib diisi.",false); return; }
   if(!email){ showCuMsg("Email wajib diisi.",false); return; }
   if(!pass||pass.length<6){ showCuMsg("Password minimal 6 karakter.",false); return; }
-  if(["OWNER","ADMIN"].includes(role)&&G.myRole!=="OWNER"){ showCuMsg("Hanya OWNER yang bisa membuat akun ADMIN.",false); return; }
+  if(["OWNER","ADMIN"].includes(role)&&G.myRole!=="OWNER"){ showCuMsg("Hanya OWNER yang bisa membuat akun ADMIN/OWNER.",false); return; }
   try{
     const apiKey="AIzaSyDC0DSJ88fhxIJDCyqxpX9goh4W1gX2fQQ";
     const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass,returnSecureToken:true})});
     const d=await r.json();
     if(d.error){ const em={"EMAIL_EXISTS":"Email sudah terdaftar.","INVALID_EMAIL":"Format email tidak valid.","WEAK_PASSWORD":"Password minimal 6 karakter."}; throw new Error(em[d.error.message]||d.error.message); }
-    const lim={OWNER:{c:99999,p:99999},ADMIN:{c:99999,p:99999},SELLER:{c:200,p:50},MEMBER:{c:50,p:5},GUEST:{c:10,p:0}}[role]||{c:50,p:5};
+    const lim={OWNER:{c:99999,p:99999},ADMIN:{c:99999,p:99999},SELLER:{c:200,p:50},CS:{c:300,p:50},MEMBER:{c:50,p:5},GUEST:{c:10,p:0}}[role]||{c:50,p:5};
     await db.ref(`users_config/${d.localId}`).set({uid:d.localId,name,email,role,max_chat_limit:lim.c,max_photo_limit:lim.p,status:"active",created_at:Date.now(),created_by:G.me?.uid||"admin",last_login:null});
     showCuMsg(`✅ Akun "${name}" (${role}) berhasil dibuat!`,true);
     toast(`${name} berhasil dibuat sebagai ${role}`,"ok");
@@ -1002,36 +1063,33 @@ function applySettingsUI(){
   setChk("tog-gphoto",s.allow_guest_photos??false);
   setChk("tog-maint",s.maintenance_mode??false);
   setChk("tog-loginreq",s.login_required??false);
-  setVal("def-mc",s.default_member_chat_limit??50);
-  setVal("def-mp",s.default_member_photo_limit??5);
-  setVal("def-gc",s.default_guest_chat_limit??10);
-  setVal("def-gp",s.default_guest_photo_limit??0);
   renderRoleGrid(); renderAppLimitTable();
 }
 async function saveToggles(){
   try{ await db.ref("system_settings").update({allow_guest_photos:document.getElementById("tog-gphoto")?.checked??false,maintenance_mode:document.getElementById("tog-maint")?.checked??false,login_required:document.getElementById("tog-loginreq")?.checked??false}); toast("Toggle tersimpan!","ok"); }
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
-async function saveDefaults(){
-  try{ await db.ref("system_settings").update({default_member_chat_limit:parseInt(document.getElementById("def-mc")?.value)||50,default_member_photo_limit:parseInt(document.getElementById("def-mp")?.value)||5,default_guest_chat_limit:parseInt(document.getElementById("def-gc")?.value)||10,default_guest_photo_limit:parseInt(document.getElementById("def-gp")?.value)||0}); toast("Default limit tersimpan!","ok"); }
-  catch(e){ toast("Gagal simpan: "+e.message,"err"); }
-}
 
-const ROLES_DEF=[{role:"SELLER"},{role:"MEMBER"},{role:"GUEST"}];
-function defForRole(role,type){ return({SELLER:{chat:200,photo:50},MEMBER:{chat:50,photo:5},GUEST:{chat:10,photo:0}}[role]||{})[type]??0; }
+const ROLES_DEF=[{role:"SELLER"},{role:"CS"},{role:"MEMBER"},{role:"GUEST"}];
+function defForRole(role,type){ return({SELLER:{chat:0,photo:0},CS:{chat:0,photo:0},MEMBER:{chat:0,photo:0},GUEST:{chat:0,photo:0}}[role]||{})[type]??0; }
 
-// FIX: renderRoleGrid — hapus variabel ok/disabled yang tidak terdefinisi
 function renderRoleGrid(){
   const grid=document.getElementById("roleGrid"); if(!grid) return;
-  const icons={SELLER:"🏪",MEMBER:"✅",GUEST:"👤"};
+  const icons={SELLER:"🏪",CS:"🛡️",MEMBER:"✅",GUEST:"👤"};
+  const roleLimits = G.settings.role_limits || G.settings.role_limit || {};
   grid.innerHTML=ROLES_DEF.map(({role})=>{
-    const rl=(G.settings.role_limits||{})[role]||{};
-    return `<div class="role-card"><div class="role-card-head"><span style="font-size:16px">${icons[role]||"👤"}</span><span class="badge ${role}">${role}</span></div><div class="rlc-row"><span class="rlc-lbl">Max Chat/hari</span><input type="number" class="rlc-inp" id="rl-c-${role}" value="${rl.max_chat_limit??defForRole(role,'chat')}" min="0" max="9999"></div><div class="rlc-row"><span class="rlc-lbl">Max Foto/hari</span><input type="number" class="rlc-inp" id="rl-p-${role}" value="${rl.max_photo_limit??defForRole(role,'photo')}" min="0" max="9999"></div><div class="rlc-note">berlaku untuk user baru dengan role ini</div></div>`;
+    const rl=roleLimits[role]||{};
+    return `<div class="role-card"><div class="role-card-head"><span style="font-size:16px">${icons[role]||"👤"}</span><span class="badge ${role}">${role}</span></div><div class="rlc-row"><span class="rlc-lbl">Max Chat/hari</span><input type="number" class="rlc-inp" id="rl-c-${role}" value="${rl.chat_limit??rl.max_chat_limit??0}" min="0"></div><div class="rlc-row"><span class="rlc-lbl">Max Foto/hari</span><input type="number" class="rlc-inp" id="rl-p-${role}" value="${rl.photo_limit??rl.max_photo_limit??0}" min="0"></div><div class="rlc-note">berlaku untuk user baru dengan role ini</div></div>`;
   }).join("");
 }
 async function saveRoleLimits(){
   const upd={};
-  ROLES_DEF.forEach(({role})=>{ upd[`role_limits/${role}`]={max_chat_limit:parseInt(document.getElementById(`rl-c-${role}`)?.value)||0,max_photo_limit:parseInt(document.getElementById(`rl-p-${role}`)?.value)||0}; });
+  ROLES_DEF.forEach(({role})=>{
+    upd[`role_limit/${role}`]={
+      chat_limit: parseInt(document.getElementById(`rl-c-${role}`)?.value)||0,
+      photo_limit: parseInt(document.getElementById(`rl-p-${role}`)?.value)||0
+    };
+  });
   try{ await db.ref("system_settings").update(upd); toast("Limit per role tersimpan!","ok"); }
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
@@ -1040,16 +1098,23 @@ async function saveRoleLimits(){
 function renderAppLimitTable(){
   const tbody=document.getElementById("appLimitTbl"); if(!tbody) return;
   const s=G.settings;
-  tbody.innerHTML=["OWNER","ADMIN","SELLER","MEMBER","GUEST"].map(role=>{
-    const rl=(s.role_limits||{})[role]||{}, isAdmin=["OWNER","ADMIN"].includes(role);
-    const chatVal=isAdmin?"∞":(rl.max_chat_limit??defForRole(role,"chat"));
-    const photoVal=isAdmin?"∞":(rl.max_photo_limit??defForRole(role,"photo"));
-    return `<tr style="border-bottom:1px solid var(--border2)"><td style="padding:8px 12px"><span class="badge ${role}">${role}</span></td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-c-${role}" value="${chatVal}" min="0" max="9999">`}</td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-p-${role}" value="${photoVal}" min="0" max="9999">`}</td><td style="padding:8px 12px;text-align:center">${isAdmin?"✅":(rl.max_photo_limit>0?"✅":"❌")}</td></tr>`;
+  const roleLimits = s.role_limits || s.role_limit || {};
+  tbody.innerHTML=["OWNER","ADMIN","SELLER","CS","MEMBER","GUEST"].map(role=>{
+    const rl=roleLimits[role]||{}, isAdmin=["OWNER","ADMIN"].includes(role);
+    const chatVal=isAdmin?"∞":(rl.chat_limit??rl.max_chat_limit??0);
+    const photoVal=isAdmin?"∞":(rl.photo_limit??rl.max_photo_limit??0);
+    const okPhoto=role==="OWNER"||role==="ADMIN"||(parseInt(photoVal)||0)>0;
+    return `<tr style="border-bottom:1px solid var(--border2)"><td style="padding:8px 12px"><span class="badge ${role}">${role}</span></td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-c-${role}" value="${chatVal}" min="0">`}</td><td style="padding:8px 12px;text-align:center">${isAdmin?`<span style="color:var(--gold);font-weight:700">∞</span>`:`<input type="number" class="tbl-inp" id="app-p-${role}" value="${photoVal}" min="0">`}</td><td style="padding:8px 12px;text-align:center">${okPhoto?"✅":"❌"}</td></tr>`;
   }).join("");
 }
 async function saveAppSettings(){
   const upd={};
-  ["SELLER","MEMBER","GUEST"].forEach(role=>{ upd[`role_limits/${role}`]={max_chat_limit:parseInt(document.getElementById(`app-c-${role}`)?.value)||0,max_photo_limit:parseInt(document.getElementById(`app-p-${role}`)?.value)||0}; });
+  ["SELLER","CS","MEMBER","GUEST"].forEach(role=>{
+    upd[`role_limit/${role}`]={
+      chat_limit: parseInt(document.getElementById(`app-c-${role}`)?.value)||0,
+      photo_limit: parseInt(document.getElementById(`app-p-${role}`)?.value)||0
+    };
+  });
   try{
     await db.ref("system_settings").update(upd); toast("Pengaturan app tersimpan!","ok");
     const m=document.getElementById("appSettingsMsg"); if(m){ m.textContent="✅ Tersimpan!"; m.style.cssText="display:block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 12px;border-radius:8px;font-size:12px"; setTimeout(()=>m.style.display="none",2500); }
@@ -1064,7 +1129,8 @@ async function openUD(uid){
   const rb=document.getElementById("ud-role"); if(rb){ rb.className="badge "+role; rb.textContent=role; }
   setText("ud-ip",t.ip_address||"—"); setText("ud-chats",fmtN(t.total_chats_sent||0)); setText("ud-photos",fmtN(t.total_photos_sent||0));
   setText("ud-last",fmtD(t.last_visit)); setText("ud-since",fmtD(u.created_at||t.first_visit));
-  setText("ud-clim",role==="ADMIN"?"∞":(u.max_chat_limit??"—"));
+  const isAdmin=["ADMIN","OWNER"].includes(role);
+  setText("ud-clim",isAdmin?"∞":(u.max_chat_limit||"—"));
   document.getElementById("udModal").classList.add("open"); document.body.style.overflow="hidden";
   loadUDChart(uid); loadUDSessions(uid);
 }
@@ -1144,10 +1210,9 @@ async function testAllProviders(){
     document.getElementById("queueList").innerHTML=queue.length
       ? queue.map((p,i)=>`<div style="padding:4px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border2)"><span style="color:var(--accent);font-weight:700;width:20px">${i+1}.</span><span>${p}</span></div>`).join("")
       : "Queue kosong — tidak ada provider aktif!";
-    // FIX: variabel "statuse" diganti "status" (typo di kode asli)
     document.getElementById("keyStatus").innerHTML=Object.keys(keys).length
       ? Object.entries(keys).map(([provider,status])=>{
-          const has=status===true||status==="set";
+          const has=status===true||status==="set"||status.includes("✓");
           return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2)"><span style="color:var(--text)">${provider}</span><span style="${has?"color:var(--green)":"color:var(--red)"}">${has?"✅ Set":"❌ Tidak ada"}</span></div>`;
         }).join("")
       : `<span style="color:var(--text-muted)">Tidak ada info key tersedia.</span>`;
@@ -1158,6 +1223,130 @@ async function testAllProviders(){
   } finally {
     if(btn){ btn.disabled=false; btn.innerHTML="🔄 Test Semua"; }
   }
+}
+
+// ══ 🔑 CHECK ALL API KEYS & MODELS ══
+async function checkAllApiKeys() {
+  const container = document.getElementById('apiKeysContainer');
+  const btn = document.getElementById('btnCheckApiKeys');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Loading...'; }
+  
+  container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)"><div class="spinner" style="margin-bottom:10px"></div>Mengecek semua API Key...</div>`;
+
+  try {
+    const headers = G.me ? { "Authorization": `Bearer ${await G.me.getIdToken()}` } : {};
+    const response = await fetch('/api/chat?action=debug', { headers });
+    if (!response.ok) throw new Error('Gagal fetch data API Keys');
+    const data = await response.json();
+
+    const envKeys = data.env_keys || {};
+    const providerTest = data.provider_test || {};
+    const activeQueue = data.active_queue || [];
+
+    let html = '';
+    let hasAnyKey = false;
+
+    // OPENROUTER KEYS
+    const orKeys = envKeys.OPENROUTER || [];
+    const orKeyIndexes = orKeys.map((k, i) => ({ index: i + 1, status: k.includes('✓') }));
+    const orKeysAvailable = orKeyIndexes.filter(k => k.status);
+
+    // GROQ KEYS
+    const grKeys = envKeys.GROQ || [];
+    const grKeyIndexes = grKeys.map((k, i) => ({ index: i + 1, status: k.includes('✓') }));
+    const grKeysAvailable = grKeyIndexes.filter(k => k.status);
+
+    const regionMap = {
+      'OR/gemini-2.0-flash': '🇺🇸 USA',
+      'OR/deepseek-v3': '🇨🇳 China',
+      'OR/claude-3-haiku': '🇺🇸 USA',
+      'OR/gemini-2.5-pro': '🇺🇸 USA',
+      'OR/llama-3.1-free': '🇺🇸 USA',
+      'Groq/llama-3.3-70b': '🇺🇸 USA',
+      'Groq/llama-3.1-8b': '🇺🇸 USA'
+    };
+
+    const modelList = activeQueue.map(q => {
+      return q.replace('OR/', '').replace('Groq/', '');
+    });
+
+    if (orKeysAvailable.length > 0) {
+      hasAnyKey = true;
+      html += `<div style="margin-bottom:16px"><strong style="color:var(--cyan);font-size:14px">🔗 OpenRouter API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${orKeysAvailable.length} key aktif</span></div>`;
+      
+      orKeysAvailable.forEach((k) => {
+        const isWorking = providerTest[`OR/${Object.keys(providerTest).find(p => p.startsWith('OR/'))}`]?.includes('✓') || false;
+        
+        html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
+          <div class="header">
+            <span class="provider">🔑 OPENROUTER_API_KEY_${k.index}</span>
+            <span class="key-status ${isWorking ? 'ok' : 'err'}">${isWorking ? '✅ Aktif' : '⚠️ Cek Limit'}</span>
+          </div>
+          <div class="region">🌍 Region: ${regionMap['OR/gemini-2.0-flash'] || '🌐 Global'}</div>
+          <div class="models">
+            <span class="model-tag">gemini-2.0-flash</span>
+            <span class="model-tag">gemini-flash-1.5</span>
+            <span class="model-tag">claude-3-haiku</span>
+            <span class="model-tag">gemini-2.5-pro</span>
+            <span class="model-tag">deepseek-chat</span>
+            <span class="model-tag">llama-3.1-8b</span>
+            <span class="model-tag">mistral-7b</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">🔹 Bisa akses semua model OpenRouter (Gemini, Claude, Llama, DeepSeek, dll)</div>
+        </div>`;
+      });
+    }
+
+    if (grKeysAvailable.length > 0) {
+      hasAnyKey = true;
+      html += `<div style="margin-bottom:16px;margin-top:16px"><strong style="color:var(--green);font-size:14px">⚡ Groq API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${grKeysAvailable.length} key aktif</span></div>`;
+      
+      grKeysAvailable.forEach((k) => {
+        const isWorking = providerTest[`Groq/${Object.keys(providerTest).find(p => p.startsWith('Groq/'))}`]?.includes('✓') || false;
+        
+        html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
+          <div class="header">
+            <span class="provider">🔑 GROQ_API_KEY_${k.index}</span>
+            <span class="key-status ${isWorking ? 'ok' : 'err'}">${isWorking ? '✅ Aktif' : '⚠️ Cek Limit'}</span>
+          </div>
+          <div class="region">🌍 Region: 🇺🇸 USA (Cloud)</div>
+          <div class="models">
+            <span class="model-tag">llama-3.3-70b</span>
+            <span class="model-tag">llama-3.1-8b</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">🔹 Model Llama dari Meta — cepat & gratis</div>
+        </div>`;
+      });
+    }
+
+    if (!hasAnyKey) {
+      html = `<div style="text-align:center;padding:30px;color:var(--text-muted);border:1px solid var(--border2);border-radius:var(--radius-sm)">
+        <span style="font-size:40px;display:block;margin-bottom:12px">🔑</span>
+        <strong style="color:var(--text)">Tidak ada API Key yang terdaftar</strong><br>
+        <span style="font-size:12px">Tambahkan <code style="background:rgba(255,255,255,.05);padding:2px 8px;border-radius:4px">OPENROUTER_API_KEY_1</code> atau <code style="background:rgba(255,255,255,.05);padding:2px 8px;border-radius:4px">GROQ_API_KEY_1</code> di environment variables.</span>
+      </div>`;
+    }
+
+    container.innerHTML = html;
+
+    const summary = document.createElement('div');
+    summary.style.cssText = 'margin-top:12px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)';
+    summary.innerHTML = `
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
+        <div>🔑 Total OpenRouter Key: <strong style="color:var(--cyan)">${orKeysAvailable.length}</strong></div>
+        <div>🔑 Total Groq Key: <strong style="color:var(--green)">${grKeysAvailable.length}</strong></div>
+        <div>🤖 Model Tersedia: <strong style="color:var(--text)">${modelList.length || '—'}</strong></div>
+      </div>
+    `;
+    container.appendChild(summary);
+
+  } catch (e) {
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm)">
+      ❌ Gagal load API Keys: ${esc(e.message)}
+    </div>`;
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Cek Semua Key'; }
 }
 
 // ══ EXPORT CSV ══
@@ -1179,6 +1368,12 @@ function exportCSV(type){
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   toast(fname+" didownload!","ok");
 }
+
+function uCell(name,email,uid){
+  const colors=["#2563eb","#7c3aed","#0891b2","#059669","#d97706"];
+  const c=colors[(uid||"").charCodeAt(0)%colors.length]||"#2563eb";
+  return `<div class="u-cell"><div class="u-ava" style="background:${c}">${(name[0]||"?").toUpperCase()}</div><div><div class="u-name">${esc(name)}</div><div class="u-email">${esc(email)}</div></div></div>`;
+}
 </script>
 </body>
-</html>
+                                                                                                                            </html>
