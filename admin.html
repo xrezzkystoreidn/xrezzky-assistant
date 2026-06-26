@@ -454,7 +454,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
-    <!-- 🔥 SETTINGS — SATU TEMPAT SETTING LIMIT -->
+    <!-- 🔥 SETTINGS — DENGAN FITUR VERSI -->
     <div class="page" id="page-settings">
       <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
 
@@ -510,6 +510,41 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <div style="font-size:11px;color:var(--text-muted);padding:8px 12px;background:rgba(255,255,255,.02);border-radius:var(--radius-sm)">
             💡 Ubah limit di bagian <strong>⚙️ Batas Default per Role</strong> di atas.
           </div>
+        </div>
+      </div>
+
+      <!-- 📦 VERSI & INFO APLIKASI -->
+      <div class="panel">
+        <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di footer index.html</span></div>
+        <div class="panel-body">
+          <div class="settings-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="s-item">
+              <div class="s-label">Versi</div>
+              <input type="text" class="field-inp" id="app-version" value="v1.0.0" style="width:100%">
+              <div class="s-desc">Contoh: v1.0.0, v2.3.1, v1.5.0-beta</div>
+            </div>
+            <div class="s-item">
+              <div class="s-label">Status</div>
+              <select class="field-inp" id="app-status" style="width:100%;padding:9px 11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);outline:none">
+                <option value="online">🟢 Online</option>
+                <option value="maintenance">🟡 Maintenance</option>
+                <option value="offline">🔴 Offline</option>
+                <option value="beta">🧪 Beta</option>
+              </select>
+              <div class="s-desc">Status yang tampil di footer</div>
+            </div>
+            <div class="s-item">
+              <div class="s-label">Environment</div>
+              <select class="field-inp" id="app-env" style="width:100%;padding:9px 11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);outline:none">
+                <option value="production">🚀 Production</option>
+                <option value="staging">🧪 Staging</option>
+                <option value="development">💻 Development</option>
+              </select>
+              <div class="s-desc">Environment aplikasi</div>
+            </div>
+          </div>
+          <button class="save-btn" onclick="saveAppInfo()" style="margin-top:10px">💾 Simpan Info Aplikasi</button>
+          <div id="appInfoMsg" style="display:none;margin-top:10px;font-size:12px;padding:8px 12px;border-radius:8px"></div>
         </div>
       </div>
 
@@ -860,7 +895,7 @@ function switchPage(name){
   document.querySelector(`.nav-item[data-page="${name}"]`)?.classList.add("active");
   const m=PAGES[name]||{title:name,sub:""};
   setText("pgTitle",m.title); setText("pgSub",m.sub);
-  if(name==="settings"){ renderRoleGrid(); renderAppLimitTable(); }
+  if(name==="settings"){ renderRoleGrid(); renderAppLimitTable(); loadAppInfo(); }
   if(name==="users")    renderUsers();
   if(name==="analytics")renderAnalytics();
   if(name==="guests")   renderGuests();
@@ -1139,10 +1174,49 @@ function applySettingsUI(){
   setChk("tog-maint",s.maintenance_mode??false);
   setChk("tog-loginreq",s.login_required??false);
   renderRoleGrid(); renderAppLimitTable();
+  loadAppInfo(); // 🔥 LOAD VERSI
 }
 async function saveToggles(){
   try{ await db.ref("system_settings").update({allow_guest_photos:document.getElementById("tog-gphoto")?.checked??false,maintenance_mode:document.getElementById("tog-maint")?.checked??false,login_required:document.getElementById("tog-loginreq")?.checked??false}); toast("Toggle tersimpan!","ok"); }
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
+}
+
+// 🔥 LOAD APP INFO
+function loadAppInfo() {
+  const info = G.settings.app_info || {};
+  document.getElementById("app-version").value = info.version || "v1.0.0";
+  document.getElementById("app-status").value = info.status || "online";
+  document.getElementById("app-env").value = info.environment || "production";
+}
+
+// 🔥 SAVE APP INFO
+async function saveAppInfo() {
+  const version = document.getElementById("app-version")?.value?.trim() || "v1.0.0";
+  const status = document.getElementById("app-status")?.value || "online";
+  const environment = document.getElementById("app-env")?.value || "production";
+  
+  try {
+    await db.ref("system_settings/app_info").set({
+      version: version,
+      status: status,
+      environment: environment,
+      build: Date.now().toString().slice(0,8),
+      updated_at: Date.now()
+    });
+    
+    toast("Info aplikasi tersimpan! ✅", "ok");
+    const msg = document.getElementById("appInfoMsg");
+    if(msg) {
+      msg.textContent = `✅ Tersimpan! Versi: ${version} | Status: ${status} | Env: ${environment}`;
+      msg.style.cssText = "display:block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 12px;border-radius:8px;font-size:12px";
+      setTimeout(() => msg.style.display = "none", 3000);
+    }
+    
+    const snap = await db.ref("system_settings").once("value");
+    G.settings = snap.val() || {};
+  } catch(e) {
+    toast("Gagal simpan: " + e.message, "err");
+  }
 }
 
 const ROLES_DEF=["SELLER","CS","MEMBER","GUEST"];
@@ -1503,4 +1577,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-      </html>
+  </html>
