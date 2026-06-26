@@ -2,6 +2,7 @@
 //  XREZZKY AI — api/chat.js  (Vercel Serverless)
 //  ⚡ Multi-Provider AI · Web Search · Image Analysis · Role-based Limits
 //  📌 SUPPORT role_limit & role_limits — SEMUA DARI FIREBASE
+//  🔥 TIDAK ADA BATASAN MAKSIMUM — ADMIN BISA SETTING BERAPA AJA
 // ═══════════════════════════════════════════════════════════════════════════
 
 import admin from "firebase-admin";
@@ -317,6 +318,7 @@ function buildQueue(hasImage, history = []) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  🔥 FIREBASE HELPERS — SUPPORT role_limit & role_limits
+//  🔥 TIDAK ADA BATASAN MAKSIMUM — BISA SETTING BERAPA AJA
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── 🔥 AMBIL ROLE LIMITS (SUPPORT role_limits & role_limit) ──
@@ -339,11 +341,11 @@ async function getSystemSettings() {
   } catch { return {}; }
 }
 
-// ── 🔥 AMBIL LIMIT USER — SUPPORT dua format ──
+// ── 🔥 AMBIL LIMIT USER — TANPA BATASAN ──
 async function getUserLimits(uid, role, userConfig) {
   const roleLimits = await getRoleLimits();
 
-  // ADMIN/OWNER unlimited
+  // OWNER & ADMIN UNLIMITED
   if (UNLIMITED_ROLES.includes(role)) {
     return { chatLimit: 99999, photoLimit: 99999 };
   }
@@ -357,7 +359,7 @@ async function getUserLimits(uid, role, userConfig) {
     }
   }
 
-  // 🔥 HARUS DARI FIREBASE — SUPPORT dua format
+  // 🔥 DARI FIREBASE — BISA BERAPA AJA (0 - 999999)
   const roleLimit = roleLimits[role] || {};
   const chatLimit = roleLimit.chat_limit ?? roleLimit.max_chat_limit ?? 0;
   const photoLimit = roleLimit.photo_limit ?? roleLimit.max_photo_limit ?? 0;
@@ -382,7 +384,7 @@ async function incrCounter(uid, field) {
   await db.ref(`daily_usage/${uid}/${todayWIB()}/${field}`).transaction(v => (v || 0) + 1);
 }
 
-// ── 🔥 ENSURE USER CONFIG — SUPPORT dua format ──
+// ── 🔥 ENSURE USER CONFIG — TANPA BATASAN ──
 async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
   const ref = db.ref(`users_config/${uid}`);
   const snap = await ref.once("value");
@@ -392,7 +394,6 @@ async function ensureUserConfig(uid, defaultRole = "MEMBER", meta = {}) {
     const rl = roleLimits[defaultRole] || {};
     const cfg = {
       role: defaultRole,
-      // 🔥 SUPPORT dua format
       max_chat_limit: rl.chat_limit ?? rl.max_chat_limit ?? 0,
       max_photo_limit: rl.photo_limit ?? rl.max_photo_limit ?? 0,
       name: meta.name || "",
@@ -832,4 +833,4 @@ ATURAN: Jangan pernah menyebut waktu secara spontan. Hanya jawab jika ditanya.`;
   }
 
   return res.status(405).json({ error: "Method Not Allowed" });
-    }
+     }
