@@ -174,7 +174,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 #cfmNo:hover{background:rgba(255,255,255,.08)}
 #udModal{position:fixed;inset:0;z-index:997;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
 #udModal.open{display:flex}
-.ud-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;box-shadow:0 0 50px rgba(37,99,235,.12);overflow:hidden;margin:auto}
+.ud-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:720px;box-shadow:0 0 50px rgba(37,99,235,.12);overflow:hidden;margin:auto}
 .ud-head{padding:20px 22px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:13px;background:linear-gradient(135deg,rgba(37,99,235,.07),transparent)}
 .ud-ava{width:48px;height:48px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
 .ud-body{padding:18px 22px;display:flex;flex-direction:column;gap:14px}
@@ -218,6 +218,24 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .online-dot.on{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.4)}
 .online-dot.off{background:var(--text-muted)}
+#notifContainer{position:fixed;top:70px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:340px;pointer-events:none}
+.notif{padding:12px 16px;border-radius:var(--radius-sm);border:1px solid;pointer-events:auto;animation:notifIn .35s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;max-width:340px}
+.notif .n-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.notif .n-body{flex:1;min-width:0}
+.notif .n-title{font-weight:700;font-size:12px}
+.notif .n-desc{color:var(--text-sub);margin-top:2px}
+.notif .n-time{font-size:9px;color:var(--text-muted);margin-top:3px}
+.notif.info{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.3);color:var(--text)}
+.notif.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:var(--text)}
+.notif.success{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--text)}
+.notif.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:var(--text)}
+@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes notifOut{to{opacity:0;transform:translateX(20px)}}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.chart-grid{grid-template-columns:1fr}}
+.chart-box{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:16px;position:relative}
+.chart-box h5{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.chart-box canvas{width:100%!important;height:auto!important;max-height:200px}
 @media(max-width:900px){
   .sidebar{position:fixed;left:0;top:0;height:100%;z-index:30;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.mob-open{transform:translateX(0)}
@@ -244,51 +262,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
   .filter-bar{flex-direction:column;align-items:stretch}
   .search-wrap{min-width:auto}
 }
-
-/* ─── NOTIFIKASI ─── */
-#notifContainer {
-  position:fixed;
-  top:70px;
-  right:20px;
-  z-index:9999;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  max-width:340px;
-  pointer-events:none;
-}
-.notif {
-  padding:12px 16px;
-  border-radius:var(--radius-sm);
-  border:1px solid;
-  pointer-events:auto;
-  animation:notifIn .35s ease;
-  box-shadow:0 4px 20px rgba(0,0,0,.5);
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  font-size:12px;
-  line-height:1.5;
-  max-width:340px;
-}
-.notif .n-icon{font-size:16px;flex-shrink:0;margin-top:1px}
-.notif .n-body{flex:1;min-width:0}
-.notif .n-title{font-weight:700;font-size:12px}
-.notif .n-desc{color:var(--text-sub);margin-top:2px}
-.notif .n-time{font-size:9px;color:var(--text-muted);margin-top:3px}
-.notif.info{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.3);color:var(--text)}
-.notif.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:var(--text)}
-.notif.success{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--text)}
-.notif.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:var(--text)}
-@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-@keyframes notifOut{to{opacity:0;transform:translateX(20px)}}
-
-/* ─── CHART CONTAINER ─── */
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:640px){.chart-grid{grid-template-columns:1fr}}
-.chart-box{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:16px;position:relative}
-.chart-box h5{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-.chart-box canvas{width:100%!important;height:auto!important;max-height:200px}
 </style>
 </head>
 <body>
@@ -435,6 +408,8 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       <div class="nav-sec">Monitoring</div>
       <div class="nav-item" data-page="analytics">📈 Trafik & Analitik</div>
       <div class="nav-item" data-page="users">👥 Manajemen User</div>
+      <div class="nav-item" data-page="sessions">💬 Semua Sesi Obrolan</div>
+      <div class="nav-item" data-page="archive">📦 Arsip Chat</div>
       <div class="nav-item" data-page="monitor-user">🆔 Monitor User Login</div>
       <div class="nav-item" data-page="monitor-guest">👁️ Monitor Guest</div>
       <div class="nav-sec">Konfigurasi</div>
@@ -475,7 +450,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- 📊 GRAFIK DASHBOARD -->
       <div class="chart-grid">
         <div class="chart-box">
           <h5>📈 Aktivitas Chat 7 Hari Terakhir</h5>
@@ -562,6 +536,65 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       </div>
     </div>
 
+    <!-- 💬 SEMUA SESI OBROLAN -->
+    <div class="page" id="page-sessions">
+      <div class="filter-bar">
+        <div class="search-wrap">🔍<input type="text" id="sesSearch" placeholder="Cari judul / isi chat / user..." oninput="renderSessions()"></div>
+        <input type="date" id="sesDateFrom" class="field-inp" style="width:140px" onchange="renderSessions()">
+        <span style="font-size:11px;color:var(--text-muted)">s/d</span>
+        <input type="date" id="sesDateTo" class="field-inp" style="width:140px" onchange="renderSessions()">
+        <select class="filter-sel" id="sesSort" onchange="renderSessions()">
+          <option value="desc">Terbaru ↓</option>
+          <option value="asc">Terlama ↑</option>
+        </select>
+        <button class="act pri" onclick="exportCSV('sessions')">⬇️ Export CSV</button>
+        <button class="act red" onclick="clearAllSessions()">🗑️ Hapus Semua</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h4>💬 Semua Sesi Obrolan</h4><span style="font-size:11px;color:var(--text-muted)" id="sesCount">0 sesi</span></div>
+        <div class="tbl-wrap"><table><thead><tr>
+          <th>📁 Judul Sesi</th>
+          <th>👤 User</th>
+          <th>Role</th>
+          <th>💬 Pesan</th>
+          <th>📅 Dibuat</th>
+          <th>🕒 Terakhir</th>
+          <th>Aksi</th>
+        </tr></thead>
+        <tbody id="sesTbl"><tr><td colspan="7" class="tbl-empty">Memuat semua sesi...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- 📦 ARSIP CHAT -->
+    <div class="page" id="page-archive">
+      <div class="filter-bar">
+        <div class="search-wrap">🔍<input type="text" id="arcSearch" placeholder="Cari user / guest / judul..." oninput="renderArchive()"></div>
+        <select class="filter-sel" id="arcMonth" onchange="renderArchive()">
+          <option value="">Semua Bulan</option>
+        </select>
+        <button class="act pri" onclick="renderArchive()">🔄 Refresh</button>
+        <button class="act grn" onclick="restoreAllArchive()">↩️ Restore Semua</button>
+        <button class="act red" onclick="deleteAllArchive()">🗑️ Hapus Semua Arsip</button>
+      </div>
+      <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">
+        <div class="sc"><div class="sc-icon cyan">📦</div><div class="sc-val" id="arc-total">0</div><div class="sc-label">Total Arsip</div></div>
+        <div class="sc"><div class="sc-icon green">👤</div><div class="sc-val" id="arc-users">0</div><div class="sc-label">User Arsip</div></div>
+        <div class="sc"><div class="sc-icon gold">📁</div><div class="sc-val" id="arc-months">0</div><div class="sc-label">Bulan</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h4>📦 Arsip Chat</h4><span style="font-size:11px;color:var(--text-muted)" id="arcCount">0 arsip</span></div>
+        <div class="tbl-wrap"><table><thead><tr>
+          <th>📁 Sesi</th>
+          <th>👤 User</th>
+          <th>💬 Chat</th>
+          <th>📅 Diarsipkan</th>
+          <th>📆 Bulan</th>
+          <th>Aksi</th>
+        </tr></thead>
+        <tbody id="arcTbl"><tr><td colspan="6" class="tbl-empty">Memuat arsip...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
     <!-- MONITOR USER LOGIN -->
     <div class="page" id="page-monitor-user">
       <div class="filter-bar">
@@ -607,6 +640,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <div class="page" id="page-settings">
       <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
 
+      <!-- 🔘 KONTROL GLOBAL -->
       <div class="panel">
         <div class="panel-head"><h4>🔘 Kontrol Global</h4></div>
         <div class="panel-body">
@@ -630,6 +664,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
+      <!-- ⚙️ BATAS DEFAULT PER ROLE -->
       <div class="panel">
         <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">✨ SATU-SATUNYA TEMPAT SETTING LIMIT — berlaku GLOBAL</span></div>
         <div class="panel-body">
@@ -639,6 +674,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
+      <!-- 📊 RINGKASAN LIMIT -->
       <div class="panel">
         <div class="panel-head"><h4>📊 Ringkasan Limit per Role</h4><span style="font-size:11px;color:var(--text-muted)">Lihat limit yang sedang aktif — READ ONLY</span></div>
         <div class="panel-body">
@@ -659,20 +695,82 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- 🔥 PENGATURAN BATAS LIHAT PESAN -->
+      <!-- 🔒 BATAS LIHAT PESAN -->
       <div class="panel">
         <div class="panel-head"><h4>🔒 Batas Lihat Pesan (Chat History)</h4><span style="font-size:11px;color:var(--text-muted)">Berapa chat terakhir yang bisa dilihat admin</span></div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <label style="font-size:12px;font-weight:600;color:var(--text-sub)">Jumlah Chat Terakhir:</label>
-            <input type="number" id="chatHistoryLimit" class="field-inp" style="width:120px" min="5" max="100" value="20">
-            <span style="font-size:11px;color:var(--text-muted)">(5-100 chat)</span>
+            <input type="number" id="chatHistoryLimit" class="field-inp" style="width:120px" min="5" max="200" value="20">
+            <span style="font-size:11px;color:var(--text-muted)">(5-200 chat)</span>
             <button class="save-btn" style="margin-top:0" onclick="saveChatHistoryLimit()">💾 Simpan</button>
           </div>
           <div id="chatLimitMsg" style="display:none;margin-top:10px;font-size:12px;padding:8px 12px;border-radius:8px"></div>
         </div>
       </div>
 
+      <!-- ═══ PENGATURAN ARSIP & NOTIFIKASI ═══ -->
+      <div class="panel">
+        <div class="panel-head"><h4>📦 Pengaturan Arsip & Notifikasi</h4></div>
+        <div class="panel-body">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <strong>Auto Arsip Otomatis</strong>
+              <span>Pindahkan sesi yang tidak aktif ke arsip</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="tog-autoarchive">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+          <div class="rlc-row" style="padding:8px 0;border-bottom:1px solid var(--border2)">
+            <span class="rlc-lbl">Hari sebelum diarsip (0 = off)</span>
+            <input type="number" class="rlc-inp" id="archiveDays" value="7" min="0" max="999">
+          </div>
+          <div class="rlc-row" style="padding:8px 0;border-bottom:1px solid var(--border2)">
+            <span class="rlc-lbl">Maks Sesi per User (0 = unlimited)</span>
+            <input type="number" class="rlc-inp" id="maxSessions" value="0" min="0" max="999">
+          </div>
+          <div class="rlc-row" style="padding:8px 0;border-bottom:1px solid var(--border2)">
+            <span class="rlc-lbl">Hapus Guest setelah (hari) 0 = off</span>
+            <input type="number" class="rlc-inp" id="guestCleanup" value="30" min="0" max="999">
+          </div>
+          <div style="padding:8px 0">
+            <label style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px">Teks Notifikasi Arsip</label>
+            <input type="text" class="field-inp" id="notifText" value="⚠️ Obrolan '{title}' sudah {days} hari tidak aktif. Masih mau disimpan?" style="width:100%">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Gunakan {title} untuk judul sesi, {days} untuk jumlah hari</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <button class="save-btn" style="margin-top:0" onclick="saveArchiveSettings()">💾 Simpan Pengaturan</button>
+            <button class="act pri" onclick="manualArchive()" style="margin-top:0">📦 Arsipkan Sekarang</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ KIRIM NOTIFIKASI ═══ -->
+      <div class="panel">
+        <div class="panel-head"><h4>📨 Kirim Notifikasi</h4></div>
+        <div class="panel-body">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input type="text" id="notifTitleAll" placeholder="Judul Notifikasi" class="field-inp" style="flex:1;min-width:120px">
+              <input type="text" id="notifBodyAll" placeholder="Isi Notifikasi" class="field-inp" style="flex:2;min-width:160px">
+              <button class="save-btn" style="margin-top:0" onclick="sendMassNotification()">📨 Kirim ke Semua</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border2);padding-top:8px">
+              <select id="notifUserSelect" class="tbl-select" style="flex:1;min-width:140px;padding:9px 11px">
+                <option value="">Pilih User...</option>
+              </select>
+              <input type="text" id="notifTitleUser" placeholder="Judul" class="field-inp" style="flex:1;min-width:100px">
+              <input type="text" id="notifBodyUser" placeholder="Isi" class="field-inp" style="flex:2;min-width:140px">
+              <button class="act pri" onclick="sendUserNotification()" style="margin-top:0">📨 Kirim ke User</button>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted)">Notifikasi akan muncul di web (pop up) dan HP (jika user mengizinkan)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 📦 VERSI & INFO -->
       <div class="panel">
         <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di sidebar index.html</span></div>
         <div class="panel-body">
@@ -714,55 +812,21 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
+      <!-- 🔐 FIREBASE RULES -->
       <div class="panel">
         <div class="panel-head"><h4>🔐 Firebase Database Rules</h4></div>
         <div class="panel-body">
           <div class="info-box blue" style="margin-bottom:12px">🛡️ Paste rules berikut di Firebase Console → Realtime Database → Rules.</div>
           <pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:11px;color:#a5f3fc;overflow-x:auto;line-height:1.6">{
   "rules": {
-    "system_settings": {
-      ".read": true,
-      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
-    },
-    "role_limits": {
-      ".read": true,
-      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
-    },
-    "role_limit": {
-      ".read": true,
-      ".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"
-    },
-    "users_config": {
-      "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",
-        ".write": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')"
-      }
-    },
-    "daily_usage": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",
-        ".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"
-      }
-    },
-    "user_sessions": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",
-        ".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"
-      }
-    },
-    "analytics": {
-      ".read": "auth != null && (root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",
-      "guests": {
-        "$guestId": {
-          ".write": true
-        }
-      },
-      "traffic": {
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid"
-        }
-      }
-    }
+    "system_settings": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
+    "role_limits": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
+    "role_limit": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
+    "users_config": {"$uid": {".read": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",".write": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')"}},
+    "daily_usage": {"$uid": {".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"}},
+    "user_sessions": {"$uid": {".read": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')",".write": "auth != null && auth.uid === $uid || $uid.matches('^GUEST_.*$')"}},
+    "archived_sessions": {".read": "auth != null && (root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",".write": "auth != null && (root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')"},
+    "analytics": {".read": "auth != null && (root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')","guests": {"$guestId": {".write": true}},"traffic": {"$uid": {".write": "auth != null && auth.uid === $uid"}}}
   }
 }</pre>
         </div>
@@ -840,11 +904,14 @@ let currentUid = null;
 let chatHistoryLimit = 20;
 let chartDaily = null;
 let chartRole = null;
+let archiveConfig = {};
 
 const PAGES = {
   dashboard:{ title:"Dashboard",           sub:"Ringkasan sistem XREZZKY AI" },
   analytics: { title:"Trafik & Analitik",  sub:"Log kunjungan dan aktivitas user" },
   users:     { title:"Manajemen User",     sub:"Kelola role, limit, ban, dan status user" },
+  sessions:  { title:"💬 Semua Sesi Obrolan", sub:"Lihat semua percakapan global" },
+  archive:   { title:"📦 Arsip Chat",      sub:"Sesi yang sudah diarsipkan" },
   "monitor-user":{ title:"Monitor User Login", sub:"Pantau pengguna yang sudah login" },
   "monitor-guest":{ title:"Monitor Guest", sub:"Pantau pengunjung tanpa login" },
   settings:  { title:"Pengaturan Sistem",  sub:"Konfigurasi global & batas kuota" },
@@ -1078,7 +1145,8 @@ function initApp(){
   document.getElementById("mobileMenuBtn")?.addEventListener("click",openMobileSidebar);
   document.getElementById("sideOverlay")?.addEventListener("click",closeMobileSidebar);
 
-  // Load chat history limit
+  // Load settings
+  loadArchiveSettings();
   if(G.settings.chat_history_limit) {
     chatHistoryLimit = G.settings.chat_history_limit;
     document.getElementById("chatHistoryLimit").value = chatHistoryLimit;
@@ -1087,23 +1155,33 @@ function initApp(){
   refreshStats(); renderRoleGrid(); renderAppLimitTable();
   renderOnlineUsers(); renderDailyUsage(); renderTopUsers();
   renderUsers(); renderAnalytics(); renderMonitorUser(); renderMonitorGuest();
+  renderSessions(); renderArchive();
   checkAllApiKeys();
-  
-  // 🔥 RENDER CHART
   renderCharts();
 
   db.ref("users_config").on("value",snap=>{ G.users=snap.val()||{}; refreshStats(); renderUsers(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); renderCharts(); });
   db.ref("analytics/traffic").on("value",snap=>{ G.traffic=snap.val()||{}; refreshStats(); renderAnalytics(); renderTopUsers(); renderOnlineUsers(); renderMonitorUser(); renderMonitorGuest(); renderCharts(); });
-  db.ref("system_settings").on("value",snap=>{ G.settings=snap.val()||{}; refreshStats(); applySettingsUI(); });
+  db.ref("system_settings").on("value",snap=>{ G.settings=snap.val()||{}; refreshStats(); applySettingsUI(); loadArchiveSettings(); });
   db.ref("daily_usage").on("value",snap=>{ G.dailyUsage=snap.val()||{}; renderDailyUsage(); renderCharts(); });
   db.ref("analytics/guests").on("value",snap=>{ G.guests=snap.val()||{}; refreshStats(); renderMonitorGuest(); });
+  db.ref("user_sessions").on("value",snap=>{ renderSessions(); });
+  db.ref("archived_sessions").on("value",snap=>{ renderArchive(); });
   
-  // 🔔 NOTIFIKASI AWAL
+  // 🔥 Auto archive setiap 6 jam
+  setInterval(autoArchiveSessions, 6 * 3600000);
+  setTimeout(autoArchiveSessions, 120000);
+  
+  // 🔥 Clean guest setiap hari
+  setInterval(cleanInactiveGuests, 86400000);
+  setTimeout(cleanInactiveGuests, 180000);
+  
+  // Update user select for notification
+  updateUserSelect();
+  
   setTimeout(() => {
     const total = Object.keys(G.users).length;
     const guests = Object.keys(G.guests).length;
     if(total > 0) addNotif("📊 Dashboard Siap", `${total} user terdaftar, ${guests} guest`, "info", 4000);
-    if(total > 10) addNotif("🔥 Sistem Aktif", `${total} user aktif di platform`, "success", 4000);
   }, 3000);
 }
 
@@ -1118,17 +1196,19 @@ function switchPage(name){
   document.querySelector(`.nav-item[data-page="${name}"]`)?.classList.add("active");
   const m=PAGES[name]||{title:name,sub:""};
   setText("pgTitle",m.title); setText("pgSub",m.sub);
-  if(name==="settings"){ renderRoleGrid(); renderAppLimitTable(); loadAppInfo(); }
+  if(name==="settings"){ renderRoleGrid(); renderAppLimitTable(); loadAppInfo(); loadArchiveSettings(); }
   if(name==="users")    renderUsers();
   if(name==="analytics")renderAnalytics();
   if(name==="monitor-user") renderMonitorUser();
   if(name==="monitor-guest") renderMonitorGuest();
+  if(name==="sessions") renderSessions();
+  if(name==="archive") renderArchive();
   if(name==="api-keys") checkAllApiKeys();
   if(name==="dashboard") renderCharts();
   closeMobileSidebar();
 }
 
-// ══ 📊 RENDER CHARTS ══
+// ══ CHARTS ══
 function renderCharts(){
   renderDailyChart();
   renderRoleChart();
@@ -1139,7 +1219,6 @@ function renderDailyChart(){
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
   
-  // Ambil data 7 hari terakhir dari daily_usage
   const days = [];
   const chatData = [];
   const now = new Date();
@@ -1176,19 +1255,10 @@ function renderDailyChart(){
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: { color: '#8fa3c0', font: { size: 9 } }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#8fa3c0', font: { size: 9 } }
-        }
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8fa3c0', font: { size: 9 } } },
+        x: { grid: { display: false }, ticks: { color: '#8fa3c0', font: { size: 9 } } }
       }
     }
   });
@@ -1253,12 +1323,7 @@ function renderRoleChart(){
       plugins: {
         legend: {
           position: 'right',
-          labels: {
-            color: '#8fa3c0',
-            font: { size: 10 },
-            boxWidth: 12,
-            padding: 8
-          }
+          labels: { color: '#8fa3c0', font: { size: 10 }, boxWidth: 12, padding: 8 }
         }
       }
     }
@@ -1268,7 +1333,7 @@ function renderRoleChart(){
 // ══ SAVE CHAT HISTORY LIMIT ══
 async function saveChatHistoryLimit(){
   const val = parseInt(document.getElementById("chatHistoryLimit")?.value) || 20;
-  if(val < 5 || val > 100){ toast("Minimal 5, maksimal 100!","err"); return; }
+  if(val < 5 || val > 200){ toast("Minimal 5, maksimal 200!","err"); return; }
   try {
     await db.ref("system_settings/chat_history_limit").set(val);
     chatHistoryLimit = val;
@@ -1318,13 +1383,6 @@ function renderOnlineUsers(){
   }).join("");
 }
 
-function timeSince(ts){
-  if(!ts) return "—";
-  const diff=Date.now()-ts, m=Math.floor(diff/60000), h=Math.floor(diff/3600000);
-  if(m<1) return "Baru saja"; if(m<60) return `${m} mnt lalu`; if(h<24) return `${h} jam lalu`;
-  return fmtD(ts);
-}
-
 // ══ DAILY USAGE ══
 function renderDailyUsage(){
   const tbody=document.getElementById("dailyTbl"); if(!tbody) return;
@@ -1356,7 +1414,6 @@ function renderDailyUsage(){
     const barC=pct>=100?"var(--red)":pct>=80?"var(--gold)":"var(--accent)";
     const displayName = r.isGuest ? `🆔 ${r.name}` : r.name;
     
-    // 🔔 NOTIFIKASI LIMIT
     if(pct >= 80 && pct < 100){
       addNotif(`⚠️ ${r.name} approaching limit`, `Chat: ${r.chats}/${maxC} (${Math.round(pct)}%)`, "warn", 6000);
     }
@@ -1561,6 +1618,731 @@ function renderMonitorGuest(){
   }).join("");
 }
 
+// ══ 💬 SEMUA SESI OBROLAN ══
+async function renderSessions() {
+  const tbody = document.getElementById("sesTbl");
+  if (!tbody) return;
+  
+  const search = (document.getElementById("sesSearch")?.value || "").toLowerCase();
+  const dateFrom = document.getElementById("sesDateFrom")?.value;
+  const dateTo = document.getElementById("sesDateTo")?.value;
+  const sort = document.getElementById("sesSort")?.value || "desc";
+  
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px"><div class="spinner"></div><br><span style="color:var(--text-muted);font-size:12px">Memuat semua sesi...</span></td></tr>`;
+  
+  try {
+    const snap = await db.ref("user_sessions").once("value");
+    const allSessions = [];
+    
+    if (snap.exists()) {
+      snap.forEach(userChild => {
+        const uid = userChild.key;
+        const userData = G.users[uid] || {};
+        const traffic = G.traffic[uid] || {};
+        const isGuestUser = isGuest(uid);
+        const name = getDisplayName(uid, userData, traffic);
+        const email = getEmail(uid, userData, traffic);
+        const role = userData.role || (isGuestUser ? "GUEST" : "GUEST");
+        const ip = traffic.ip_address || "—";
+        
+        userChild.forEach(sessionChild => {
+          const val = sessionChild.val();
+          const chats = val?.chats || {};
+          const chatKeys = Object.keys(chats);
+          const title = val?.meta?.title || 'Obrolan Tanpa Judul';
+          const created = val?.meta?.created_at || 0;
+          const last = val?.meta?.last_active || created;
+          
+          let match = true;
+          if (search) {
+            const searchText = (title + " " + name + " " + email + " " + uid).toLowerCase();
+            match = searchText.includes(search);
+            if (!match) {
+              for (const [cid, chat] of Object.entries(chats)) {
+                const content = (chat.text || chat.message || chat.content || "").toLowerCase();
+                if (content.includes(search)) { match = true; break; }
+              }
+            }
+          }
+          
+          if (dateFrom) {
+            const d = new Date(created);
+            const dStr = d.toISOString().slice(0,10);
+            if (dStr < dateFrom) match = false;
+          }
+          if (dateTo) {
+            const d = new Date(last);
+            const dStr = d.toISOString().slice(0,10);
+            if (dStr > dateTo) match = false;
+          }
+          
+          if (match) {
+            const chatList = Object.entries(chats)
+              .map(([id, c]) => ({ id, ...c, ts: c.ts || c.timestamp || 0 }))
+              .sort((a,b) => (a.ts||0) - (b.ts||0));
+            const lastChat = chatList[chatList.length - 1];
+            
+            allSessions.push({
+              uid,
+              sessionId: sessionChild.key,
+              title,
+              chatCount: chatKeys.length,
+              created,
+              last,
+              name,
+              email,
+              role,
+              ip,
+              isGuest: isGuestUser,
+              lastChat: lastChat?.text || lastChat?.message || lastChat?.content || '',
+              chats: chats
+            });
+          }
+        });
+      });
+    }
+    
+    allSessions.sort((a,b) => sort === "desc" ? b.last - a.last : a.last - b.last);
+    setText("sesCount", allSessions.length + " sesi");
+    
+    if (allSessions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="tbl-empty">Tidak ada sesi obrolan ditemukan.</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = allSessions.map(s => {
+      const roleBadge = `<span class="badge ${s.role}">${s.role}${s.isGuest ? ' 👤' : ''}</span>`;
+      const nameDisplay = s.isGuest ? `🆔 ${s.name}` : s.name;
+      const online = isOnline(s.last) ? '<span style="color:var(--green)">🟢 Online</span>' : '';
+      
+      return `<tr>
+        <td>
+          <div style="font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(s.title)}">
+            📁 ${esc(s.title)}
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
+            💬 ${s.chatCount} pesan ${s.lastChat ? '· "' + esc(s.lastChat.slice(0,50)) + (s.lastChat.length > 50 ? '…' : '') + '"' : ''}
+          </div>
+        </td>
+        <td>
+          <div style="font-weight:500">${esc(nameDisplay)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${s.isGuest ? '👤 Guest' : esc(s.email)}</div>
+        </td>
+        <td>${roleBadge}</td>
+        <td style="text-align:center;font-size:18px;font-weight:700;color:var(--cyan)">${s.chatCount}</td>
+        <td style="font-size:11px;color:var(--text-sub)">${fmtFull(s.created)}</td>
+        <td style="font-size:11px;color:var(--text-sub)">
+          ${fmtFull(s.last)}
+          <div style="font-size:9px;margin-top:2px">${online}</div>
+        </td>
+        <td>
+          <div class="act-grp">
+            <button class="act pur" onclick="openSessionDetail('${s.uid}','${s.sessionId}')">👁️</button>
+            <button class="act red" onclick="deleteSession('${s.uid}','${s.sessionId}','${esc(s.title)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+    
+  } catch(e) {
+    console.error("Gagal render sessions:", e);
+    tbody.innerHTML = `<tr><td colspan="7" class="tbl-empty">❌ Gagal memuat sesi: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+// ─── BUKA DETAIL SESI DARI HALAMAN SESSIONS ───
+async function openSessionDetail(uid, sessionId) {
+  try {
+    const snap = await db.ref(`user_sessions/${uid}/${sessionId}`).once("value");
+    const val = snap.val();
+    if (!val) { toast("Sesi tidak ditemukan!","err"); return; }
+    
+    const chats = val.chats || {};
+    const title = val.meta?.title || 'Obrolan Tanpa Judul';
+    const chatList = Object.entries(chats)
+      .map(([id, chat]) => ({ id, ...chat, ts: chat.ts || chat.timestamp || Date.now() }))
+      .sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    
+    const userData = G.users[uid] || {};
+    const traffic = G.traffic[uid] || {};
+    const name = getDisplayName(uid, userData, traffic);
+    const role = userData.role || (isGuest(uid) ? "GUEST" : "GUEST");
+    
+    setText("ud-ava", (name[0]||"?").toUpperCase());
+    setText("ud-name", name + " — " + title);
+    setText("ud-email", isGuest(uid) ? "👤 Guest" : (userData.email || traffic.email || "—"));
+    const rb = document.getElementById("ud-role");
+    if (rb) { rb.className = "badge " + role; rb.textContent = role; }
+    setText("ud-uid", uid);
+    setText("ud-ip", traffic.ip_address || "—");
+    
+    let totalChat = 0, totalPhoto = 0;
+    Object.values(chats).forEach(c => {
+      totalChat++;
+      if (c.image || c.img || c.photo) totalPhoto++;
+    });
+    setText("ud-chats", fmtN(totalChat));
+    setText("ud-photos", fmtN(totalPhoto));
+    setText("ud-since", fmtFull(val.meta?.created_at || Date.now()));
+    setText("ud-last", fmtFull(val.meta?.last_active || Date.now()));
+    setText("ud-clim", userData.max_chat_limit || "∞");
+    
+    document.getElementById("sessionListContainer").style.display = "none";
+    document.getElementById("chatDetailContainer").style.display = "block";
+    document.getElementById("chatDetailTitle").textContent = `📁 ${title}`;
+    document.getElementById("chatDetailMeta").textContent = `${chatList.length} pesan · ${fmtFull(val.meta?.created_at || Date.now())}`;
+    
+    const listEl = document.getElementById("chatDetailList");
+    if (chatList.length === 0) {
+      listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Belum ada chat di sesi ini.</div>`;
+    } else {
+      const limit = chatHistoryLimit || 20;
+      const showChats = chatList.slice(-limit);
+      
+      listEl.innerHTML = showChats.map(c => {
+        const isUser = c.role === 'user' || c.role === 'User' || c.role === 'USER';
+        const isBot = c.role === 'bot' || c.role === 'Bot' || c.role === 'BOT' || c.role === 'assistant';
+        const roleDisplay = isUser ? '👤 User' : (isBot ? '🤖 Bot' : `🔹 ${c.role || 'Unknown'}`);
+        const cls = isUser ? 'user' : 'bot';
+        const hasImage = c.image || c.img || c.photo;
+        
+        return `<div class="chat-bubble ${cls}">
+          <div class="chat-role">${roleDisplay}</div>
+          ${hasImage ? `<img src="${c.image || c.img || c.photo}" class="chat-img" onclick="openImgModal(this.src)" style="max-height:150px;cursor:pointer;border-radius:8px">` : ''}
+          <div class="chat-text">${esc(c.text || c.message || c.content || '')}</div>
+          <div class="chat-time">${fmtFull(c.ts)}</div>
+        </div>`;
+      }).join('');
+    }
+    
+    document.getElementById("udModal").classList.add("open");
+    document.body.style.overflow = "hidden";
+    
+  } catch(e) {
+    toast("Gagal buka sesi: " + e.message, "err");
+  }
+}
+
+// ─── HAPUS SESI ───
+async function deleteSession(uid, sessionId, title) {
+  const ok = await confirm2(`Hapus sesi "${esc(title)}"?`, "Chat akan dihapus permanen.","🗑️");
+  if (!ok) return;
+  try {
+    await db.ref(`user_sessions/${uid}/${sessionId}`).remove();
+    toast(`Sesi "${title}" dihapus!`, "ok");
+    renderSessions();
+  } catch(e) { toast("Gagal hapus: " + e.message, "err"); }
+}
+
+// ─── HAPUS SEMUA SESI ───
+async function clearAllSessions() {
+  const ok = await confirm2("Hapus SEMUA sesi obrolan?", "Semua chat dari semua user akan dihapus permanen!","🚨");
+  if (!ok) return;
+  try {
+    await db.ref("user_sessions").remove();
+    toast("Semua sesi obrolan dihapus!", "ok");
+    renderSessions();
+  } catch(e) { toast("Gagal hapus: " + e.message, "err"); }
+}
+
+// ══ 📦 ARSIP CHAT ══
+async function renderArchive() {
+  const tbody = document.getElementById("arcTbl");
+  if (!tbody) return;
+  
+  const search = (document.getElementById("arcSearch")?.value || "").toLowerCase();
+  const month = document.getElementById("arcMonth")?.value || "";
+  
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px"><div class="spinner"></div><br><span style="color:var(--text-muted);font-size:12px">Memuat arsip...</span></td></tr>`;
+  
+  try {
+    const snap = await db.ref("archived_sessions").once("value");
+    const archives = [];
+    const months = new Set();
+    
+    if (snap.exists()) {
+      snap.forEach(monthChild => {
+        const monthKey = monthChild.key; // users atau guests
+        monthChild.forEach(userChild => {
+          const uid = userChild.key;
+          const userData = G.users[uid] || {};
+          const traffic = G.traffic[uid] || {};
+          const name = getDisplayName(uid, userData, traffic);
+          const role = userData.role || (isGuest(uid) ? "GUEST" : "GUEST");
+          
+          userChild.forEach(sessionChild => {
+            const val = sessionChild.val();
+            const sessionId = sessionChild.key;
+            const title = val?.meta?.title || 'Obrolan Tanpa Judul';
+            const chatCount = Object.keys(val?.chats || {}).length;
+            const archivedAt = val?._archived_at || 0;
+            const monthKey2 = val?._original_path?.split('/')?.[2] || 'unknown';
+            
+            months.add(monthKey2);
+            
+            let match = true;
+            if (search) {
+              const searchText = (name + " " + title + " " + uid).toLowerCase();
+              match = searchText.includes(search);
+            }
+            if (month && monthKey2 !== month) match = false;
+            
+            if (match) {
+              archives.push({
+                uid,
+                sessionId,
+                title,
+                chatCount,
+                archivedAt,
+                month: monthKey2,
+                name,
+                role,
+                isGuest: isGuest(uid),
+                path: `archived_sessions/${monthKey}/${uid}/${sessionId}`
+              });
+            }
+          });
+        });
+      });
+    }
+    
+    archives.sort((a,b) => b.archivedAt - a.archivedAt);
+    
+    // Update month filter
+    const monthSelect = document.getElementById("arcMonth");
+    if (monthSelect) {
+      const currentVal = monthSelect.value;
+      monthSelect.innerHTML = `<option value="">Semua Bulan</option>` + 
+        Array.from(months).sort().reverse().map(m => 
+          `<option value="${m}" ${m === currentVal ? 'selected' : ''}>${m}</option>`
+        ).join('');
+    }
+    
+    setText("arc-total", archives.length);
+    setText("arc-users", new Set(archives.map(a => a.uid)).size);
+    setText("arc-months", months.size);
+    setText("arcCount", archives.length + " arsip");
+    
+    if (archives.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="tbl-empty">📦 Belum ada arsip.</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = archives.map(a => `
+      <tr>
+        <td>
+          <div style="font-weight:600;font-size:12.5px">📁 ${esc(a.title)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">🆔 ${a.sessionId.slice(0,12)}…</div>
+        </td>
+        <td>
+          <div style="font-weight:500">${esc(a.name)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${a.isGuest ? '👤 Guest' : ''}</div>
+        </td>
+        <td style="text-align:center;font-size:18px;font-weight:700;color:var(--cyan)">${a.chatCount}</td>
+        <td style="font-size:11px;color:var(--text-sub)">${fmtFull(a.archivedAt)}</td>
+        <td><span class="badge">${a.month}</span></td>
+        <td>
+          <div class="act-grp">
+            <button class="act grn" onclick="restoreSession('${a.uid}','${a.sessionId}')">↩️</button>
+            <button class="act red" onclick="deleteArchive('${a.uid}','${a.sessionId}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+    
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="tbl-empty">❌ Gagal memuat arsip: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+// ─── RESTORE SESI DARI ARSIP ───
+async function restoreSession(uid, sessionId) {
+  const ok = await confirm2("Restore sesi?", "Sesi akan dikembalikan ke aktif.","↩️");
+  if (!ok) return;
+  
+  try {
+    const snap = await db.ref("archived_sessions").once("value");
+    let found = null;
+    let path = null;
+    
+    snap.forEach(monthChild => {
+      monthChild.forEach(userChild => {
+        if (userChild.key === uid) {
+          userChild.forEach(sessionChild => {
+            if (sessionChild.key === sessionId) {
+              found = sessionChild.val();
+              path = `archived_sessions/${monthChild.key}/${uid}/${sessionId}`;
+            }
+          });
+        }
+      });
+    });
+    
+    if (!found) { toast("Sesi tidak ditemukan di arsip!","err"); return; }
+    
+    const updates = {};
+    updates[`user_sessions/${uid}/${sessionId}`] = found;
+    updates[path] = null;
+    
+    await db.ref().update(updates);
+    toast("Sesi di-restore! ✅", "ok");
+    renderArchive();
+    renderSessions();
+  } catch(e) {
+    toast("Gagal restore: " + e.message, "err");
+  }
+}
+
+// ─── DELETE ARCHIVE ───
+async function deleteArchive(uid, sessionId) {
+  const ok = await confirm2("Hapus arsip?", "Data akan dihapus permanen!","🗑️");
+  if (!ok) return;
+  
+  try {
+    const snap = await db.ref("archived_sessions").once("value");
+    snap.forEach(monthChild => {
+      monthChild.forEach(userChild => {
+        if (userChild.key === uid) {
+          userChild.forEach(sessionChild => {
+            if (sessionChild.key === sessionId) {
+              db.ref(`archived_sessions/${monthChild.key}/${uid}/${sessionId}`).remove();
+            }
+          });
+        }
+      });
+    });
+    
+    toast("Arsip dihapus!", "ok");
+    renderArchive();
+  } catch(e) {
+    toast("Gagal hapus: " + e.message, "err");
+  }
+}
+
+// ─── RESTORE ALL ARCHIVE ───
+async function restoreAllArchive() {
+  const ok = await confirm2("Restore SEMUA arsip?", "Semua sesi di arsip akan dikembalikan ke aktif.","↩️");
+  if (!ok) return;
+  
+  try {
+    const snap = await db.ref("archived_sessions").once("value");
+    const updates = {};
+    let count = 0;
+    
+    snap.forEach(monthChild => {
+      monthChild.forEach(userChild => {
+        const uid = userChild.key;
+        userChild.forEach(sessionChild => {
+          const val = sessionChild.val();
+          updates[`user_sessions/${uid}/${sessionChild.key}`] = val;
+          updates[`archived_sessions/${monthChild.key}/${uid}/${sessionChild.key}`] = null;
+          count++;
+        });
+      });
+    });
+    
+    if (count > 0) {
+      await db.ref().update(updates);
+      toast(`${count} arsip di-restore! ✅`, "ok");
+      renderArchive();
+      renderSessions();
+    } else {
+      toast("Tidak ada arsip untuk di-restore.", "inf");
+    }
+  } catch(e) {
+    toast("Gagal restore: " + e.message, "err");
+  }
+}
+
+// ─── DELETE ALL ARCHIVE ───
+async function deleteAllArchive() {
+  const ok = await confirm2("Hapus SEMUA arsip?", "Semua data arsip akan dihapus permanen!","🚨");
+  if (!ok) return;
+  
+  try {
+    await db.ref("archived_sessions").remove();
+    toast("Semua arsip dihapus!", "ok");
+    renderArchive();
+  } catch(e) {
+    toast("Gagal hapus: " + e.message, "err");
+  }
+}
+
+// ─── OPEN IMAGE MODAL ───
+function openImgModal(src) {
+  const modal = document.createElement("div");
+  modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer";
+  modal.onclick = function() { this.remove(); };
+  modal.innerHTML = `<img src="${src}" style="max-width:100%;max-height:88vh;border-radius:10px;object-fit:contain">`;
+  document.body.appendChild(modal);
+}
+
+// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
+// 🔥 PENGATURAN ARSIP & NOTIFIKASI
+// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
+
+function loadArchiveSettings() {
+  const config = G.settings.archive_config || {};
+  document.getElementById('tog-autoarchive').checked = config.auto_archive !== false;
+  document.getElementById('archiveDays').value = config.days_to_archive ?? 7;
+  document.getElementById('maxSessions').value = config.max_sessions_per_user ?? 0;
+  document.getElementById('guestCleanup').value = config.guest_cleanup_days ?? 30;
+  document.getElementById('notifText').value = config.notification_text || '⚠️ Obrolan "{title}" sudah {days} hari tidak aktif. Masih mau disimpan?';
+  archiveConfig = config;
+}
+
+async function saveArchiveSettings() {
+  const config = {
+    auto_archive: document.getElementById('tog-autoarchive').checked,
+    days_to_archive: parseInt(document.getElementById('archiveDays').value) || 0,
+    max_sessions_per_user: parseInt(document.getElementById('maxSessions').value) || 0,
+    guest_cleanup_days: parseInt(document.getElementById('guestCleanup').value) || 0,
+    notification_text: document.getElementById('notifText').value || '⚠️ Obrolan "{title}" sudah {days} hari tidak aktif. Masih mau disimpan?',
+    updated_at: Date.now()
+  };
+  
+  try {
+    await db.ref('system_settings/archive_config').set(config);
+    toast('Pengaturan arsip tersimpan! ✅', 'ok');
+    G.settings.archive_config = config;
+    archiveConfig = config;
+    loadArchiveSettings();
+  } catch(e) {
+    toast('Gagal simpan: ' + e.message, 'err');
+  }
+}
+
+async function manualArchive() {
+  const ok = await confirm2('Arsipkan Sekarang?', 'Semua sesi yang memenuhi aturan akan dipindahkan ke arsip.', '📦');
+  if (!ok) return;
+  
+  const result = await autoArchiveSessions();
+  toast(`✅ ${result} sesi diarsipkan`, 'ok');
+  addNotif('📦 Arsip Manual', `${result} sesi dipindahkan ke arsip`, 'info', 4000);
+  renderSessions();
+  renderArchive();
+}
+
+// ─── AUTO ARCHIVE SESSIONS ───
+async function autoArchiveSessions() {
+  const config = G.settings.archive_config || {};
+  const daysToArchive = config.days_to_archive || 7;
+  const maxSessions = config.max_sessions_per_user || 0;
+  
+  if (daysToArchive === 0 && maxSessions === 0) {
+    return 0;
+  }
+  
+  if (!config.auto_archive) {
+    return 0;
+  }
+  
+  const now = Date.now();
+  const cutOffArchive = daysToArchive > 0 ? daysToArchive * 86400000 : Infinity;
+  let archived = 0;
+  const updates = {};
+  
+  try {
+    const snap = await db.ref('user_sessions').once('value');
+    if (!snap.exists()) return 0;
+    
+    const userSessions = {};
+    snap.forEach(userChild => {
+      const uid = userChild.key;
+      const isGuestUser = isGuest(uid);
+      userSessions[uid] = {
+        sessions: [],
+        isGuest: isGuestUser
+      };
+      
+      userChild.forEach(sessionChild => {
+        const val = sessionChild.val();
+        const lastActive = val?.meta?.last_active || val?.meta?.created_at || 0;
+        const chatCount = Object.keys(val?.chats || {}).length;
+        
+        userSessions[uid].sessions.push({
+          id: sessionChild.key,
+          data: val,
+          lastActive: lastActive,
+          chatCount: chatCount
+        });
+      });
+    });
+    
+    for (const [uid, data] of Object.entries(userSessions)) {
+      const { sessions, isGuest } = data;
+      sessions.sort((a, b) => a.lastActive - b.lastActive);
+      
+      // 1. Limit sesi
+      if (maxSessions > 0 && sessions.length > maxSessions) {
+        const toArchive = sessions.slice(0, sessions.length - maxSessions);
+        for (const ses of toArchive) {
+          const month = new Date(ses.lastActive).toISOString().slice(0, 7);
+          const prefix = isGuest ? 'guests' : 'users';
+          const sessionData = ses.data;
+          sessionData._archived_at = now;
+          sessionData._original_path = `user_sessions/${uid}/${ses.id}`;
+          
+          updates[`archived_sessions/${prefix}/${uid}/${month}/${ses.id}`] = sessionData;
+          updates[`user_sessions/${uid}/${ses.id}`] = null;
+          archived++;
+        }
+        const archivedIds = new Set(toArchive.map(s => s.id));
+        data.sessions = sessions.filter(s => !archivedIds.has(s.id));
+      }
+      
+      // 2. Arsip berdasarkan hari
+      if (daysToArchive > 0) {
+        for (const ses of data.sessions) {
+          const age = now - ses.lastActive;
+          if (age > cutOffArchive) {
+            const month = new Date(ses.lastActive).toISOString().slice(0, 7);
+            const prefix = isGuest ? 'guests' : 'users';
+            const sessionData = ses.data;
+            sessionData._archived_at = now;
+            sessionData._original_path = `user_sessions/${uid}/${ses.id}`;
+            
+            updates[`archived_sessions/${prefix}/${uid}/${month}/${ses.id}`] = sessionData;
+            updates[`user_sessions/${uid}/${ses.id}`] = null;
+            archived++;
+          }
+        }
+      }
+    }
+    
+    if (archived > 0) {
+      await db.ref().update(updates);
+      console.log(`📦 ${archived} sesi diarsipkan`);
+    }
+    
+    return archived;
+  } catch(e) {
+    console.error("Gagal arsip:", e);
+    return 0;
+  }
+}
+
+// ─── CLEAN INACTIVE GUESTS ───
+async function cleanInactiveGuests() {
+  const config = G.settings.archive_config || {};
+  const guestCleanup = config.guest_cleanup_days || 30;
+  
+  if (guestCleanup === 0) return 0;
+  
+  const cutOff = guestCleanup * 86400000;
+  const now = Date.now();
+  let deleted = 0;
+  const updates = {};
+  
+  try {
+    const snap = await db.ref("user_sessions").once("value");
+    if (!snap.exists()) return 0;
+    
+    snap.forEach(child => {
+      const uid = child.key;
+      if (isGuest(uid)) {
+        const traffic = G.traffic[uid] || {};
+        const lastActive = traffic.last_visit || 0;
+        
+        if (now - lastActive > cutOff) {
+          updates[`user_sessions/${uid}`] = null;
+          updates[`archived_sessions/guests/${uid}`] = null;
+          updates[`analytics/guests/${uid}`] = null;
+          deleted++;
+        }
+      }
+    });
+    
+    if (deleted > 0) {
+      await db.ref().update(updates);
+      console.log(`🧹 ${deleted} guest dihapus (tidak aktif >${guestCleanup} hari)`);
+      addNotif('🧹 Guest Cleanup', `${deleted} guest dihapus karena tidak aktif >${guestCleanup} hari`, 'info', 5000);
+    }
+    
+    return deleted;
+  } catch(e) {
+    console.error("Gagal bersihkan guest:", e);
+    return 0;
+  }
+}
+
+// ─── UPDATE USER SELECT ───
+function updateUserSelect() {
+  const select = document.getElementById('notifUserSelect');
+  if (!select) return;
+  
+  const currentVal = select.value;
+  select.innerHTML = `<option value="">Pilih User...</option>`;
+  
+  Object.entries(G.users).forEach(([uid, u]) => {
+    if (!isGuest(uid)) {
+      const name = u.name || u.email || uid.slice(0,12);
+      const opt = document.createElement('option');
+      opt.value = uid;
+      opt.textContent = `${name} (${u.role || 'MEMBER'})`;
+      if (uid === currentVal) opt.selected = true;
+      select.appendChild(opt);
+    }
+  });
+}
+
+// ─── SEND MASS NOTIFICATION ───
+async function sendMassNotification() {
+  const title = document.getElementById('notifTitleAll')?.value?.trim() || '📢 XREZZKY AI';
+  const body = document.getElementById('notifBodyAll')?.value?.trim();
+  
+  if (!body) { toast('Isi pesan notifikasi dulu!', 'err'); return; }
+  
+  const ok = await confirm2(`Kirim notifikasi ke semua user?`, `"${title}" - "${body}"`, '📨');
+  if (!ok) return;
+  
+  let sent = 0;
+  const users = Object.entries(G.users).filter(([uid]) => !isGuest(uid));
+  
+  for (const [uid, u] of users) {
+    // Simpan notifikasi ke database
+    await db.ref(`users_config/${uid}/notifications`).push({
+      title: title,
+      body: body,
+      type: 'admin',
+      read: false,
+      created_at: Date.now()
+    });
+    sent++;
+  }
+  
+  toast(`Notifikasi dikirim ke ${sent} user ✅`, 'ok');
+  addNotif('📨 Notifikasi Massal', `Dikirim ke ${sent} user`, 'success', 4000);
+  document.getElementById('notifTitleAll').value = '';
+  document.getElementById('notifBodyAll').value = '';
+}
+
+// ─── SEND USER NOTIFICATION ───
+async function sendUserNotification() {
+  const uid = document.getElementById('notifUserSelect')?.value;
+  const title = document.getElementById('notifTitleUser')?.value?.trim() || '📢 XREZZKY AI';
+  const body = document.getElementById('notifBodyUser')?.value?.trim();
+  
+  if (!uid) { toast('Pilih user dulu!', 'err'); return; }
+  if (!body) { toast('Isi pesan notifikasi!', 'err'); return; }
+  
+  const ok = await confirm2(`Kirim notifikasi ke user?`, `"${title}" - "${body}"`, '📨');
+  if (!ok) return;
+  
+  await db.ref(`users_config/${uid}/notifications`).push({
+    title: title,
+    body: body,
+    type: 'admin',
+    read: false,
+    created_at: Date.now()
+  });
+  
+  toast('Notifikasi terkirim ✅', 'ok');
+  addNotif('📨 Notifikasi User', `Dikirim ke ${G.users[uid]?.name || uid}`, 'success', 4000);
+  document.getElementById('notifTitleUser').value = '';
+  document.getElementById('notifBodyUser').value = '';
+}
+
 // ══ EVENT DELEGATION ══
 document.addEventListener("click",async e=>{
   const btn=e.target.closest("[data-action]"); if(!btn) return;
@@ -1609,7 +2391,6 @@ async function doResetQuota(uid,name){
   try{ await db.ref(`daily_usage/${uid}`).remove(); toast(`Kuota ${name} direset!`,"ok"); addNotif("🔄 Kuota Direset", `${name} bisa chat lagi`, "success", 4000); }
   catch(e){ toast("Gagal reset: "+e.message,"err"); }
 }
-
 async function doResetToGlobal(uid, name){
   if(!uid||uid==="—") return;
   const ok=await confirm2(`Reset <strong>${esc(name)}</strong> ke limit global?`,"Limit user akan direset mengikuti role_limit di Firebase.","🔄");
@@ -1628,7 +2409,6 @@ async function doResetToGlobal(uid, name){
     renderUsers();
   } catch(e) { toast("Gagal reset: "+e.message, "err"); }
 }
-
 async function doResetAll(){
   const ok=await confirm2("Reset Semua Kuota Harian?","Semua counter chat & foto seluruh user direset. Tidak bisa dibatalkan!","⚠️");
   if(!ok) return;
@@ -1666,6 +2446,7 @@ async function doCreateUser(){
     toast(`${name} berhasil dibuat sebagai ${role}`,"ok");
     addNotif("➕ User Baru", `${name} dibuat sebagai ${role}`, "success", 4000);
     ["cu-name","cu-email","cu-pass"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    updateUserSelect();
   } catch(e){ showCuMsg("❌ Gagal: "+e.message,false); }
 }
 
@@ -1681,12 +2462,13 @@ function applySettingsUI(){
   }
   renderRoleGrid(); renderAppLimitTable();
   loadAppInfo();
+  loadArchiveSettings();
+  updateUserSelect();
 }
 async function saveToggles(){
   try{ await db.ref("system_settings").update({allow_guest_photos:document.getElementById("tog-gphoto")?.checked??false,maintenance_mode:document.getElementById("tog-maint")?.checked??false,login_required:document.getElementById("tog-loginreq")?.checked??false}); toast("Toggle tersimpan!","ok"); }
   catch(e){ toast("Gagal simpan: "+e.message,"err"); }
 }
-
 function loadAppInfo() {
   const info = G.settings.app_info || {};
   document.getElementById("app-version").value = info.version || "";
@@ -1694,7 +2476,6 @@ function loadAppInfo() {
   document.getElementById("app-build").value = info.build || "";
   document.getElementById("app-status").value = info.status || "online";
 }
-
 async function saveAppInfo() {
   const version = document.getElementById("app-version")?.value?.trim() || "";
   const environment = document.getElementById("app-env")?.value || "production";
@@ -1714,10 +2495,8 @@ async function saveAppInfo() {
     G.settings = snap.val() || {};
   } catch(e) { toast("Gagal simpan: " + e.message, "err"); }
 }
-
 const ROLES_DEF=["SELLER","CS","MEMBER","GUEST"];
 const ROLE_ICONS={SELLER:"🏪",CS:"🛡️",MEMBER:"✅",GUEST:"👤"};
-
 function renderRoleGrid(){
   const grid=document.getElementById("roleGrid");
   if(!grid) return;
@@ -1743,7 +2522,6 @@ function renderRoleGrid(){
     </div>`;
   }).join("");
 }
-
 async function saveRoleLimits() {
   const updates = {};
   ROLES_DEF.forEach(role => {
@@ -1765,7 +2543,6 @@ async function saveRoleLimits() {
     renderAppLimitTable();
   } catch (e) { toast("Gagal simpan: " + e.message, "err"); }
 }
-
 function renderAppLimitTable() {
   const tbody = document.getElementById("appLimitTbl");
   if (!tbody) return;
@@ -1784,8 +2561,6 @@ function renderAppLimitTable() {
     </tr>`;
   }).join("");
 }
-
-// ══ USER DETAIL MODAL ══
 async function openUD(uid){
   currentUid = uid;
   const u=G.users[uid]||{}, t=G.traffic[uid]||{};
@@ -1798,35 +2573,28 @@ async function openUD(uid){
   setText("ud-last",fmtD(t.last_visit)); setText("ud-since",fmtD(u.created_at||t.first_visit));
   const isAdmin=["ADMIN","OWNER"].includes(role);
   setText("ud-clim",isAdmin?"∞":(u.max_chat_limit||"—"));
-  
   closeChatDetail();
   document.getElementById("sessionListContainer").style.display = "block";
   document.getElementById("chatDetailContainer").style.display = "none";
-  
   document.getElementById("udModal").classList.add("open"); document.body.style.overflow="hidden";
   await loadUserSessions(uid);
 }
-
 function closeUD(){ 
   document.getElementById("udModal").classList.remove("open"); 
   document.body.style.overflow="";
   currentUid = null;
   currentSessionData = null;
 }
-
 async function loadUserSessions(uid){
   const container = document.getElementById("sessionList");
   if(!container) return;
-  
   container.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">
     <div class="spinner" style="width:20px;height:20px;display:inline-block;margin-bottom:8px"></div><br>
     Memuat sesi...
   </div>`;
-  
   try {
     const snap = await db.ref(`user_sessions/${uid}`).once("value");
     const sessions = [];
-    
     if (snap.exists()) {
       snap.forEach(child => {
         const val = child.val();
@@ -1842,9 +2610,7 @@ async function loadUserSessions(uid){
         });
       });
     }
-    
     sessions.sort((a, b) => b.last - a.last);
-    
     if(sessions.length === 0){
       container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">
         <span style="font-size:28px;display:block;margin-bottom:8px">💬</span>
@@ -1852,7 +2618,6 @@ async function loadUserSessions(uid){
       </div>`;
       return;
     }
-    
     container.innerHTML = sessions.map((s, index) => `
       <div class="session-item" onclick="openSessionChat('${uid}','${s.id}')">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
@@ -1869,64 +2634,52 @@ async function loadUserSessions(uid){
         </div>
       </div>
     `).join('');
-    
   } catch(e) {
     console.warn('Gagal ambil sesi:', e);
     container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--red);font-size:12px">❌ Gagal memuat sesi: ${esc(e.message)}</div>`;
   }
 }
-
 async function openSessionChat(uid, sessionId){
   try {
     const snap = await db.ref(`user_sessions/${uid}/${sessionId}`).once("value");
     const val = snap.val();
     if(!val) { toast("Sesi tidak ditemukan!","err"); return; }
-    
     const chats = val.chats || {};
     const title = val.meta?.title || 'Obrolan Tanpa Judul';
     const chatList = Object.entries(chats)
       .map(([id, chat]) => ({ id, ...chat, ts: chat.ts || chat.timestamp || Date.now() }))
       .sort((a, b) => (a.ts || 0) - (b.ts || 0));
-    
     const limit = chatHistoryLimit || 20;
     const lastChats = chatList.slice(-limit);
-    
     document.getElementById("sessionListContainer").style.display = "none";
     document.getElementById("chatDetailContainer").style.display = "block";
     document.getElementById("chatDetailTitle").textContent = `📁 ${title}`;
     document.getElementById("chatDetailMeta").textContent = `${lastChats.length} dari ${chatList.length} pesan (limit ${limit}) · ${fmtFull(val.meta?.created_at || Date.now())}`;
-    
     const listEl = document.getElementById("chatDetailList");
     if(lastChats.length === 0){
       listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Belum ada chat di sesi ini.</div>`;
       return;
     }
-    
     listEl.innerHTML = lastChats.map(c => {
       const isUser = c.role === 'user' || c.role === 'User' || c.role === 'USER';
       const isBot = c.role === 'bot' || c.role === 'Bot' || c.role === 'BOT' || c.role === 'assistant';
       const roleDisplay = isUser ? '👤 User' : (isBot ? '🤖 Bot' : `🔹 ${c.role || 'Unknown'}`);
       const cls = isUser ? 'user' : 'bot';
-      
+      const hasImage = c.image || c.img || c.photo;
       return `<div class="chat-bubble ${cls}">
         <div class="chat-role">${roleDisplay}</div>
+        ${hasImage ? `<img src="${c.image || c.img || c.photo}" class="chat-img" onclick="openImgModal(this.src)" style="max-height:150px;cursor:pointer;border-radius:8px">` : ''}
         <div class="chat-text">${esc(c.text || c.message || c.content || '')}</div>
         <div class="chat-time">${fmtFull(c.ts)}</div>
       </div>`;
     }).join('');
-    
-  } catch(e) {
-    toast("Gagal buka chat: "+e.message,"err");
-  }
+  } catch(e) { toast("Gagal buka chat: "+e.message,"err"); }
 }
-
 function closeChatDetail(){
   document.getElementById("sessionListContainer").style.display = "block";
   document.getElementById("chatDetailContainer").style.display = "none";
   document.getElementById("chatDetailList").innerHTML = '';
 }
-
-// ══ CLEAR OLD GUESTS ══
 async function clearOldGuests(){
   const ok=await confirm2("Hapus Data Guest Lama?","Semua data pengunjung lebih dari 30 hari akan dihapus.","🗑️");
   if(!ok) return;
@@ -1938,8 +2691,6 @@ async function clearOldGuests(){
     await db.ref().update(upd); toast(`${toDelete.length} data guest lama dihapus.`,"ok");
   } catch(e){ toast("Gagal hapus: "+e.message,"err"); }
 }
-
-// ══ PROVIDER MONITOR ══
 async function testAllProviders(){
   const btn=document.getElementById("btnTestProviders");
   if(btn){ btn.disabled=true; btn.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px"></span> Testing...'; }
@@ -1977,8 +2728,6 @@ async function testAllProviders(){
     if(btn){ btn.disabled=false; btn.innerHTML="🔄 Test Semua"; }
   }
 }
-
-// ══ CHECK ALL API KEYS ══
 async function checkAllApiKeys() {
   const container = document.getElementById('apiKeysContainer');
   const btn = document.getElementById('btnCheckApiKeys');
@@ -2093,8 +2842,6 @@ async function checkAllApiKeys() {
   }
   if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Cek Semua Key'; }
 }
-
-// ══ EXPORT CSV ══
 function exportCSV(type){
   let rows,fname;
   if(type==="users"){
@@ -2109,6 +2856,11 @@ function exportCSV(type){
     rows=[["Guest ID","IP Address","Total Chat","Total Foto","Pertama Visit","Terakhir Aktif"]];
     Object.entries(G.guests).forEach(([id,g])=>{ rows.push([g.guest_id||id,g.ip_address||"—",g.total_chats_sent||0,g.total_photos_sent||0,fmtD(g.first_visit),fmtD(g.last_visit)]); });
     fname=`xrezzky_monitor_guest_${dateStr()}.csv`;
+  } else if(type==="sessions"){
+    rows=[["UID","User","Role","Judul Sesi","Jumlah Chat","Dibuat","Terakhir"]];
+    // fallback: export dari G.sessions
+    fname=`xrezzky_all_sessions_${dateStr()}.csv`;
+    toast("Export sessions: ambil dari data yang tampil","inf");
   } else {
     rows=[["UID","Nama","Email","Total Chat","Total Foto","IP","Terakhir Kunjungan"]];
     Object.entries(G.traffic).forEach(([uid,t])=>{ const u=G.users[uid]||{}; rows.push([uid,getDisplayName(uid,u,t),getEmail(uid,u,t),t.total_chats_sent||0,t.total_photos_sent||0,t.ip_address||"—",fmtD(t.last_visit)]); });
@@ -2121,7 +2873,6 @@ function exportCSV(type){
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   toast(fname+" didownload!","ok");
 }
-
 function uCell(name,email,uid){
   const colors=["#2563eb","#7c3aed","#0891b2","#059669","#d97706"];
   const c=colors[(uid||"").charCodeAt(0)%colors.length]||"#2563eb";
