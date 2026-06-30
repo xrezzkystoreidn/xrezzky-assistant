@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>XREZZKY · Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -26,6 +25,7 @@ input,select{font-family:inherit}
 #loginGate{position:fixed;inset:0;z-index:999;background:var(--navy);display:flex;align-items:center;justify-content:center}
 .login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:44px 40px;width:100%;max-width:380px;text-align:center;box-shadow:0 0 60px rgba(37,99,235,.15)}
 .login-logo{width:60px;height:60px;border-radius:16px;margin:0 auto 20px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;box-shadow:0 0 24px rgba(37,99,235,.4)}
+.login-logo svg{width:28px;height:28px}
 .login-card h2{font-size:20px;font-weight:800;margin-bottom:4px}
 .login-card p{font-size:12px;color:var(--text-sub);margin-bottom:28px}
 #loginErr{margin-top:14px;font-size:12px;color:var(--red);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius-sm);padding:8px 12px;display:none}
@@ -35,6 +35,7 @@ input,select{font-family:inherit}
 .main{flex:1;overflow-x:hidden;min-width:0;display:flex;flex-direction:column}
 .sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
 .sb-logo{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;box-shadow:0 0 14px rgba(37,99,235,.4)}
+.sb-logo svg{width:20px;height:20px}
 .sb-brand h3{font-size:13px;font-weight:800}
 .sb-brand p{font-size:10px;color:var(--text-muted)}
 .sb-admin{margin:12px 10px 0;padding:10px 12px;background:var(--accent-lo);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;gap:9px}
@@ -47,9 +48,11 @@ input,select{font-family:inherit}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:500;color:var(--text-sub);border:1px solid transparent;transition:all .15s;cursor:pointer}
 .nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
 .nav-item.active{background:var(--accent-lo);border-color:var(--border);color:var(--text)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sb-foot{padding:12px 10px;border-top:1px solid var(--border2)}
 .logout-btn{width:100%;padding:9px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);color:var(--red);font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;justify-content:center;transition:all .15s}
 .logout-btn:hover{background:rgba(239,68,68,.15)}
+.logout-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .topbar{height:56px;background:var(--navy2);border-bottom:1px solid var(--border2);padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:10}
 .topbar h2{font-size:15px;font-weight:800}
 .topbar p{font-size:11px;color:var(--text-sub);margin-top:1px}
@@ -64,7 +67,8 @@ input,select{font-family:inherit}
 @keyframes scIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .sc:nth-child(1){animation-delay:.05s}.sc:nth-child(2){animation-delay:.1s}.sc:nth-child(3){animation-delay:.15s}.sc:nth-child(4){animation-delay:.2s}.sc:nth-child(5){animation-delay:.25s}.sc:nth-child(6){animation-delay:.3s}
 .sc-glow{position:absolute;right:-10px;top:-10px;width:80px;height:80px;border-radius:50%;filter:blur(40px);opacity:.07;pointer-events:none}
-.sc-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px}
+.sc-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.sc-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sc-icon.blue{background:rgba(37,99,235,.15);color:var(--accent)}
 .sc-icon.cyan{background:rgba(56,189,248,.12);color:var(--cyan)}
 .sc-icon.green{background:rgba(34,197,94,.12);color:var(--green)}
@@ -76,6 +80,7 @@ input,select{font-family:inherit}
 .panel{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
 .panel-head{padding:13px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .panel-head h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.panel-head h4 svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .panel-body{padding:16px 18px}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;min-width:600px}
@@ -104,6 +109,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .field-inp:focus{border-color:rgba(37,99,235,.5)}
 .field-inp[type=number]{width:140px}
 .act{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.act svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .act.pri{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.4);color:var(--accent)}
 .act.pri:hover{background:rgba(37,99,235,.28)}
 .act.red{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red)}
@@ -118,9 +124,11 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .act.cyn:hover{background:rgba(56,189,248,.18)}
 .save-btn{padding:10px 20px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:opacity .15s;margin-top:14px}
 .save-btn:hover{opacity:.88}
+.save-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .act-grp{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .search-wrap{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;flex:1;min-width:160px}
+.search-wrap svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--text-muted)}
 .search-wrap input{background:none;border:none;outline:none;color:var(--text);font-size:13px;width:100%}
 .search-wrap input::placeholder{color:var(--text-muted)}
 .filter-sel{padding:7px 11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:12px;outline:none;cursor:pointer}
@@ -152,6 +160,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .rlc-inp{width:90px;padding:5px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;text-align:center;outline:none}
 .rlc-note{font-size:10px;color:var(--text-muted);font-style:italic}
 .info-box{padding:13px 16px;border-radius:var(--radius-sm);font-size:12px;line-height:1.65;display:flex;align-items:flex-start;gap:10px}
+.info-box svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .info-box.blue{background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);color:var(--text-sub)}
 .info-box.gold{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);color:var(--text-sub)}
 #toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
@@ -164,6 +173,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 #cfm.open{display:flex}
 .cfm-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:340px;width:100%;text-align:center;box-shadow:var(--shadow)}
 .cfm-card .ci{font-size:38px;margin-bottom:12px}
+.cfm-card .ci svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cfm-card h4{font-size:16px;font-weight:800;margin-bottom:7px}
 .cfm-card p{font-size:12px;color:var(--text-sub);line-height:1.65;margin-bottom:20px}
 .cfm-btns{display:flex;gap:10px;justify-content:center}
@@ -185,8 +195,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .ud-sec{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em}
 .ud-foot{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid var(--border2)}
 .ud-act{flex:1;min-width:110px;padding:10px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;border:1px solid;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.ud-act svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #sideOverlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:29;display:none}
 #mobileMenuBtn{display:none;background:none;border:none;color:var(--text-sub);font-size:18px;cursor:pointer;width:36px;height:36px;border-radius:8px;align-items:center;justify-content:center;flex-shrink:0}
+#mobileMenuBtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .api-key-card{background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:10px;transition:all .2s}
 .api-key-card:hover{background:rgba(255,255,255,.05)}
 .api-key-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -212,6 +224,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .chat-time{font-size:9px;color:var(--text-muted);margin-top:5px;text-align:right}
 .chat-back-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--text-sub);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .chat-back-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.chat-back-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .chat-session-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border2)}
 .chat-session-title{font-size:14px;font-weight:700;color:var(--text)}
 .chat-session-meta{font-size:11px;color:var(--text-muted)}
@@ -269,7 +282,11 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 <!-- LOGIN GATE -->
 <div id="loginGate">
   <div class="login-card">
-    <div class="login-logo">X</div>
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </div>
     <h2>Admin Dashboard</h2>
     <p>Masuk sebagai OWNER / ADMIN untuk melanjutkan</p>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
@@ -288,23 +305,43 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
             onfocus="this.style.borderColor='rgba(37,99,235,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"
             onkeydown="if(event.key==='Enter')doEmailLoginAdmin()">
           <button onclick="const i=document.getElementById('ladmin-pass');i.type=i.type==='password'?'text':'password'"
-            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8fa3c0;cursor:pointer;font-size:14px">👁️</button>
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8fa3c0;cursor:pointer;font-size:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
         </div>
       </div>
       <button onclick="doEmailLoginAdmin()" id="btnAdminLogin"
         style="padding:11px;background:var(--accent);border:none;border-radius:9px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
-        → Masuk
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+        Masuk
       </button>
       <button onclick="doAdminResetPw()"
         style="background:none;border:none;color:rgba(37,99,235,.8);font-size:12px;cursor:pointer;text-decoration:underline;padding:2px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px">
+          <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
         Lupa password? Kirim link reset →
       </button>
     </div>
     <div id="loginErr"></div>
     <div style="margin-top:16px;padding:11px 14px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:10px;font-size:11px;color:#8fa3c0;line-height:1.6;text-align:left">
-      <strong style="color:#f0f4ff">👑 First Time Setup:</strong><br>
+      <strong style="color:#f0f4ff">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        First Time Setup:
+      </strong><br>
       User pertama yang login otomatis jadi <strong style="color:#c4b5fd">OWNER</strong>.<br><br>
-      <strong style="color:#f0f4ff">⚠️ Jika gagal masuk:</strong><br>
+      <strong style="color:#f0f4ff">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        ⚠️ Jika gagal masuk:
+      </strong><br>
       1. Pastikan Firebase Rules mengizinkan read/write<br>
       2. Copy UID kamu dari error, tambahkan ke <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px;font-size:10px">ADMIN_UIDS</code>
     </div>
@@ -314,7 +351,11 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 <!-- CONFIRM MODAL -->
 <div id="cfm">
   <div class="cfm-card">
-    <div class="ci" id="cfmIcon">⚠️</div>
+    <div class="ci" id="cfmIcon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
     <h4 id="cfmTitle">Konfirmasi</h4>
     <p id="cfmMsg">Lanjutkan?</p>
     <div class="cfm-btns">
@@ -336,23 +377,85 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <span style="font-size:11px;color:var(--text-muted)" id="ud-email">—</span>
         </div>
       </div>
-      <button onclick="closeUD()" style="background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-sub);font-size:13px">✕</button>
+      <button onclick="closeUD()" style="background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-sub);font-size:13px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
     <div class="ud-body" id="ud-body">
       <div>
-        <div class="ud-sec" style="margin-bottom:9px">📊 Statistik Ringkasan</div>
+        <div class="ud-sec" style="margin-bottom:9px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px">
+            <path d="M21 12v-2a5 5 0 0 0-5-5H8a5 5 0 0 0-5 5v2"/><circle cx="12" cy="16" r="5"/><line x1="12" y1="11" x2="12" y2="19"/>
+          </svg>
+          Statistik Ringkasan
+        </div>
         <div class="ud-grid">
-          <div class="ud-field" style="border-color:rgba(37,99,235,.3)"><div class="ud-fl">Total Chat</div><div class="ud-fv" id="ud-chats" style="font-size:22px;color:var(--cyan)">—</div></div>
-          <div class="ud-field" style="border-color:rgba(34,197,94,.2)"><div class="ud-fl">Total Foto</div><div class="ud-fv" id="ud-photos" style="font-size:22px;color:var(--green)">—</div></div>
-          <div class="ud-field"><div class="ud-fl">Bergabung</div><div class="ud-fv" id="ud-since" style="font-size:11px">—</div></div>
-          <div class="ud-field"><div class="ud-fl">Terakhir Aktif</div><div class="ud-fv" id="ud-last" style="font-size:11px">—</div></div>
-          <div class="ud-field"><div class="ud-fl">IP Address</div><div class="ud-fv" id="ud-ip" style="font-family:monospace;font-size:11px">—</div></div>
-          <div class="ud-field"><div class="ud-fl">Limit Chat</div><div class="ud-fv" id="ud-clim" style="color:var(--cyan)">—</div></div>
+          <div class="ud-field" style="border-color:rgba(37,99,235,.3)">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Total Chat
+            </div>
+            <div class="ud-fv" id="ud-chats" style="font-size:22px;color:var(--cyan)">—</div>
+          </div>
+          <div class="ud-field" style="border-color:rgba(34,197,94,.2)">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+              Total Foto
+            </div>
+            <div class="ud-fv" id="ud-photos" style="font-size:22px;color:var(--green)">—</div>
+          </div>
+          <div class="ud-field">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Bergabung
+            </div>
+            <div class="ud-fv" id="ud-since" style="font-size:11px">—</div>
+          </div>
+          <div class="ud-field">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Terakhir Aktif
+            </div>
+            <div class="ud-fv" id="ud-last" style="font-size:11px">—</div>
+          </div>
+          <div class="ud-field">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              IP Address
+            </div>
+            <div class="ud-fv" id="ud-ip" style="font-family:monospace;font-size:11px">—</div>
+          </div>
+          <div class="ud-field">
+            <div class="ud-fl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Limit Chat
+            </div>
+            <div class="ud-fv" id="ud-clim" style="color:var(--cyan)">—</div>
+          </div>
         </div>
       </div>
 
       <div id="sessionListContainer">
-        <div class="ud-sec" style="margin-bottom:9px">💬 Sesi Percakapan</div>
+        <div class="ud-sec" style="margin-bottom:9px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Sesi Percakapan
+        </div>
         <div id="sessionList" style="display:flex;flex-direction:column;gap:4px">
           <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">
             <div class="spinner" style="width:20px;height:20px;display:inline-block;margin-bottom:8px"></div><br>
@@ -364,10 +467,20 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
       <div id="chatDetailContainer" style="display:none">
         <div class="chat-session-header">
           <div>
-            <div class="chat-session-title" id="chatDetailTitle">📁 Obrolan</div>
+            <div class="chat-session-title" id="chatDetailTitle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Obrolan
+            </div>
             <div class="chat-session-meta" id="chatDetailMeta">0 pesan</div>
           </div>
-          <button class="chat-back-btn" onclick="closeChatDetail()">← Kembali ke Sesi</button>
+          <button class="chat-back-btn" onclick="closeChatDetail()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Kembali ke Sesi
+          </button>
         </div>
         <div id="chatDetailList" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;padding-right:4px">
           <div style="text-align:center;padding:20px;color:var(--text-muted)">Memuat chat...</div>
@@ -376,10 +489,30 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     </div>
 
     <div class="ud-foot">
-      <button class="ud-act cyn" onclick="doResetQuota(document.getElementById('ud-uid').textContent,document.getElementById('ud-name').textContent)">🔄 Reset Kuota</button>
-      <button class="ud-act" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--red)" onclick="const _u=document.getElementById('ud-uid').textContent,_n=document.getElementById('ud-name').textContent;closeUD();doBan(_u,_n)">🚫 Ban</button>
-      <button class="ud-act" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25);color:var(--gold)" onclick="const _u2=document.getElementById('ud-uid').textContent,_n2=document.getElementById('ud-name').textContent;closeUD();doStop(_u2,_n2)">⏸️ Stop</button>
-      <button class="ud-act" style="background:rgba(255,255,255,.04);border-color:var(--border2);color:var(--text-sub)" onclick="closeUD()">✕ Tutup</button>
+      <button class="ud-act cyn" onclick="doResetQuota(document.getElementById('ud-uid').textContent,document.getElementById('ud-name').textContent)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+        Reset Kuota
+      </button>
+      <button class="ud-act" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--red)" onclick="const _u=document.getElementById('ud-uid').textContent,_n=document.getElementById('ud-name').textContent;closeUD();doBan(_u,_n)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        Ban
+      </button>
+      <button class="ud-act" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25);color:var(--gold)" onclick="const _u2=document.getElementById('ud-uid').textContent,_n2=document.getElementById('ud-name').textContent;closeUD();doStop(_u2,_n2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Stop
+      </button>
+      <button class="ud-act" style="background:rgba(255,255,255,.04);border-color:var(--border2);color:var(--text-sub)" onclick="closeUD()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Tutup
+      </button>
     </div>
   </div>
 </div>
@@ -392,35 +525,80 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 <div id="app">
   <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
-      <div class="sb-logo">X</div>
+      <div class="sb-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
       <div><h3>XREZZKY AI</h3><p>Admin Panel</p></div>
     </div>
     <div class="sb-admin">
       <div class="sb-ava" id="sbAva">A</div>
       <div style="flex:1;overflow:hidden">
         <div class="sb-an" id="sbName">Administrator</div>
-        <div class="sb-ar" id="sbRole">⭐ OWNER</div>
+        <div class="sb-ar" id="sbRole">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+          OWNER
+        </div>
       </div>
     </div>
     <nav class="sb-nav">
       <div class="nav-sec">Overview</div>
-      <div class="nav-item active" data-page="dashboard">📊 Dashboard</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
       <div class="nav-sec">Monitoring</div>
-      <div class="nav-item" data-page="analytics">📈 Trafik & Analitik</div>
-      <div class="nav-item" data-page="users">👥 Manajemen User</div>
-      <div class="nav-item" data-page="sessions">💬 Semua Sesi Obrolan</div>
-      <div class="nav-item" data-page="archive">📦 Arsip Chat</div>
-      <div class="nav-item" data-page="monitor-user">🆔 Monitor User Login</div>
-      <div class="nav-item" data-page="monitor-guest">👁️ Monitor Guest</div>
+      <div class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Trafik & Analitik
+      </div>
+      <div class="nav-item" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Manajemen User
+      </div>
+      <div class="nav-item" data-page="sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Semua Sesi Obrolan
+      </div>
+      <div class="nav-item" data-page="archive">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        Arsip Chat
+      </div>
+      <div class="nav-item" data-page="monitor-user">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Monitor User Login
+      </div>
+      <div class="nav-item" data-page="monitor-guest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Monitor Guest
+      </div>
       <div class="nav-sec">Konfigurasi</div>
-      <div class="nav-item" data-page="settings">⚙️ Pengaturan Sistem</div>
-      <div class="nav-item" data-page="providers">🤖 Monitor Provider</div>
-      <div class="nav-item" data-page="api-keys">🔑 API Keys & Models</div>
+      <div class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Pengaturan Sistem
+      </div>
+      <div class="nav-item" data-page="providers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Monitor Provider
+      </div>
+      <div class="nav-item" data-page="api-keys">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        API Keys & Models
+      </div>
     </nav>
     <div class="sb-foot">
-      <button class="logout-btn" onclick="doLogout()">↩ Logout</button>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
       <a href="/" target="_self" style="display:block;margin-top:6px;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text-sub);font-size:12px;font-weight:600;text-align:center;text-decoration:none;transition:all .15s;font-family:inherit;cursor:pointer">
-        ← Kembali ke XREZZKY AI
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:5px">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Kembali ke XREZZKY AI
       </a>
     </div>
   </aside>
@@ -428,7 +606,9 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
   <div class="main">
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button id="mobileMenuBtn">☰</button>
+        <button id="mobileMenuBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div><h2 id="pgTitle">Dashboard</h2><p id="pgSub">Ringkasan sistem XREZZKY AI</p></div>
       </div>
       <div class="live-badge" id="liveBadge"><div class="live-dot"></div> Realtime</div>
@@ -437,12 +617,56 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="stat-grid">
-        <div class="sc"><div class="sc-glow" style="background:var(--accent)"></div><div class="sc-icon blue">👥</div><div class="sc-val" id="s-users">0</div><div class="sc-label">Total User</div><div class="sc-sub" id="s-users-sub">Memuat...</div></div>
-        <div class="sc"><div class="sc-glow" style="background:var(--cyan)"></div><div class="sc-icon cyan">💬</div><div class="sc-val" id="s-chats">0</div><div class="sc-label">Total Chat</div><div class="sc-sub">Akumulasi semua user</div></div>
-        <div class="sc"><div class="sc-glow" style="background:var(--green)"></div><div class="sc-icon green">🖼️</div><div class="sc-val" id="s-photos">0</div><div class="sc-label">Total Foto</div><div class="sc-sub">Akumulasi semua user</div></div>
-        <div class="sc"><div class="sc-glow" style="background:var(--gold)"></div><div class="sc-icon gold">📷</div><div class="sc-val" id="s-gphoto">⏳</div><div class="sc-label">Foto Guest</div><div class="sc-sub" id="s-gphoto-sub">system_settings</div></div>
-        <div class="sc"><div class="sc-glow" style="background:var(--red)"></div><div class="sc-icon red">🚫</div><div class="sc-val" id="s-banned">0</div><div class="sc-label">User Dibanned</div><div class="sc-sub">role = BANNED/STOPPED</div></div>
-        <div class="sc" style="grid-column:span 2"><div class="sc-glow" style="background:var(--cyan)"></div><div class="sc-icon cyan" style="display:inline-flex">👁️</div>
+        <div class="sc">
+          <div class="sc-glow" style="background:var(--accent)"></div>
+          <div class="sc-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="sc-val" id="s-users">0</div>
+          <div class="sc-label">Total User</div>
+          <div class="sc-sub" id="s-users-sub">Memuat...</div>
+        </div>
+        <div class="sc">
+          <div class="sc-glow" style="background:var(--cyan)"></div>
+          <div class="sc-icon cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="sc-val" id="s-chats">0</div>
+          <div class="sc-label">Total Chat</div>
+          <div class="sc-sub">Akumulasi semua user</div>
+        </div>
+        <div class="sc">
+          <div class="sc-glow" style="background:var(--green)"></div>
+          <div class="sc-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="sc-val" id="s-photos">0</div>
+          <div class="sc-label">Total Foto</div>
+          <div class="sc-sub">Akumulasi semua user</div>
+        </div>
+        <div class="sc">
+          <div class="sc-glow" style="background:var(--gold)"></div>
+          <div class="sc-icon gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="sc-val" id="s-gphoto">⏳</div>
+          <div class="sc-label">Foto Guest</div>
+          <div class="sc-sub" id="s-gphoto-sub">system_settings</div>
+        </div>
+        <div class="sc">
+          <div class="sc-glow" style="background:var(--red)"></div>
+          <div class="sc-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div class="sc-val" id="s-banned">0</div>
+          <div class="sc-label">User Dibanned</div>
+          <div class="sc-sub">role = BANNED/STOPPED</div>
+        </div>
+        <div class="sc" style="grid-column:span 2">
+          <div class="sc-glow" style="background:var(--cyan)"></div>
+          <div class="sc-icon cyan" style="display:inline-flex">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
           <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap">
             <div><div class="sc-val" id="s-guests">0</div><div class="sc-label">Total Pengunjung</div><div class="sc-sub">Guest tanpa akun</div></div>
             <div><div class="sc-val" id="s-today" style="font-size:20px">0</div><div class="sc-label">Aktif 24 Jam</div></div>
@@ -452,42 +676,87 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
       <div class="chart-grid">
         <div class="chart-box">
-          <h5>📈 Aktivitas Chat 7 Hari Terakhir</h5>
+          <h5>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Aktivitas Chat 7 Hari Terakhir
+          </h5>
           <canvas id="chartDaily"></canvas>
         </div>
         <div class="chart-box">
-          <h5>🧑‍💻 Distribusi Role User</h5>
+          <h5>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Distribusi Role User
+          </h5>
           <canvas id="chartRole"></canvas>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h4>🟢 User Aktif (1 Jam Terakhir)</h4><span style="font-size:11px;color:var(--text-muted)">realtime</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            User Aktif (1 Jam Terakhir)
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)">realtime</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Chat / Foto</th><th>Bergabung</th><th></th></tr></thead><tbody id="onlineTbl"><tr><td colspan="6" class="tbl-empty">Memuat...</td></tr></tbody></table></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>📅 Pemakaian Hari Ini</h4><span style="font-size:11px;color:var(--text-muted)" id="dailyCount">0 user aktif</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Pemakaian Hari Ini
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="dailyCount">0 user aktif</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr><th>User / Guest</th><th>Role</th><th>Chat (progress)</th><th>Foto</th><th>Bergabung</th><th>Aksi</th></tr></thead><tbody id="dailyTbl"><tr><td colspan="6" class="tbl-empty">Memuat...</td></tr></tbody></table></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>🏆 Top 5 User Teraktif</h4><span style="font-size:11px;color:var(--text-muted)">total chat terbanyak</span></div>
-        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>User / Guest</th><th>Role</th><th>Total Chat</th><th>Total Foto</th><th>Terakhir Aktif</th><th>Bergabung</th><th></th></tr></thead><tbody id="topTbl"><tr><td colspan="8" class="tbl-empty"><div style="font-size:28px;margin-bottom:8px">📊</div>Menunggu data Firebase...</td></tr></tbody></table></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Top 5 User Teraktif
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)">total chat terbanyak</span>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>User / Guest</th><th>Role</th><th>Total Chat</th><th>Total Foto</th><th>Terakhir Aktif</th><th>Bergabung</th><th></th></tr></thead><tbody id="topTbl"><tr><td colspan="8" class="tbl-empty">
+          <div style="font-size:28px;margin-bottom:8px">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          Menunggu data Firebase...
+        </td></tr></tbody></table></div>
       </div>
     </div>
 
     <!-- ANALYTICS -->
     <div class="page" id="page-analytics">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="anSearch" placeholder="Cari nama / email / IP..." oninput="renderAnalytics()"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="anSearch" placeholder="Cari nama / email / IP..." oninput="renderAnalytics()">
+        </div>
         <select class="filter-sel" id="anSort" onchange="renderAnalytics()">
           <option value="total_chats_sent">Urutkan: Total Chat ↓</option>
           <option value="total_photos_sent">Urutkan: Total Foto ↓</option>
           <option value="last_visit">Urutkan: Terbaru ↓</option>
         </select>
-        <button class="act pri" onclick="exportCSV('traffic')">⬇️ Export CSV</button>
+        <button class="act pri" onclick="exportCSV('traffic')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>📈 Log Trafik & Aktivitas</h4><span style="font-size:11px;color:var(--text-muted)" id="anCount">0 entri</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Log Trafik & Aktivitas
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="anCount">0 entri</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr><th>User / Guest</th><th>Role</th><th>Total Chat</th><th>Total Foto</th><th>IP Address</th><th>Terakhir Kunjungan</th><th>Bergabung</th><th>Aksi</th></tr></thead><tbody id="anTbl"><tr><td colspan="8" class="tbl-empty">Belum ada data trafik.</td></tr></tbody></table></div>
       </div>
     </div>
@@ -495,7 +764,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- USERS -->
     <div class="page" id="page-users">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="usrSearch" placeholder="Cari nama / email / UID..." oninput="renderUsers()"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="usrSearch" placeholder="Cari nama / email / UID..." oninput="renderUsers()">
+        </div>
         <select class="filter-sel" id="usrRole" onchange="renderUsers()">
           <option value="">Semua Role</option>
           <option value="OWNER">OWNER</option><option value="ADMIN">ADMIN</option>
@@ -503,11 +775,26 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <option value="MEMBER">MEMBER</option><option value="GUEST">GUEST</option>
           <option value="BANNED">BANNED</option><option value="STOPPED">STOPPED</option>
         </select>
-        <button class="act pri" onclick="exportCSV('users')">⬇️ Export</button>
-        <button class="act yel" onclick="doResetAll()">🔄 Reset Semua Kuota</button>
+        <button class="act pri" onclick="exportCSV('users')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button class="act yel" onclick="doResetAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset Semua Kuota
+        </button>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>➕ Buat Akun User Baru</h4><button class="act pri" onclick="toggleCreateUser()" id="btnToggleCreate">＋ Tambah User</button></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Buat Akun User Baru
+          </h4>
+          <button class="act pri" onclick="toggleCreateUser()" id="btnToggleCreate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Tambah User
+          </button>
+        </div>
         <div id="createUserForm" style="display:none;padding:16px 18px;border-top:1px solid var(--border2)">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div style="display:flex;flex-direction:column;gap:5px"><label style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em">Nama</label><input type="text" id="cu-name" placeholder="Nama user" class="field-inp" style="width:100%"></div>
@@ -525,13 +812,22 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           </div>
           <div id="cuMsg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px"></div>
           <div style="display:flex;gap:8px;margin-top:12px">
-            <button class="save-btn" style="margin-top:0" onclick="doCreateUser()">➕ Buat Akun</button>
+            <button class="save-btn" style="margin-top:0" onclick="doCreateUser()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Buat Akun
+            </button>
             <button onclick="toggleCreateUser()" style="padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text-sub);font-size:13px;font-weight:600;cursor:pointer">Batal</button>
           </div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>👥 Daftar Pengguna</h4><span style="font-size:11px;color:var(--text-muted)" id="usrCount">0 user</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Daftar Pengguna
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="usrCount">0 user</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Limit Chat</th><th>Limit Foto</th><th>Status</th><th>Bergabung</th><th>Terakhir</th><th>Aksi</th></tr></thead><tbody id="usrTbl"><tr><td colspan="8" class="tbl-empty">Belum ada user terdaftar.</td></tr></tbody></table></div>
       </div>
     </div>
@@ -539,7 +835,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- 💬 SEMUA SESI OBROLAN -->
     <div class="page" id="page-sessions">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="sesSearch" placeholder="Cari judul / isi chat / user..." oninput="renderSessions()"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="sesSearch" placeholder="Cari judul / isi chat / user..." oninput="renderSessions()">
+        </div>
         <input type="date" id="sesDateFrom" class="field-inp" style="width:140px" onchange="renderSessions()">
         <span style="font-size:11px;color:var(--text-muted)">s/d</span>
         <input type="date" id="sesDateTo" class="field-inp" style="width:140px" onchange="renderSessions()">
@@ -547,18 +846,42 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <option value="desc">Terbaru ↓</option>
           <option value="asc">Terlama ↑</option>
         </select>
-        <button class="act pri" onclick="exportCSV('sessions')">⬇️ Export CSV</button>
-        <button class="act red" onclick="clearAllSessions()">🗑️ Hapus Semua</button>
+        <button class="act pri" onclick="exportCSV('sessions')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="act red" onclick="clearAllSessions()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Hapus Semua
+        </button>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>💬 Semua Sesi Obrolan</h4><span style="font-size:11px;color:var(--text-muted)" id="sesCount">0 sesi</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Semua Sesi Obrolan
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="sesCount">0 sesi</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr>
-          <th>📁 Judul Sesi</th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Judul Sesi
+          </th>
           <th>👤 User</th>
           <th>Role</th>
-          <th>💬 Pesan</th>
-          <th>📅 Dibuat</th>
-          <th>🕒 Terakhir</th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Pesan
+          </th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Dibuat
+          </th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Terakhir
+          </th>
           <th>Aksi</th>
         </tr></thead>
         <tbody id="sesTbl"><tr><td colspan="7" class="tbl-empty">Memuat semua sesi...</td></tr></tbody></table></div>
@@ -568,27 +891,75 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- 📦 ARSIP CHAT -->
     <div class="page" id="page-archive">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="arcSearch" placeholder="Cari user / guest / judul..." oninput="renderArchive()"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="arcSearch" placeholder="Cari user / guest / judul..." oninput="renderArchive()">
+        </div>
         <select class="filter-sel" id="arcMonth" onchange="renderArchive()">
           <option value="">Semua Bulan</option>
         </select>
-        <button class="act pri" onclick="renderArchive()">🔄 Refresh</button>
-        <button class="act grn" onclick="restoreAllArchive()">↩️ Restore Semua</button>
-        <button class="act red" onclick="deleteAllArchive()">🗑️ Hapus Semua Arsip</button>
+        <button class="act pri" onclick="renderArchive()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+        <button class="act grn" onclick="restoreAllArchive()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Restore Semua
+        </button>
+        <button class="act red" onclick="deleteAllArchive()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Hapus Semua Arsip
+        </button>
       </div>
       <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">
-        <div class="sc"><div class="sc-icon cyan">📦</div><div class="sc-val" id="arc-total">0</div><div class="sc-label">Total Arsip</div></div>
-        <div class="sc"><div class="sc-icon green">👤</div><div class="sc-val" id="arc-users">0</div><div class="sc-label">User Arsip</div></div>
-        <div class="sc"><div class="sc-icon gold">📁</div><div class="sc-val" id="arc-months">0</div><div class="sc-label">Bulan</div></div>
+        <div class="sc">
+          <div class="sc-icon cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          </div>
+          <div class="sc-val" id="arc-total">0</div>
+          <div class="sc-label">Total Arsip</div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="sc-val" id="arc-users">0</div>
+          <div class="sc-label">User Arsip</div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="sc-val" id="arc-months">0</div>
+          <div class="sc-label">Bulan</div>
+        </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>📦 Arsip Chat</h4><span style="font-size:11px;color:var(--text-muted)" id="arcCount">0 arsip</span></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            Arsip Chat
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="arcCount">0 arsip</span>
+        </div>
         <div class="tbl-wrap"><table><thead><tr>
-          <th>📁 Sesi</th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Sesi
+          </th>
           <th>👤 User</th>
-          <th>💬 Chat</th>
-          <th>📅 Diarsipkan</th>
-          <th>📆 Bulan</th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chat
+          </th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            Diarsipkan
+          </th>
+          <th>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Bulan
+          </th>
           <th>Aksi</th>
         </tr></thead>
         <tbody id="arcTbl"><tr><td colspan="6" class="tbl-empty">Memuat arsip...</td></tr></tbody></table></div>
@@ -598,39 +969,111 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- MONITOR USER LOGIN -->
     <div class="page" id="page-monitor-user">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="muSearch" placeholder="Cari nama / email / UID..." oninput="renderMonitorUser()"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="muSearch" placeholder="Cari nama / email / UID..." oninput="renderMonitorUser()">
+        </div>
         <select class="filter-sel" id="muRole" onchange="renderMonitorUser()">
           <option value="">Semua Role</option>
           <option value="OWNER">OWNER</option><option value="ADMIN">ADMIN</option>
           <option value="SELLER">SELLER</option><option value="CS">CS</option>
           <option value="MEMBER">MEMBER</option>
         </select>
-        <button class="act pri" onclick="exportCSV('monitor-user')">⬇️ Export CSV</button>
+        <button class="act pri" onclick="exportCSV('monitor-user')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>🆔 Monitor User Login</h4><span style="font-size:11px;color:var(--text-muted)" id="muCount">0 user</span></div>
-        <div class="tbl-wrap"><table><thead><tr><th>🆔 User</th><th>UID</th><th>Role</th><th>💬 Chat</th><th>🖼️ Foto</th><th>📅 Bergabung</th><th>🕒 Terakhir</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="muTbl"><tr><td colspan="9" class="tbl-empty">Belum ada user login terdaftar.</td></tr></tbody></table></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Monitor User Login
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="muCount">0 user</span>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          User
+        </th><th>UID</th><th>Role</th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Chat
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Foto
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Bergabung
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Terakhir
+        </th><th>Status</th><th>Aksi</th></tr></thead><tbody id="muTbl"><tr><td colspan="9" class="tbl-empty">Belum ada user login terdaftar.</td></tr></tbody></table></div>
       </div>
     </div>
 
     <!-- MONITOR GUEST -->
     <div class="page" id="page-monitor-guest">
       <div class="filter-bar">
-        <div class="search-wrap">🔍<input type="text" id="mgSearch" placeholder="Cari Guest ID / IP..." oninput="renderMonitorGuest()"></div>
-        <button class="act pri" onclick="exportCSV('monitor-guest')">⬇️ Export CSV</button>
-        <button class="act red" onclick="clearOldGuests()">🗑️ Hapus Data Lama (&gt;30 hari)</button>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="mgSearch" placeholder="Cari Guest ID / IP..." oninput="renderMonitorGuest()">
+        </div>
+        <button class="act pri" onclick="exportCSV('monitor-guest')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="act red" onclick="clearOldGuests()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Hapus Data Lama (>30 hari)
+        </button>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>👁️ Monitor Guest (Pengunjung Tanpa Login)</h4><span style="font-size:11px;color:var(--text-muted)" id="mgCount">0 guest</span></div>
-        <div class="tbl-wrap"><table><thead><tr><th>🆔 Guest ID</th><th>📱 IP Address</th><th>💬 Chat</th><th>🖼️ Foto</th><th>📅 Pertama Visit</th><th>🕒 Terakhir Aktif</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="mgTbl"><tr><td colspan="8" class="tbl-empty">Belum ada data guest.</td></tr></tbody></table></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Monitor Guest (Pengunjung Tanpa Login)
+          </h4>
+          <span style="font-size:11px;color:var(--text-muted)" id="mgCount">0 guest</span>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Guest ID
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+          IP Address
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Chat
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Foto
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Pertama Visit
+        </th><th>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Terakhir Aktif
+        </th><th>Status</th><th>Aksi</th></tr></thead><tbody id="mgTbl"><tr><td colspan="8" class="tbl-empty">Belum ada data guest.</td></tr></tbody></table></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h4>📊 Ringkasan Guest</h4></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Ringkasan Guest
+        </h4></div>
         <div class="panel-body">
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--cyan)" id="mgTotal">0</div><div style="font-size:11px;color:var(--text-sub)">Total Guest</div></div>
-            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--green)" id="mgChat">0</div><div style="font-size:11px;color:var(--text-sub)">Total Chat Guest</div></div>
-            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--gold)" id="mgToday">0</div><div style="font-size:11px;color:var(--text-sub)">Aktif 24 Jam</div></div>
+            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--cyan)" id="mgTotal">0</div>
+              <div style="font-size:11px;color:var(--text-sub)">Total Guest</div>
+            </div>
+            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--green)" id="mgChat">0</div>
+              <div style="font-size:11px;color:var(--text-sub)">Total Chat Guest</div>
+            </div>
+            <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--gold)" id="mgToday">0</div>
+              <div style="font-size:11px;color:var(--text-sub)">Aktif 24 Jam</div>
+            </div>
           </div>
         </div>
       </div>
@@ -638,11 +1081,24 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
-      <div class="info-box blue">🛡️<div><strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br><span style="color:var(--gold)">💡 Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!</span></div></div>
+      <div class="info-box blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        <div>
+          <strong style="color:var(--text)">Semua pengaturan limit di sini</strong><br>
+          Limit diambil dari <strong>role_limit</strong> di Firebase — berlaku GLOBAL untuk semua user.<br>
+          <span style="color:var(--gold)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Admin bisa setting berapa aja: 0, 10, 100, 99999, terserah!
+          </span>
+        </div>
+      </div>
 
       <!-- 🔘 KONTROL GLOBAL -->
       <div class="panel">
-        <div class="panel-head"><h4>🔘 Kontrol Global</h4></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Kontrol Global
+        </h4></div>
         <div class="panel-body">
           <div class="toggle-row">
             <div class="toggle-info">
@@ -658,25 +1114,50 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
               <div class="toggle-track"></div>
             </label>
           </div>
-          <div class="toggle-row"><div class="toggle-info"><strong>Mode Maintenance</strong><span>Nonaktifkan semua interaksi chat sementara</span></div><label class="toggle"><input type="checkbox" id="tog-maint"><div class="toggle-track"></div></label></div>
-          <div class="toggle-row"><div class="toggle-info"><strong>Wajib Login untuk Chat</strong><span>Guest tidak bisa mengirim pesan — harus login dahulu</span></div><label class="toggle"><input type="checkbox" id="tog-loginreq"><div class="toggle-track"></div></label></div>
-          <button class="save-btn" onclick="saveToggles()">💾 Simpan Toggle</button>
+          <div class="toggle-row">
+            <div class="toggle-info"><strong>Mode Maintenance</strong><span>Nonaktifkan semua interaksi chat sementara</span></div>
+            <label class="toggle"><input type="checkbox" id="tog-maint"><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><strong>Wajib Login untuk Chat</strong><span>Guest tidak bisa mengirim pesan — harus login dahulu</span></div>
+            <label class="toggle"><input type="checkbox" id="tog-loginreq"><div class="toggle-track"></div></label>
+          </div>
+          <button class="save-btn" onclick="saveToggles()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Simpan Toggle
+          </button>
         </div>
       </div>
 
       <!-- ⚙️ BATAS DEFAULT PER ROLE -->
       <div class="panel">
-        <div class="panel-head"><h4>⚙️ Batas Default per Role</h4><span style="font-size:11px;color:var(--text-muted)">✨ SATU-SATUNYA TEMPAT SETTING LIMIT — berlaku GLOBAL</span></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Batas Default per Role
+        </h4>
+        <span style="font-size:11px;color:var(--text-muted)">✨ SATU-SATUNYA TEMPAT SETTING LIMIT — berlaku GLOBAL</span>
+        </div>
         <div class="panel-body">
           <div class="role-grid" id="roleGrid"></div>
-          <div class="info-box gold" style="margin-top:12px">👑 <span>ADMIN & OWNER tidak memiliki batasan — semua limit diabaikan di backend.</span></div>
-          <button class="save-btn" onclick="saveRoleLimits()">💾 Simpan Limit Role</button>
+          <div class="info-box gold" style="margin-top:12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>ADMIN & OWNER tidak memiliki batasan — semua limit diabaikan di backend.</span>
+          </div>
+          <button class="save-btn" onclick="saveRoleLimits()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Simpan Limit Role
+          </button>
         </div>
       </div>
 
       <!-- 📊 RINGKASAN LIMIT -->
       <div class="panel">
-        <div class="panel-head"><h4>📊 Ringkasan Limit per Role</h4><span style="font-size:11px;color:var(--text-muted)">Lihat limit yang sedang aktif — READ ONLY</span></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Ringkasan Limit per Role
+        </h4>
+        <span style="font-size:11px;color:var(--text-muted)">Lihat limit yang sedang aktif — READ ONLY</span>
+        </div>
         <div class="panel-body">
           <div style="overflow-x:auto;margin-bottom:14px">
             <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -690,20 +1171,29 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
             </table>
           </div>
           <div style="font-size:11px;color:var(--text-muted);padding:8px 12px;background:rgba(255,255,255,.02);border-radius:var(--radius-sm)">
-            💡 Ubah limit di bagian <strong>⚙️ Batas Default per Role</strong> di atas.
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Ubah limit di bagian <strong>⚙️ Batas Default per Role</strong> di atas.
           </div>
         </div>
       </div>
 
       <!-- 🔒 BATAS LIHAT PESAN -->
       <div class="panel">
-        <div class="panel-head"><h4>🔒 Batas Lihat Pesan (Chat History)</h4><span style="font-size:11px;color:var(--text-muted)">Berapa chat terakhir yang bisa dilihat admin</span></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Batas Lihat Pesan (Chat History)
+        </h4>
+        <span style="font-size:11px;color:var(--text-muted)">Berapa chat terakhir yang bisa dilihat admin</span>
+        </div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <label style="font-size:12px;font-weight:600;color:var(--text-sub)">Jumlah Chat Terakhir:</label>
             <input type="number" id="chatHistoryLimit" class="field-inp" style="width:120px" min="5" max="200" value="20">
             <span style="font-size:11px;color:var(--text-muted)">(5-200 chat)</span>
-            <button class="save-btn" style="margin-top:0" onclick="saveChatHistoryLimit()">💾 Simpan</button>
+            <button class="save-btn" style="margin-top:0" onclick="saveChatHistoryLimit()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan
+            </button>
           </div>
           <div id="chatLimitMsg" style="display:none;margin-top:10px;font-size:12px;padding:8px 12px;border-radius:8px"></div>
         </div>
@@ -711,7 +1201,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
       <!-- ═══ PENGATURAN ARSIP & NOTIFIKASI ═══ -->
       <div class="panel">
-        <div class="panel-head"><h4>📦 Pengaturan Arsip & Notifikasi</h4></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          Pengaturan Arsip & Notifikasi
+        </h4></div>
         <div class="panel-body">
           <div class="toggle-row">
             <div class="toggle-info">
@@ -741,21 +1234,33 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
             <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Gunakan {title} untuk judul sesi, {days} untuk jumlah hari</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-            <button class="save-btn" style="margin-top:0" onclick="saveArchiveSettings()">💾 Simpan Pengaturan</button>
-            <button class="act pri" onclick="manualArchive()" style="margin-top:0">📦 Arsipkan Sekarang</button>
+            <button class="save-btn" style="margin-top:0" onclick="saveArchiveSettings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan Pengaturan
+            </button>
+            <button class="act pri" onclick="manualArchive()" style="margin-top:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+              Arsipkan Sekarang
+            </button>
           </div>
         </div>
       </div>
 
       <!-- ═══ KIRIM NOTIFIKASI ═══ -->
       <div class="panel">
-        <div class="panel-head"><h4>📨 Kirim Notifikasi</h4></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Kirim Notifikasi
+        </h4></div>
         <div class="panel-body">
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <input type="text" id="notifTitleAll" placeholder="Judul Notifikasi" class="field-inp" style="flex:1;min-width:120px">
               <input type="text" id="notifBodyAll" placeholder="Isi Notifikasi" class="field-inp" style="flex:2;min-width:160px">
-              <button class="save-btn" style="margin-top:0" onclick="sendMassNotification()">📨 Kirim ke Semua</button>
+              <button class="save-btn" style="margin-top:0" onclick="sendMassNotification()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Kirim ke Semua
+              </button>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border2);padding-top:8px">
               <select id="notifUserSelect" class="tbl-select" style="flex:1;min-width:140px;padding:9px 11px">
@@ -763,7 +1268,10 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
               </select>
               <input type="text" id="notifTitleUser" placeholder="Judul" class="field-inp" style="flex:1;min-width:100px">
               <input type="text" id="notifBodyUser" placeholder="Isi" class="field-inp" style="flex:2;min-width:140px">
-              <button class="act pri" onclick="sendUserNotification()" style="margin-top:0">📨 Kirim ke User</button>
+              <button class="act pri" onclick="sendUserNotification()" style="margin-top:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Kirim ke User
+              </button>
             </div>
             <div style="font-size:10px;color:var(--text-muted)">Notifikasi akan muncul di web (pop up) dan HP (jika user mengizinkan)</div>
           </div>
@@ -772,13 +1280,21 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
       <!-- 📦 VERSI & INFO -->
       <div class="panel">
-        <div class="panel-head"><h4>📦 Versi & Info Aplikasi</h4><span style="font-size:11px;color:var(--text-muted)">Tampil di sidebar index.html</span></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Versi & Info Aplikasi
+        </h4>
+        <span style="font-size:11px;color:var(--text-muted)">Tampil di sidebar index.html</span>
+        </div>
         <div class="panel-body">
           <div class="settings-grid" style="grid-template-columns:1fr 1fr 1fr">
             <div class="s-item">
               <div class="s-label">Versi</div>
               <input type="text" class="field-inp" id="app-version" value="" style="width:100%" placeholder="contoh: v1.0.0, 0.0.0.1-beta, alpha-1.2">
-              <div class="s-desc">💡 Masukkan <strong>beta</strong> atau <strong>alpha</strong> untuk menampilkan badge BETA di header</div>
+              <div class="s-desc">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Masukkan <strong>beta</strong> atau <strong>alpha</strong> untuk menampilkan badge BETA di header
+              </div>
             </div>
             <div class="s-item">
               <div class="s-label">Environment</div>
@@ -807,16 +1323,25 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
               <div class="s-desc">Status yang tampil di sidebar</div>
             </div>
           </div>
-          <button class="save-btn" onclick="saveAppInfo()" style="margin-top:10px">💾 Simpan Info Aplikasi</button>
+          <button class="save-btn" onclick="saveAppInfo()" style="margin-top:10px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Simpan Info Aplikasi
+          </button>
           <div id="appInfoMsg" style="display:none;margin-top:10px;font-size:12px;padding:8px 12px;border-radius:8px"></div>
         </div>
       </div>
 
       <!-- 🔐 FIREBASE RULES -->
       <div class="panel">
-        <div class="panel-head"><h4>🔐 Firebase Database Rules</h4></div>
+        <div class="panel-head"><h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          Firebase Database Rules
+        </h4></div>
         <div class="panel-body">
-          <div class="info-box blue" style="margin-bottom:12px">🛡️ Paste rules berikut di Firebase Console → Realtime Database → Rules.</div>
+          <div class="info-box blue" style="margin-bottom:12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <span>Paste rules berikut di Firebase Console → Realtime Database → Rules.</span>
+          </div>
           <pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:11px;color:#a5f3fc;overflow-x:auto;line-height:1.6">{
   "rules": {
     "system_settings": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
@@ -836,18 +1361,38 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <!-- PROVIDERS -->
     <div class="page" id="page-providers">
       <div class="panel">
-        <div class="panel-head"><h4>🤖 Status Provider AI</h4><button class="act pri" onclick="testAllProviders()" id="btnTestProviders">🔄 Test Semua</button></div>
+        <div class="panel-head">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Status Provider AI
+          </h4>
+          <button class="act pri" onclick="testAllProviders()" id="btnTestProviders">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Test Semua
+          </button>
+        </div>
         <div class="panel-body">
           <div style="font-size:12px;color:var(--text-sub);margin-bottom:14px">Klik <strong>Test Semua</strong> untuk mengecek provider mana yang aktif.</div>
           <div id="providerCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
-            <div style="text-align:center;padding:30px;color:var(--text-muted);grid-column:1/-1"><span style="font-size:28px;display:block;margin-bottom:10px;opacity:.4">🤖</span>Klik "Test Semua" untuk cek status provider</div>
+            <div style="text-align:center;padding:30px;color:var(--text-muted);grid-column:1/-1">
+              <span style="font-size:28px;display:block;margin-bottom:10px;opacity:.4">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </span>
+              Klik "Test Semua" untuk cek status provider
+            </div>
           </div>
           <div style="margin-top:16px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)">
-            <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📋 Queue Aktif</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Queue Aktif
+            </div>
             <div id="queueList" style="font-size:12px;color:var(--text-muted)">Belum dicek.</div>
           </div>
           <div style="margin-top:12px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)">
-            <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🔑 Status API Keys</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Status API Keys
+            </div>
             <div id="keyStatus" style="font-size:12px;color:var(--text-muted)">Belum dicek.</div>
           </div>
         </div>
@@ -858,8 +1403,14 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
     <div class="page" id="page-api-keys">
       <div class="panel">
         <div class="panel-head">
-          <h4>🔑 API Keys & Models</h4>
-          <button class="act pri" onclick="checkAllApiKeys()" id="btnCheckApiKeys">🔄 Cek Semua Key</button>
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            API Keys & Models
+          </h4>
+          <button class="act pri" onclick="checkAllApiKeys()" id="btnCheckApiKeys">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Cek Semua Key
+          </button>
         </div>
         <div class="panel-body">
           <div style="font-size:12px;color:var(--text-sub);margin-bottom:14px">
@@ -998,7 +1549,7 @@ function confirm2(title,msg,icon="⚠️"){
   return new Promise(res=>{
     document.getElementById("cfmTitle").innerHTML=title;
     document.getElementById("cfmMsg").textContent=msg;
-    document.getElementById("cfmIcon").textContent=icon;
+    document.getElementById("cfmIcon").innerHTML=icon;
     const modal=document.getElementById("cfm"); modal.classList.add("open");
     const ok=document.getElementById("cfmOk"), no=document.getElementById("cfmNo");
     const done=v=>{ modal.classList.remove("open"); ok.onclick=null; no.onclick=null; res(v); };
@@ -1127,7 +1678,7 @@ function initApp(){
   if(roleEl) {
     const emoji = roleEmojis[G.myRole] || "👑";
     const color = roleColors[G.myRole] || "var(--accent)";
-    roleEl.textContent = `${emoji} ${G.myRole || "ADMIN"}`;
+    roleEl.innerHTML = `${emoji} ${G.myRole || "ADMIN"}`;
     roleEl.style.color = color;
   }
 
@@ -1378,7 +1929,9 @@ function renderOnlineUsers(){
       <td>${statusDot(t.last_visit)}</td>
       <td><strong style="color:var(--cyan)">${fmtN(t.total_chats_sent||0)}</strong> / ${fmtN(t.total_photos_sent||0)}</td>
       <td style="font-size:11px;color:var(--text-sub)">${joined ? fmtD(joined) : "—"}</td>
-      <td><button class="act pur" data-action="detail" data-uid="${t.uid}">👁️</button></td>
+      <td><button class="act pur" data-action="detail" data-uid="${t.uid}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
     </tr>`;
   }).join("");
 }
@@ -1436,8 +1989,12 @@ function renderDailyUsage(){
       <td style="font-size:11px;color:var(--text-sub)">${r.joined ? fmtD(r.joined) : "—"}</td>
       <td>
         <div class="act-grp">
-          <button class="act pur" data-action="detail" data-uid="${r.uid}">👁️</button>
-          <button class="act cyn" data-action="reset" data-uid="${r.uid}" data-name="${esc(r.name)}">🔄</button>
+          <button class="act pur" data-action="detail" data-uid="${r.uid}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="act cyn" data-action="reset" data-uid="${r.uid}" data-name="${esc(r.name)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
         </div>
       </td>
     </tr>`;
@@ -1448,7 +2005,9 @@ function renderDailyUsage(){
 function renderTopUsers(){
   const tbody=document.getElementById("topTbl"); if(!tbody) return;
   const rows=Object.entries(G.traffic).map(([uid,t])=>({uid,...t})).sort((a,b)=>(b.total_chats_sent||0)-(a.total_chats_sent||0)).slice(0,5);
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" class="tbl-empty"><div style="font-size:28px;margin-bottom:8px">📊</div>Belum ada aktivitas user.</td></tr>`; return; }
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" class="tbl-empty"><div style="font-size:28px;margin-bottom:8px">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  </div>Belum ada aktivitas user.</td></tr>`; return; }
   tbody.innerHTML=rows.map((t,i)=>{
     const u=G.users[t.uid]||{}, role=u.role||(isGuest(t.uid)?"GUEST":"GUEST"), medal=["🥇","🥈","🥉"][i]||(i+1);
     const name = getDisplayName(t.uid, u, t);
@@ -1462,7 +2021,9 @@ function renderTopUsers(){
       <td>${fmtN(t.total_photos_sent||0)}</td>
       <td style="color:var(--text-sub);font-size:11px">${fmtD(t.last_visit)}</td>
       <td style="color:var(--text-sub);font-size:11px">${joined ? fmtD(joined) : "—"}</td>
-      <td><button class="act pur" data-action="detail" data-uid="${t.uid}">👁️</button></td>
+      <td><button class="act pur" data-action="detail" data-uid="${t.uid}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
     </tr>`;
   }).join("");
 }
@@ -1490,7 +2051,14 @@ function renderAnalytics(){
       <td><code style="font-size:10px;color:var(--text-muted)">${t.ip_address||"—"}</code></td>
       <td style="font-size:11px;color:var(--text-sub)">${fmtD(t.last_visit)}</td>
       <td style="font-size:11px;color:var(--text-sub)">${joined ? fmtD(joined) : "—"}</td>
-      <td><div class="act-grp"><button class="act pur" data-action="detail" data-uid="${t.uid}">👁️</button><button class="act cyn" data-action="reset" data-uid="${t.uid}" data-name="${esc(name)}">🔄</button></div></td>
+      <td><div class="act-grp">
+        <button class="act pur" data-action="detail" data-uid="${t.uid}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="act cyn" data-action="reset" data-uid="${t.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join("");
 }
@@ -1533,12 +2101,28 @@ function renderUsers(){
       <td style="font-size:11px;color:var(--text-sub)">${joined ? fmtD(joined) : "—"}</td>
       <td style="font-size:11px;color:var(--text-sub)">${tr.last_visit ? fmtD(tr.last_visit) : "—"}</td>
       <td><div class="act-grp">
-        <button class="act pri" data-action="save"   data-uid="${u.uid}" data-name="${esc(name)}">✓</button>
-        <button class="act pur" data-action="detail" data-uid="${u.uid}">👁️</button>
-        <button class="act cyn" data-action="reset"  data-uid="${u.uid}" data-name="${esc(name)}">🔄</button>
-        ${!isAdmin && isOverridden ? `<button class="act yel" data-action="resetGlobal" data-uid="${u.uid}" data-name="${esc(name)}" title="Reset ke limit global">↺</button>` : ''}
-        ${isBanned?`<button class="act grn" data-action="unban"  data-uid="${u.uid}" data-name="${esc(name)}">🔓</button>`:`<button class="act red" data-action="ban"   data-uid="${u.uid}" data-name="${esc(name)}">🚫</button>`}
-        ${isStopped?`<button class="act grn" data-action="resume" data-uid="${u.uid}" data-name="${esc(name)}">▶️</button>`:(!isBanned?`<button class="act yel" data-action="stop" data-uid="${u.uid}" data-name="${esc(name)}">⏸️</button>`:"")}
+        <button class="act pri" data-action="save" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </button>
+        <button class="act pur" data-action="detail" data-uid="${u.uid}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="act cyn" data-action="reset" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        ${!isAdmin && isOverridden ? `<button class="act yel" data-action="resetGlobal" data-uid="${u.uid}" data-name="${esc(name)}" title="Reset ke limit global">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>` : ''}
+        ${isBanned?`<button class="act grn" data-action="unban" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>`:`<button class="act red" data-action="ban" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </button>`}
+        ${isStopped?`<button class="act grn" data-action="resume" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>`:(!isBanned?`<button class="act yel" data-action="stop" data-uid="${u.uid}" data-name="${esc(name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </button>`:"")}
       </div></td>
     </tr>`;
   }).join("");
@@ -1577,7 +2161,9 @@ function renderMonitorUser(){
       <td style="font-size:11px;color:var(--text-sub)">${joined ? fmtD(joined) : "—"}</td>
       <td style="font-size:11px;color:var(--text-sub)">${tr.last_visit ? fmtD(tr.last_visit) : "—"}</td>
       <td>${statusDotSimple(tr.last_visit)}</td>
-      <td><button class="act pur" data-action="detail" data-uid="${u.uid}">👁️</button></td>
+      <td><button class="act pur" data-action="detail" data-uid="${u.uid}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
     </tr>`;
   }).join("");
 }
@@ -1610,8 +2196,12 @@ function renderMonitorGuest(){
       <td>${statusDotSimple(g.last_visit)}</td>
       <td>
         <div class="act-grp">
-          <button class="act pur" data-action="detail" data-uid="${uid}" data-name="${esc(guestId)}">👁️</button>
-          <button class="act cyn" data-action="reset" data-uid="${uid}" data-name="${esc(guestId)}">🔄</button>
+          <button class="act pur" data-action="detail" data-uid="${uid}" data-name="${esc(guestId)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="act cyn" data-action="reset" data-uid="${uid}" data-name="${esc(guestId)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
         </div>
       </td>
     </tr>`;
@@ -1718,10 +2308,12 @@ async function renderSessions() {
       return `<tr>
         <td>
           <div style="font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(s.title)}">
-            📁 ${esc(s.title)}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ${esc(s.title)}
           </div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
-            💬 ${s.chatCount} pesan ${s.lastChat ? '· "' + esc(s.lastChat.slice(0,50)) + (s.lastChat.length > 50 ? '…' : '') + '"' : ''}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:2px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ${s.chatCount} pesan ${s.lastChat ? '· "' + esc(s.lastChat.slice(0,50)) + (s.lastChat.length > 50 ? '…' : '') + '"' : ''}
           </div>
         </td>
         <td>
@@ -1737,8 +2329,12 @@ async function renderSessions() {
         </td>
         <td>
           <div class="act-grp">
-            <button class="act pur" onclick="openSessionDetail('${s.uid}','${s.sessionId}')">👁️</button>
-            <button class="act red" onclick="deleteSession('${s.uid}','${s.sessionId}','${esc(s.title)}')">🗑️</button>
+            <button class="act pur" onclick="openSessionDetail('${s.uid}','${s.sessionId}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="act red" onclick="deleteSession('${s.uid}','${s.sessionId}','${esc(s.title)}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
           </div>
         </td>
       </tr>`;
@@ -1931,7 +2527,10 @@ async function renderArchive() {
     tbody.innerHTML = archives.map(a => `
       <tr>
         <td>
-          <div style="font-weight:600;font-size:12.5px">📁 ${esc(a.title)}</div>
+          <div style="font-weight:600;font-size:12.5px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ${esc(a.title)}
+          </div>
           <div style="font-size:10px;color:var(--text-muted)">🆔 ${a.sessionId.slice(0,12)}…</div>
         </td>
         <td>
@@ -1943,8 +2542,12 @@ async function renderArchive() {
         <td><span class="badge">${a.month}</span></td>
         <td>
           <div class="act-grp">
-            <button class="act grn" onclick="restoreSession('${a.uid}','${a.sessionId}')">↩️</button>
-            <button class="act red" onclick="deleteArchive('${a.uid}','${a.sessionId}')">🗑️</button>
+            <button class="act grn" onclick="restoreSession('${a.uid}','${a.sessionId}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            </button>
+            <button class="act red" onclick="deleteArchive('${a.uid}','${a.sessionId}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
           </div>
         </td>
       </tr>
@@ -2421,7 +3024,9 @@ function toggleCreateUser(){
   const form=document.getElementById("createUserForm"), btn=document.getElementById("btnToggleCreate");
   const isOpen=form.style.display!=="none";
   form.style.display=isOpen?"none":"block";
-  if(btn) btn.innerHTML=isOpen?"＋ Tambah User":"✕ Tutup";
+  if(btn) btn.innerHTML=isOpen?
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Tambah User` :
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tutup`;
   if(!isOpen){ ["cu-name","cu-email","cu-pass"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";}); const m=document.getElementById("cuMsg"); if(m) m.style.display="none"; }
 }
 async function doCreateUser(){
@@ -2613,7 +3218,9 @@ async function loadUserSessions(uid){
     sessions.sort((a, b) => b.last - a.last);
     if(sessions.length === 0){
       container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">
-        <span style="font-size:28px;display:block;margin-bottom:8px">💬</span>
+        <span style="font-size:28px;display:block;margin-bottom:8px">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
         Belum ada sesi percakapan.
       </div>`;
       return;
@@ -2623,14 +3230,17 @@ async function loadUserSessions(uid){
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <div style="flex:1;min-width:0">
             <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-              📁 ${esc(s.title)}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              ${esc(s.title)}
             </div>
             <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
               ${s.count} pesan · ${fmtFull(s.last)}
               ${s.count > 0 ? ` · 🔥 ${s.count > 10 ? 'Aktif' : 'Baru'}` : ''}
             </div>
           </div>
-          <span style="color:var(--text-muted);font-size:12px;flex-shrink:0;margin-left:10px">→</span>
+          <span style="color:var(--text-muted);font-size:12px;flex-shrink:0;margin-left:10px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
         </div>
       </div>
     `).join('');
@@ -2725,7 +3335,8 @@ async function testAllProviders(){
     document.getElementById("queueList").innerHTML="Gagal dicek.";
     document.getElementById("keyStatus").innerHTML="Gagal dicek.";
   } finally {
-    if(btn){ btn.disabled=false; btn.innerHTML="🔄 Test Semua"; }
+    if(btn){ btn.disabled=false; btn.innerHTML=
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Test Semua`; }
   }
 }
 async function checkAllApiKeys() {
@@ -2775,14 +3386,20 @@ async function checkAllApiKeys() {
     ];
     if (orKeysAvailable.length > 0) {
       hasAnyKey = true;
-      html += `<div style="margin-bottom:16px"><strong style="color:var(--cyan);font-size:14px">🔗 OpenRouter API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${orKeysAvailable.length} key aktif</span></div>`;
+      html += `<div style="margin-bottom:16px"><strong style="color:var(--cyan);font-size:14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        OpenRouter API Keys
+      </strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${orKeysAvailable.length} key aktif</span></div>`;
       orKeysAvailable.forEach((k) => {
         const isWorking = providerTest[`OR/${Object.keys(providerTest).find(p => p.startsWith('OR/') && !p.includes('DISABLED'))}`]?.includes('✓') || false;
         const firstWorking = Object.keys(providerTest).find(p => p.startsWith('OR/') && providerTest[p]?.includes('✓'));
         const region = regionMap[firstWorking] || '🌐 Global';
         html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
           <div class="header">
-            <span class="provider">🔑 OPENROUTER_API_KEY_${k.index}</span>
+            <span class="provider">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              OPENROUTER_API_KEY_${k.index}
+            </span>
             <span class="key-status ${isWorking ? 'ok' : 'warn'}">${isWorking ? '✅ AKTIF' : '⚠️ CHECK LIMIT'}</span>
           </div>
           <div class="region">🌍 Region: ${region}</div>
@@ -2797,12 +3414,18 @@ async function checkAllApiKeys() {
     }
     if (grKeysAvailable.length > 0) {
       hasAnyKey = true;
-      html += `<div style="margin-bottom:16px;margin-top:16px"><strong style="color:var(--green);font-size:14px">⚡ Groq API Keys</strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${grKeysAvailable.length} key aktif</span></div>`;
+      html += `<div style="margin-bottom:16px;margin-top:16px"><strong style="color:var(--green);font-size:14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Groq API Keys
+      </strong><span style="font-size:11px;color:var(--text-muted);margin-left:10px">${grKeysAvailable.length} key aktif</span></div>`;
       grKeysAvailable.forEach((k) => {
         const isWorking = providerTest[`Groq/${Object.keys(providerTest).find(p => p.startsWith('Groq/'))}`]?.includes('✓') || false;
         html += `<div class="api-key-card" style="border-left:3px solid ${isWorking ? 'var(--green)' : 'var(--gold)'}">
           <div class="header">
-            <span class="provider">🔑 GROQ_API_KEY_${k.index}</span>
+            <span class="provider">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              GROQ_API_KEY_${k.index}
+            </span>
             <span class="key-status ${isWorking ? 'ok' : 'warn'}">${isWorking ? '✅ AKTIF' : '⚠️ CHECK LIMIT'}</span>
           </div>
           <div class="region">🌍 Region: 🇺🇸 USA (Groq Cloud)</div>
@@ -2821,15 +3444,23 @@ async function checkAllApiKeys() {
       <div style="margin-top:16px;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--radius-sm)">
         <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
           <div>🔑 Total Key Aktif: <strong style="color:var(--green)">${totalKeys}</strong></div>
-          <div>🔗 OpenRouter: <strong style="color:var(--cyan)">${orKeysAvailable.length}</strong></div>
-          <div>⚡ Groq: <strong style="color:var(--green)">${grKeysAvailable.length}</strong></div>
+          <div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            OpenRouter: <strong style="color:var(--cyan)">${orKeysAvailable.length}</strong>
+          </div>
+          <div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            Groq: <strong style="color:var(--green)">${grKeysAvailable.length}</strong>
+          </div>
           <div>🤖 Model Tersedia: <strong style="color:var(--text)">${modelCount || '—'}</strong></div>
         </div>
       </div>
     `;
     if (!hasAnyKey) {
       html = `<div style="text-align:center;padding:30px;color:var(--text-muted);border:1px solid var(--border2);border-radius:var(--radius-sm)">
-        <span style="font-size:40px;display:block;margin-bottom:12px">🔑</span>
+        <span style="font-size:40px;display:block;margin-bottom:12px">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </span>
         <strong style="color:var(--text)">Tidak ada API Key yang terdaftar</strong><br>
         <span style="font-size:12px">Tambahkan <code style="background:rgba(255,255,255,.05);padding:2px 8px;border-radius:4px">OPENROUTER_API_KEY_1</code> atau <code style="background:rgba(255,255,255,.05);padding:2px 8px;border-radius:4px">GROQ_API_KEY_1</code> di environment variables.</span>
       </div>`;
@@ -2840,7 +3471,8 @@ async function checkAllApiKeys() {
       ❌ Gagal load API Keys: ${esc(e.message)}
     </div>`;
   }
-  if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Cek Semua Key'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = 
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Cek Semua Key`; }
 }
 function exportCSV(type){
   let rows,fname;
@@ -2858,7 +3490,6 @@ function exportCSV(type){
     fname=`xrezzky_monitor_guest_${dateStr()}.csv`;
   } else if(type==="sessions"){
     rows=[["UID","User","Role","Judul Sesi","Jumlah Chat","Dibuat","Terakhir"]];
-    // fallback: export dari G.sessions
     fname=`xrezzky_all_sessions_${dateStr()}.csv`;
     toast("Export sessions: ambil dari data yang tampil","inf");
   } else {
@@ -2880,4 +3511,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-        </html>
+            </html>
