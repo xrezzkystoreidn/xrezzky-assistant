@@ -242,39 +242,103 @@ body{display:flex}
   letter-spacing:.05em;
 }
 .header-beta.show { display:inline-block; }
+
+/* ─── SVG ICON STYLES ─── */
+.icon-svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-svg-sm {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-svg-xs {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 </style>
 </head>
 <body>
 
 <div class="sidebar" id="sidebar">
   <div class="sb-head">
-    <div class="sb-logo-wrap"><div class="sb-logo">X</div><span class="sb-title">XREZZKY AI</span></div>
-    <button class="icon-btn" id="closeSideBtn">✕</button>
+    <div class="sb-logo-wrap">
+      <div class="sb-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <span class="sb-title">XREZZKY AI</span>
+    </div>
+    <button class="icon-btn" id="closeSideBtn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <div class="user-panel" id="userPanel">
     <div class="u-ava" id="uAva">G</div>
     <div class="u-info"><div class="u-name" id="uName">Guest</div><div class="u-role" id="uRole">👤 GUEST</div></div>
-    <button class="icon-btn" id="authBtn" title="Login">👤</button>
+    <button class="icon-btn" id="authBtn" title="Login">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
   </div>
   <div class="quota-wrap">
-    <div class="q-row"><span>💬 Chat</span><span id="qChat">0/0</span></div>
+    <div class="q-row">
+      <span>
+        <svg class="icon-svg-xs" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </span>
+      <span id="qChat">0/0</span>
+    </div>
     <div class="q-bar"><div class="q-fill" id="qChatFill" style="width:0%"></div></div>
-    <div class="q-row"><span>🖼️ Foto</span><span id="qPhoto">0/0</span></div>
+    <div class="q-row">
+      <span>
+        <svg class="icon-svg-xs" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Foto
+      </span>
+      <span id="qPhoto">0/0</span>
+    </div>
     <div class="q-bar"><div class="q-fill" id="qPhotoFill" style="width:0%"></div></div>
   </div>
   
-  <!-- 🔥 ADMIN BUTTON — LABEL SESUAI ROLE -->
+  <!-- ADMIN BUTTON — LABEL SESUAI ROLE -->
   <a class="admin-btn" id="adminBtn" href="admin.html" target="_blank">
     <div class="ab-dot"></div>
     <div class="admin-label">
-      <div class="admin-title" id="adminBtnTitle">👑 Admin Dashboard</div>
+      <div class="admin-title" id="adminBtnTitle">
+        <svg class="icon-svg-xs" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Admin Dashboard
+      </div>
       <div class="admin-sub" id="adminBtnSub">Panel kontrol sistem</div>
     </div>
     <span style="font-size:11px;opacity:.5">↗</span>
   </a>
   
-  <button class="new-btn" id="newChatBtn">＋ Percakapan Baru</button>
-  <div class="hist-label">Riwayat</div>
+  <button class="new-btn" id="newChatBtn">
+    <svg class="icon-svg-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Percakapan Baru
+  </button>
+  <div class="hist-label">
+    <svg class="icon-svg-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Riwayat
+  </div>
   <div class="hist-list" id="histList"></div>
   
   <!-- ─── SIDEBAR VERSI ─── -->
@@ -293,25 +357,44 @@ body{display:flex}
 
 <div class="main">
   <div class="header">
-    <button class="icon-btn" id="menuBtn">☰</button>
+    <button class="icon-btn" id="menuBtn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="brand">
-      <div class="brand-mark">X</div>
+      <div class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
       <h1>XREZZKY AI</h1>
       <span class="header-beta" id="headerBeta">BETA</span>
       <div class="brand-dot"></div>
     </div>
     <div class="hdr-center">
-      <div class="widget">📅 <span id="wDate">–</span></div>
-      <div class="widget"><span id="wIcon">🌤️</span> <span id="wLoc">Indonesia</span></div>
+      <div class="widget">
+        <svg class="icon-svg-xs" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="wDate">–</span>
+      </div>
+      <div class="widget">
+        <span id="wIcon">
+          <svg class="icon-svg-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </span>
+        <span id="wLoc">Indonesia</span>
+      </div>
     </div>
     <div class="hdr-right">
-      <button class="icon-btn" id="openHistBtn" title="Riwayat">🕐</button>
-      <button class="icon-btn" id="clearBtn" title="Hapus">🗑️</button>
+      <button class="icon-btn" id="openHistBtn" title="Riwayat">
+        <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </button>
+      <button class="icon-btn" id="clearBtn" title="Hapus">
+        <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
     </div>
   </div>
 
   <div class="login-banner" id="loginBanner">
-    🔒 <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span>
+    <svg class="icon-svg-sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span>
     <button class="lb-btn" id="loginBannerBtn">Masuk</button>
   </div>
 
@@ -319,24 +402,35 @@ body{display:flex}
     <div class="feed" id="feed"></div>
   </div>
 
-  <div class="warn-bar" id="warnBar">⚠️ <span id="warnMsg"></span></div>
+  <div class="warn-bar" id="warnBar">
+    <svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span id="warnMsg"></span>
+  </div>
 
   <div class="prev-bar" id="prevBar">
     <div style="display:flex;align-items:center;gap:8px">
       <img class="prev-thumb" id="prevThumb" src="" alt="">
       <span style="font-size:12px;color:var(--sub)">Gambar siap dikirim</span>
     </div>
-    <button class="icon-btn" id="cancelImgBtn">✕</button>
+    <button class="icon-btn" id="cancelImgBtn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
 
   <div class="input-area">
     <div class="input-inner">
       <input type="file" id="fileInput" accept="image/*" style="display:none">
       <div class="input-box">
-        <button class="ibtn" id="uploadBtn">🖼️</button>
-        <button class="ibtn" id="micBtn">🎙️</button>
+        <button class="ibtn" id="uploadBtn">
+          <svg class="icon-svg-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <button class="ibtn" id="micBtn">
+          <svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
         <textarea id="msgInput" placeholder="Tanya apa saja…" rows="1" autocomplete="off"></textarea>
-        <button class="ibtn send" id="sendBtn">↑</button>
+        <button class="ibtn send" id="sendBtn">
+          <svg class="icon-svg-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </div>
       <div class="input-hint">Enter kirim · Shift+Enter baris baru</div>
     </div>
@@ -344,15 +438,23 @@ body{display:flex}
 </div>
 
 <div class="img-modal" id="imgModal">
-  <button class="img-modal-x" id="imgModalX">✕</button>
+  <button class="img-modal-x" id="imgModalX">
+    <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
   <img id="imgModalSrc" src="" alt="">
 </div>
 
 <div id="authModal">
   <div class="auth-card">
-    <button class="auth-x" id="authModalX">✕</button>
+    <button class="auth-x" id="authModalX">
+      <svg class="icon-svg-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="auth-head">
-      <div class="auth-logo">X</div>
+      <div class="auth-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
       <h2>XREZZKY AI</h2>
       <p>Login untuk limit lebih banyak & riwayat tersimpan</p>
     </div>
@@ -378,7 +480,10 @@ body{display:flex}
     <div class="auth-body" id="form-reset" style="display:none">
       <p style="font-size:12px;color:var(--sub);text-align:center;line-height:1.6">Masukkan email — kami kirim link reset password.</p>
       <div class="auth-field"><label>Email</label><input type="email" class="auth-inp" id="rs-email" placeholder="nama@email.com" autocomplete="email"></div>
-      <button class="auth-submit" id="btn-reset" onclick="doReset()">📧 Kirim Link Reset</button>
+      <button class="auth-submit" id="btn-reset" onclick="doReset()">
+        <svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Kirim Link Reset
+      </button>
     </div>
     <div class="auth-skip">Lanjut tanpa login? <button onclick="closeAuth()">Lewati →</button></div>
   </div>
@@ -463,7 +568,7 @@ function updateRoleBadge(){
   const el=document.getElementById("uRole");
   if(el) el.textContent=(em[role]||"👤")+" "+role;
   
-  // 🔥 UPDATE ADMIN BUTTON LABEL SESUAI ROLE
+  // UPDATE ADMIN BUTTON LABEL SESUAI ROLE
   const adminBtn = document.getElementById("adminBtn");
   if(adminBtn){
     const isAdmin = ["OWNER","ADMIN"].includes(role);
@@ -477,13 +582,17 @@ function updateRoleBadge(){
       adminBtn.style.borderColor = "rgba(245,158,11,.4)";
       adminBtn.style.color = "#fcd34d";
       if(dotEl) dotEl.style.background = "var(--gold)";
-      if(titleEl) titleEl.textContent = "⭐ Owner Dashboard";
+      if(titleEl) {
+        titleEl.innerHTML = `<svg class="icon-svg-xs" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Owner Dashboard`;
+      }
       if(subEl) subEl.textContent = "Kontrol penuh sistem";
     } else if(role === "ADMIN"){
       adminBtn.style.borderColor = "rgba(167,139,250,.3)";
       adminBtn.style.color = "#c4b5fd";
       if(dotEl) dotEl.style.background = "#a78bfa";
-      if(titleEl) titleEl.textContent = "👑 Admin Dashboard";
+      if(titleEl) {
+        titleEl.innerHTML = `<svg class="icon-svg-xs" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Admin Dashboard`;
+      }
       if(subEl) subEl.textContent = "Panel kontrol sistem";
     }
   }
@@ -502,7 +611,7 @@ function updateQuotaUI() {
   if (bP) { bP.style.width = pp + "%"; bP.className = "q-fill" + (pp >= 100 ? " over" : pp >= 80 ? " warn" : ""); }
 }
 
-// ─── 🔥 FETCH LIMIT DARI BACKEND ───
+// ─── FETCH LIMIT DARI BACKEND ───
 async function fetchLimitFromBackend() {
   try {
     if (fbUser) {
@@ -563,17 +672,17 @@ async function loadSys() {
         fetchLimitFromBackend();
       }
       updateLoginBanner();
-      loadAppInfo(); // 🔥 LOAD VERSI
+      loadAppInfo(); // LOAD VERSI
     });
   }
   if (!fbUser) {
     setTimeout(fetchLimitFromBackend, 500);
   }
   updateLoginBanner();
-  loadAppInfo(); // 🔥 LOAD VERSI
+  loadAppInfo(); // LOAD VERSI
 }
 
-// ─── 🔥 LOAD APP INFO (SIDEBAR + HEADER) ───
+// ─── LOAD APP INFO (SIDEBAR + HEADER) ───
 async function loadAppInfo() {
   try {
     const snap = await FBD.ref("system_settings/app_info").once("value");
@@ -631,9 +740,9 @@ function updateLoginBanner() {
     return;
   }
   if (sys.login_required) {
-    banner.innerHTML = `🔒 <span><strong style="color:var(--text)">Login wajib</strong> — kamu harus login untuk menggunakan XREZZKY AI</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
+    banner.innerHTML = `<svg class="icon-svg-sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> <span><strong style="color:var(--text)">Login wajib</strong> — kamu harus login untuk menggunakan XREZZKY AI</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
   } else {
-    banner.innerHTML = `🔒 <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
+    banner.innerHTML = `<svg class="icon-svg-sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> <span><strong style="color:var(--text)">Login</strong> untuk limit lebih banyak & riwayat tersimpan</span> <button class="lb-btn" id="loginBannerBtn">Masuk</button>`;
   }
   const btn = document.getElementById("loginBannerBtn");
   if (btn) {
@@ -681,7 +790,7 @@ FBA.onAuthStateChanged(async user=>{
     document.getElementById("uAva").textContent=n[0].toUpperCase();
     document.getElementById("uName").textContent=n;
     document.getElementById("loginBanner").style.display="none";
-    document.getElementById("authBtn").innerHTML="↩";
+    document.getElementById("authBtn").innerHTML=`<svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
     document.getElementById("authBtn").title="Logout";
     closeAuth();
     FBD.ref(`users_config/${user.uid}`).once("value").then(async snap=>{
@@ -711,7 +820,7 @@ FBA.onAuthStateChanged(async user=>{
     document.getElementById("uName").textContent="Guest";
     document.getElementById("uRole").textContent="👤 GUEST";
     document.getElementById("loginBanner").style.display="flex";
-    document.getElementById("authBtn").innerHTML="👤";
+    document.getElementById("authBtn").innerHTML=`<svg class="icon-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     document.getElementById("authBtn").title="Login";
     applyGuestLimits();
   }
@@ -803,7 +912,7 @@ function renderHist(){
     const s=d[k];
     const el=document.createElement("div");
     el.className="hi"+(k===sesId?" active":"");
-    el.innerHTML=`<div class="hi-body"><div class="hi-title">${esc(s.title||"Percakapan")}</div><div class="hi-time">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus">✕</button>`;
+    el.innerHTML=`<div class="hi-body"><div class="hi-title">${esc(s.title||"Percakapan")}</div><div class="hi-time">${new Date(s.ts).toLocaleDateString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div><button class="hi-del" title="Hapus"><svg class="icon-svg-xs" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>`;
     el.addEventListener("click",()=>{sesId=k;localStorage.setItem(LS_CUR,k);feed.innerHTML="";lastDate=null;lsLoad();renderHist();closeSB();});
     el.querySelector(".hi-del").addEventListener("click",e=>{
       e.stopPropagation();lsDelSes(k);
@@ -827,7 +936,7 @@ function showWelcome(){
   const h=new Date().getHours();
   const gr=h<5||h>=19?"Malam":h<12?"Pagi":h<15?"Siang":"Sore";
   const ic=h<5||h>=19?"🌙":h<12?"☀️":h<15?"🌤️":"🌅";
-  feed.innerHTML=`<div class="welcome"><div class="w-logo">X</div><div class="w-title">Selamat ${gr} ${ic}<br><span>XREZZKY AI</span></div><div class="w-sub">Silakan ketik pertanyaan Anda.</div></div>`;
+  feed.innerHTML=`<div class="welcome"><div class="w-logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="w-title">Selamat ${gr} ${ic}<br><span>XREZZKY AI</span></div><div class="w-sub">Silakan ketik pertanyaan Anda.</div></div>`;
 }
 
 // ─── Markdown ───
@@ -957,9 +1066,9 @@ const micBtn=document.getElementById("micBtn");
 if(SR){
   try{
     recog=new SR();recog.lang="id-ID";recog.interimResults=false;recog.maxAlternatives=1;
-    recog.onstart=()=>{isRec=true;micBtn.classList.add("rec");micBtn.textContent="🔴";document.getElementById("msgInput").placeholder="Mendengarkan…";};
-    recog.onend=()=>{isRec=false;micBtn.classList.remove("rec");micBtn.textContent="🎙️";document.getElementById("msgInput").placeholder="Tanya apa saja…";};
-    recog.onerror=e=>{isRec=false;micBtn.classList.remove("rec");micBtn.textContent="🎙️";if(e.error==="not-allowed")warn("Izin mikrofon ditolak.");};
+    recog.onstart=()=>{isRec=true;micBtn.classList.add("rec");micBtn.innerHTML=`<svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;document.getElementById("msgInput").placeholder="Mendengarkan…";};
+    recog.onend=()=>{isRec=false;micBtn.classList.remove("rec");micBtn.innerHTML=`<svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;document.getElementById("msgInput").placeholder="Tanya apa saja…";};
+    recog.onerror=e=>{isRec=false;micBtn.classList.remove("rec");micBtn.innerHTML=`<svg class="icon-svg-sm" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;if(e.error==="not-allowed")warn("Izin mikrofon ditolak.");};
     recog.onresult=e=>{const t=e.results[0][0].transcript;if(t.trim()){const inp=document.getElementById("msgInput");inp.value=t;inp.style.height="auto";inp.style.height=Math.min(inp.scrollHeight,140)+"px";setTimeout(()=>sendMsg(),400);}};
   }catch{recog=null;}
 }
@@ -973,7 +1082,7 @@ micBtn.addEventListener("click",e=>{
 // ─── Textarea ───
 msgInput.addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,140)+"px";});
 
-// 🔥 ENTER FIX UNTUK HP
+// ENTER FIX UNTUK HP
 msgInput.addEventListener("keydown", function(e) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -1077,7 +1186,12 @@ async function doSend(text, img) {
     const row = document.createElement("div"); row.className = "msg-row bot msg-in";
     const wrap = document.createElement("div"); wrap.className = "bwrap";
     const bub = document.createElement("div"); bub.className = "bubble";
-    if (data.searched) { const sb = document.createElement("div"); sb.className = "search-badge"; sb.textContent = "🔍 Mencari di web…"; bub.appendChild(sb); }
+    if (data.searched) { 
+      const sb = document.createElement("div"); 
+      sb.className = "search-badge"; 
+      sb.innerHTML = `<svg class="icon-svg-xs" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Mencari di web…`;
+      bub.appendChild(sb); 
+    }
     wrap.appendChild(bub);
     const foot = document.createElement("div"); foot.className = "bfoot";
     const tm = document.createElement("span"); tm.className = "msg-time"; tm.textContent = bt; foot.appendChild(tm);
@@ -1164,6 +1278,11 @@ async function sendMsg() {
 function scrollBot(){ requestAnimationFrame(()=>{ feedWrap.scrollTop = feedWrap.scrollHeight; }); }
 function nowTime(){ return new Date().toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" }).replace(":","·"); }
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function warn(msg, duration=5000){
+  const bar=document.getElementById("warnBar"), msgEl=document.getElementById("warnMsg");
+  if(!bar)return; msgEl.textContent=msg; bar.style.display="flex";
+  clearTimeout(bar._t); bar._t=setTimeout(()=>{ bar.style.display="none"; }, duration);
+}
 
 // ─── Init ───
 window.addEventListener("load", ()=>{
