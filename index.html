@@ -139,6 +139,15 @@ body{display:flex}
 .hi-del svg{width:12px;height:12px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(3px);z-index:25;display:none}
 
+/* BOOKMARK SETTING (OWNER ONLY) */
+#bmSetting{display:none;padding:4px 12px 8px;border-bottom:1px solid var(--border2);align-items:center;gap:6px;flex-wrap:wrap}
+#bmSetting .bm-label{font-size:9px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+#bmSetting .bm-input{width:60px;padding:3px 6px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;outline:none}
+#bmSetting .bm-input:focus{border-color:rgba(37,99,235,.5)}
+#bmSetting .bm-btn{padding:2px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:600;cursor:pointer;transition:opacity .15s}
+#bmSetting .bm-btn:hover{opacity:.85}
+#bmSetting .bm-hint{font-size:8px;color:var(--muted)}
+
 .header{height:56px;background:var(--card);border-bottom:1px solid var(--border2);padding:0 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:20;transition:background var(--transition), border-color var(--transition)}
 #menuBtn{display:none}
 .brand{display:flex;align-items:center;gap:9px}
@@ -190,6 +199,27 @@ body{display:flex}
 .msg-row.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
 .msg-row.bot .bubble{background:var(--card2);color:var(--text);border:1px solid var(--border2);border-bottom-left-radius:4px}
 
+/* MARKDOWN STYLES */
+.md{line-height:1.75}
+.md strong{font-weight:700;color:var(--text)}
+.md em{font-style:italic;opacity:.9}
+.md code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;font-family:'Fira Mono','Courier New',monospace;font-size:12px;color:var(--cyan)}
+.md pre{background:rgba(0,0,0,.35);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;margin:7px 0;overflow-x:auto}
+.md pre code{background:none;padding:0;color:#a5f3fc;font-size:12px}
+.md ul,.md ol{padding-left:22px;margin:5px 0}
+.md li{margin:3px 0;line-height:1.6}
+.md h1{font-size:18px;font-weight:700;margin:10px 0 4px;color:var(--text)}
+.md h2{font-size:16px;font-weight:700;margin:8px 0 4px;color:var(--text)}
+.md h3{font-size:14px;font-weight:600;margin:6px 0 3px;color:var(--text)}
+.md a{color:var(--cyan);text-decoration:underline}
+.md hr{border:none;border-top:1px solid var(--border2);margin:10px 0}
+.md blockquote{border-left:3px solid var(--accent);padding-left:12px;margin:5px 0;color:var(--sub);font-style:italic}
+.md table{border-collapse:collapse;width:100%;margin:7px 0;font-size:13px;border-radius:8px;overflow:hidden}
+.md th{background:rgba(37,99,235,.12);padding:7px 11px;border:1px solid var(--border2);font-weight:600;text-align:left;color:var(--text)}
+.md td{padding:6px 11px;border:1px solid var(--border2);color:var(--sub)}
+.md table tr:nth-child(even){background:rgba(255,255,255,.02)}
+.md table tr:hover{background:rgba(37,99,235,.05)}
+
 .pin-btn{background:none;border:none;color:var(--muted);padding:2px 4px;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;opacity:0}
 .msg-row:hover .pin-btn{opacity:1}
 .pin-btn:hover{color:var(--gold)}
@@ -238,22 +268,6 @@ body{display:flex}
 .scroll-btn.visible{display:flex}
 .scroll-btn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.5;fill:none}
 
-.md strong{font-weight:600}
-.md em{font-style:italic;opacity:.85}
-.md code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;font-family:'Fira Mono','Courier New',monospace;font-size:12px;color:var(--cyan)}
-.md pre{background:rgba(0,0,0,.35);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;margin:7px 0;overflow-x:auto}
-.md pre code{background:none;padding:0;color:#a5f3fc}
-.md ul,.md ol{padding-left:20px;margin:5px 0}
-.md li{margin:2px 0}
-.md h1{font-size:17px;font-weight:700;margin:9px 0 3px}
-.md h2{font-size:15px;font-weight:700;margin:7px 0 3px}
-.md h3{font-size:14px;font-weight:600;margin:5px 0 2px}
-.md a{color:var(--cyan);text-decoration:underline}
-.md hr{border:none;border-top:1px solid var(--border2);margin:9px 0}
-.md blockquote{border-left:3px solid var(--accent);padding-left:11px;margin:5px 0;color:var(--sub);font-style:italic}
-.md table{border-collapse:collapse;width:100%;margin:7px 0;font-size:13px}
-.md th{background:rgba(255,255,255,.05);padding:6px 10px;border:1px solid var(--border2);font-weight:600;text-align:left}
-.md td{padding:5px 10px;border:1px solid var(--border2)}
 .cursor{display:inline-block;width:2px;height:14px;background:var(--cyan);margin-left:1px;vertical-align:middle;animation:curblink .65s step-end infinite}
 @keyframes curblink{0%,100%{opacity:1}50%{opacity:0}}
 .search-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:20px;font-size:10.5px;color:var(--cyan);margin-bottom:7px}
@@ -373,6 +387,8 @@ body{display:flex}
 .msg-in{animation:fadeUp .2s ease}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+.input-hint{font-size:9px;color:var(--muted);text-align:center;margin-top:4px;opacity:.5}
+
 @media(max-width:1024px){
   .sidebar{position:fixed;left:0;top:0;height:100%;transform:translateX(-100%);box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar.open{transform:translateX(0)}
@@ -459,6 +475,14 @@ body{display:flex}
   </div>
 
   <div class="bookmark-list" id="bookmarkList"></div>
+
+  <!-- BOOKMARK SETTING (OWNER ONLY) -->
+  <div id="bmSetting" style="display:none;padding:4px 12px 8px;border-bottom:1px solid var(--border2);align-items:center;gap:6px;flex-wrap:wrap">
+    <span class="bm-label">⭐ Preview:</span>
+    <input type="number" class="bm-input" id="bmPreviewInput" value="80" min="10" max="500">
+    <button class="bm-btn" onclick="setBookmarkPreviewLength(parseInt(document.getElementById('bmPreviewInput').value))">Set</button>
+    <span class="bm-hint">chars (OWNER only)</span>
+  </div>
 
   <div class="hist-label">Riwayat</div>
   <div class="hist-list" id="histList"></div>
@@ -709,10 +733,9 @@ let messageCount = 0;
 let rated = false;
 let selectedRating = 0;
 let isVoiceChat = false;
-
-// ─── BOOKMARK PREVIEW LENGTH (Firebase, ONLY OWNER) ───
 let bookmarkPreviewLength = 80;
 
+// ─── BOOKMARK PREVIEW LENGTH (Firebase, ONLY OWNER) ───
 async function loadBookmarkSettings() {
   try {
     const snap = await FBD.ref('system_settings/bookmark_preview_length').once('value');
@@ -751,28 +774,14 @@ function updateBookmarkSettingUI() {
 }
 
 function showBookmarkSettingUI() {
-  // Hanya OWNER yang bisa lihat
-  if(role !== 'OWNER') return;
-  
-  // Cari atau buat container
-  let container = document.getElementById('bmSetting');
-  if(!container) {
-    const histLabel = document.querySelector('.hist-label');
-    if(!histLabel) return;
-    container = document.createElement('div');
-    container.id = 'bmSetting';
-    container.style.cssText = 'padding:4px 12px 8px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:6px;flex-wrap:wrap';
-    histLabel.parentNode.insertBefore(container, histLabel);
+  const container = document.getElementById('bmSetting');
+  if(!container) return;
+  if(role === 'OWNER') {
+    container.style.display = 'flex';
+    updateBookmarkSettingUI();
+  } else {
+    container.style.display = 'none';
   }
-  
-  container.innerHTML = `
-    <span style="font-size:9px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.06em">⭐ Preview:</span>
-    <input type="number" id="bmPreviewInput" value="${bookmarkPreviewLength}" min="10" max="500" 
-      style="width:60px;padding:3px 6px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;outline:none">
-    <button onclick="const v=parseInt(document.getElementById('bmPreviewInput').value);if(v)setBookmarkPreviewLength(v)" 
-      style="padding:2px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:600;cursor:pointer">Set</button>
-    <span style="font-size:8px;color:var(--muted)">chars (OWNER only)</span>
-  `;
 }
 
 // ─── LS HELPERS ───
@@ -1011,11 +1020,7 @@ function updateRoleBadge(){
       if(subEl) subEl.textContent = "Panel kontrol sistem";
     }
   }
-  // Show bookmark setting UI for OWNER only
-  if(role === 'OWNER') {
-    showBookmarkSettingUI();
-    updateBookmarkSettingUI();
-  }
+  showBookmarkSettingUI();
 }
 
 function updateQuotaUI() {
@@ -1075,7 +1080,7 @@ async function loadSys() {
       if (!fbUser) fetchLimitFromBackend();
       updateLoginBanner();
       loadAppInfo();
-      loadBookmarkSettings(); // Load bookmark settings dari Firebase
+      loadBookmarkSettings();
     });
   }
   if (!fbUser) setTimeout(fetchLimitFromBackend, 500);
@@ -1409,7 +1414,9 @@ function showWelcome(){
 
 // ─── MARKDOWN ───
 function parseMD(t){
-  return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  if(!t) return '';
+  return t
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
     .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${c.trim()}</code></pre>`)
     .replace(/`([^`\n]+)`/g,"<code>$1</code>")
     .replace(/\*\*\*(.+?)\*\*\*/g,"<strong><em>$1</em></strong>")
@@ -1450,7 +1457,6 @@ function renderMsg(text,imgSrc,r,time,extra,msgId){
     bub.appendChild(td);
   }
   
-  // PIN BUTTON - for BOTH user and bot messages
   const pinBtn = document.createElement("button");
   pinBtn.className = "pin-btn" + (isBookmarked(sesId, msgId) ? " pinned" : "");
   pinBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 15 9 20 20 9 15 4 4 15"/><line x1="9" y1="20" x2="4" y2="15"/></svg>`;
@@ -1464,7 +1470,6 @@ function renderMsg(text,imgSrc,r,time,extra,msgId){
   };
   bub.appendChild(pinBtn);
   
-  // Reaction picker for bot messages only
   if(r==="bot" && text) {
     const picker = document.createElement("div");
     picker.className = "reaction-picker";
@@ -1938,4 +1943,4 @@ window.addEventListener("load", ()=>{
 });
 </script>
 </body>
-</html> 
+                                                    </html>
