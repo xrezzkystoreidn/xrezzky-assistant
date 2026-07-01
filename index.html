@@ -51,8 +51,23 @@
 [data-theme="light"] .auth-inp { background:rgba(0,0,0,.04); }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
 [data-theme="light"] .bookmark-list .bm-item:hover { background:rgba(0,0,0,.04); }
-[data-theme="light"] .msg-time { color:#475569 !important; }
-[data-theme="light"] .msg-row.user .msg-time { color:rgba(255,255,255,.6) !important; }
+
+/* 🔥 FIX: JAM PESAN DI LIGHT MODE - KELIATAN */
+[data-theme="light"] .msg-time { 
+  color: #475569 !important; 
+}
+[data-theme="light"] .msg-row.user .msg-time { 
+  color: rgba(0,0,0,0.45) !important; 
+}
+[data-theme="light"] .msg-row.bot .msg-time {
+  color: #475569 !important;
+}
+[data-theme="light"] .msg-row.user .bubble { 
+  color: #fff !important; 
+}
+[data-theme="light"] .msg-row.bot .bubble {
+  color: var(--text) !important;
+}
 
 .icon-svg { width:18px; height:18px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .icon-svg-sm { width:16px; height:16px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -414,6 +429,7 @@ body{display:flex}
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sb-head">
     <div class="sb-logo-wrap">
@@ -985,7 +1001,6 @@ async function submitRating() {
     msg.className = 'rating-msg ok';
     document.getElementById('ratingSubmit').disabled = true;
 
-    // ✅ KIRIM NOTIF KE ADMIN (REALTIME)
     toast('⭐ Rating ' + selectedRating + '⭐ tersimpan!');
 
     setTimeout(() => {
@@ -1330,7 +1345,7 @@ feedWrap.addEventListener('scroll', function() {
   else if(!autoScroll && !atBottom) { btn.style.display = 'flex'; }
 });
 
-// ─── SEARCH (REALTIME - LANGSUNG MUNCUL) ───
+// ─── SEARCH ───
 function searchChat() {
   const input = document.getElementById('searchInput');
   const results = document.getElementById('searchResults');
