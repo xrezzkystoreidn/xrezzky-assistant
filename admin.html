@@ -251,7 +251,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .chart-box h5{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
 .chart-box canvas{width:100%!important;height:auto!important;max-height:200px}
 
-/* ===== RATING STYLES ===== */
 .rating-stars{display:inline-flex;gap:2px;align-items:center}
 .rating-stars .star{font-size:14px;color:#4a5568}
 .rating-stars .star.filled{color:#f59e0b}
@@ -311,7 +310,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 </style>
 </head>
 <body>
-
 <!-- LOGIN GATE -->
 <div id="loginGate">
   <div class="login-card">
@@ -409,6 +407,7 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <span class="badge MEMBER" id="ud-role">—</span>
           <span style="font-size:11px;color:var(--text-muted)" id="ud-email">—</span>
         </div>
+        <span id="ud-uid" style="display:none"></span>
       </div>
       <button onclick="closeUD()" style="background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-sub);font-size:13px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -585,7 +584,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 <div id="toasts"></div>
 <div id="notifContainer"></div>
 <div id="sideOverlay"></div>
-
 <!-- APP -->
 <div id="app">
   <aside class="sidebar" id="sidebar">
@@ -744,7 +742,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- Rating Stats Cards -->
       <div class="stat-grid" style="margin-top:12px">
         <div class="sc">
           <div class="sc-glow" style="background:var(--gold)"></div>
@@ -921,7 +918,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         <tbody id="ratingTbl"><tr><td colspan="7" class="tbl-empty">Belum ada rating.</td></tr></tbody></table></div>
       </div>
     </div>
-
     <!-- ANALYTICS -->
     <div class="page" id="page-analytics">
       <div class="filter-bar">
@@ -1167,7 +1163,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         <tbody id="arcTbl"><tr><td colspan="6" class="tbl-empty">Memuat arsip...</td></tr></tbody></table></div>
       </div>
     </div>
-
     <!-- MONITOR USER LOGIN -->
     <div class="page" id="page-monitor-user">
       <div class="filter-bar">
@@ -1280,7 +1275,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
         </div>
       </div>
     </div>
-
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="info-box blue">
@@ -1577,7 +1571,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
           <pre style="background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:11px;color:#a5f3fc;overflow-x:auto;line-height:1.6">{
   "rules": {
     "system_settings": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
-    "role_limits": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
     "role_limit": {".read": true,".write": "auth != null && root.child('users_config').child(auth.uid).child('role').val() === 'OWNER'"},
     "user_ratings": {".read": true, ".write": true},
     "users_config": {"$uid": {".read": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')",".write": "auth != null && (auth.uid === $uid || root.child('users_config').child(auth.uid).child('role').val() === 'OWNER' || root.child('users_config').child(auth.uid).child('role').val() === 'ADMIN')"}},
@@ -1662,7 +1655,6 @@ tbody td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 
   </div><!-- /main -->
 </div><!-- /app -->
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -1683,7 +1675,6 @@ const auth = firebase.auth();
 const db   = firebase.database();
 
 let G = { users:{}, traffic:{}, guests:{}, settings:{}, dailyUsage:{}, me:null, myRole:null };
-let currentSessionData = null;
 let currentUid = null;
 let chatHistoryLimit = 20;
 let chartDaily = null;
@@ -1922,10 +1913,10 @@ function initApp(){
   if(G.me.photoURL) ava.innerHTML=`<img src="${G.me.photoURL}">`;
   else ava.textContent=(G.me.displayName?.[0]||"A").toUpperCase();
   setText("sbName",G.me.displayName||G.me.email?.split("@")[0]||"Admin");
-  
+
   const roleEmojis = { OWNER: "⭐", ADMIN: "👑", SELLER: "🏪", CS: "🛡️", MEMBER: "✅", GUEST: "👤", BANNED: "🚫", STOPPED: "⏸️" };
   const roleColors = { OWNER: "var(--gold)", ADMIN: "var(--accent)", SELLER: "var(--cyan)", CS: "#06b6d4", MEMBER: "var(--green)", GUEST: "var(--text-muted)", BANNED: "var(--red)", STOPPED: "var(--gold)" };
-  
+
   const roleEl = document.getElementById("sbRole");
   if(roleEl) {
     const emoji = roleEmojis[G.myRole] || "👑";
@@ -1948,7 +1939,6 @@ function initApp(){
   document.getElementById("mobileMenuBtn")?.addEventListener("click",openMobileSidebar);
   document.getElementById("sideOverlay")?.addEventListener("click",closeMobileSidebar);
 
-  // Rating star filter
   document.querySelectorAll("#ratingStarFilter button").forEach(btn => {
     btn.addEventListener("click", function(){
       document.querySelectorAll("#ratingStarFilter button").forEach(b => b.classList.remove("active"));
@@ -1957,14 +1947,12 @@ function initApp(){
     });
   });
 
-  // Load settings
   loadArchiveSettings();
   if(G.settings.chat_history_limit) {
     chatHistoryLimit = G.settings.chat_history_limit;
     document.getElementById("chatHistoryLimit").value = chatHistoryLimit;
   }
-  
-  // Load rating settings
+
   if(G.settings.rating) {
     setChk("tog-guest-rating", G.settings.rating.allow_guest_rating ?? true);
     document.getElementById("ratingTrigger").value = G.settings.rating.trigger_chat_count ?? 3;
@@ -1977,7 +1965,6 @@ function initApp(){
   checkAllApiKeys();
   renderCharts();
 
-  // Load rating data
   loadRatingData().then(() => {
     refreshRatingStats();
   });
@@ -1990,18 +1977,15 @@ function initApp(){
   db.ref("user_sessions").on("value",snap=>{ renderSessions(); });
   db.ref("archived_sessions").on("value",snap=>{ renderArchive(); });
   db.ref("user_ratings").on("value",snap=>{ ratingData=snap.val()||{}; refreshRatingStats(); });
-  
-  // 🔥 Auto archive setiap 6 jam
+
   setInterval(autoArchiveSessions, 6 * 3600000);
   setTimeout(autoArchiveSessions, 120000);
-  
-  // 🔥 Clean guest setiap hari
+
   setInterval(cleanInactiveGuests, 86400000);
   setTimeout(cleanInactiveGuests, 180000);
-  
-  // Update user select for notification
+
   updateUserSelect();
-  
+
   setTimeout(() => {
     const total = Object.keys(G.users).length;
     const guests = Object.keys(G.guests).length;
@@ -2043,27 +2027,26 @@ function renderDailyChart(){
   const canvas = document.getElementById("chartDaily");
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
-  
+
   const days = [];
   const chatData = [];
-  const now = new Date();
-  now.setHours(0,0,0,0);
-  
+
+  // FIX: pakai offset WIB (+7 jam) yang SAMA dengan key yang dipakai renderDailyUsage(),
+  // supaya chart ini tidak salah cocok tanggal saat admin buka dari timezone lain.
   for(let i = 6; i >= 0; i--){
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
+    const d = new Date(Date.now() - i*86400000 + 7*3600000);
     const key = d.toISOString().slice(0,10);
-    days.push(d.toLocaleDateString("id-ID", {weekday:"short", day:"numeric"}));
-    
+    days.push(d.toLocaleDateString("id-ID", {weekday:"short", day:"numeric", timeZone:"UTC"}));
+
     let total = 0;
     Object.values(G.dailyUsage).forEach(u => {
       if(u[key]) total += (u[key].chats || 0);
     });
     chatData.push(total);
   }
-  
+
   if(chartDaily) { chartDaily.destroy(); chartDaily = null; }
-  
+
   chartDaily = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -2093,14 +2076,14 @@ function renderRoleChart(){
   const canvas = document.getElementById("chartRole");
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
-  
+
   const roles = { OWNER:0, ADMIN:0, SELLER:0, CS:0, MEMBER:0, GUEST:0, BANNED:0, STOPPED:0 };
   Object.values(G.users).forEach(u => {
     const r = u.role || "GUEST";
     if(roles[r] !== undefined) roles[r]++;
     else roles["GUEST"]++;
   });
-  
+
   const labels = Object.keys(roles).filter(r => roles[r] > 0);
   const data = labels.map(r => roles[r]);
   const colors = {
@@ -2123,14 +2106,14 @@ function renderRoleChart(){
     BANNED: 'rgba(239,68,68,1)',
     STOPPED: 'rgba(245,158,11,0.8)'
   };
-  
+
   if(chartRole) { chartRole.destroy(); chartRole = null; }
-  
+
   if(data.length === 0){
     canvas.parentElement.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada data user</div>`;
     return;
   }
-  
+
   chartRole = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -2155,11 +2138,8 @@ function renderRoleChart(){
   });
 }
 
-// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
-// 🔥 FUNGSI RATING AI
-// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
+// ══ ═══ FUNGSI RATING AI ═══ ══
 
-// ─── LOAD RATING DATA ───
 async function loadRatingData() {
   try {
     const snap = await db.ref('user_ratings').once('value');
@@ -2171,7 +2151,6 @@ async function loadRatingData() {
   }
 }
 
-// ─── RENDER RATING STATS ───
 function refreshRatingStats() {
   const ratings = [];
   let totalUsers = 0;
@@ -2179,7 +2158,7 @@ function refreshRatingStats() {
   const dist = {1:0,2:0,3:0,4:0,5:0};
   let totalRating = 0;
   let sumRating = 0;
-  
+
   Object.entries(ratingData).forEach(([uid, userRatings]) => {
     if (Array.isArray(userRatings) && userRatings.length > 0) {
       userSet.add(uid);
@@ -2195,56 +2174,39 @@ function refreshRatingStats() {
       });
     }
   });
-  
+
   const avg = totalRating > 0 ? (sumRating / totalRating) : 0;
   const satisfaction = totalRating > 0 ? Math.round((dist[4] + dist[5]) / totalRating * 100) : 0;
-  
-  // Update dashboard stats
+
   document.getElementById('s-total-rating').textContent = totalRating;
   document.getElementById('s-avg-rating').textContent = avg.toFixed(1);
   document.getElementById('s-satisfaction').textContent = satisfaction + '%';
   document.getElementById('s-rated-users').textContent = userSet.size;
-  
-  // Update rating page stats
+
   document.getElementById('r-total').textContent = totalRating;
   document.getElementById('r-avg').textContent = avg.toFixed(1);
   document.getElementById('r-satisfaction').textContent = satisfaction + '%';
   document.getElementById('r-users').textContent = userSet.size;
-  
-  // Update user table rating columns
-  updateUserRatingColumns();
-  
-  // Render charts
+
   renderRatingDistChart(dist);
   renderRatingTrendChart(ratings);
-  
-  // Render latest ratings
   renderLatestRatings(ratings);
-  
-  // Render detail table
   renderRatingDetail();
-  
+
   return { totalRating, avg, satisfaction, userSet: userSet.size, dist, ratings };
 }
 
-// ─── UPDATE USER RATING COLUMNS ───
-function updateUserRatingColumns() {
-  // This will be called when rendering users table
-  // Data will be populated in renderUsers()
-}
-
-// ─── RENDER LATEST RATINGS ───
 function renderLatestRatings(ratings) {
   const tbody = document.getElementById('latestRatingTbl');
   if (!tbody) return;
-  
+
   if (!ratings || ratings.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="tbl-empty">Belum ada rating.</td></tr>';
     return;
   }
-  
+
   const sorted = [...ratings].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0,10);
-  
+
   tbody.innerHTML = sorted.map(r => {
     const userData = G.users[r.uid] || {};
     const traffic = G.traffic[r.uid] || {};
@@ -2252,7 +2214,7 @@ function renderLatestRatings(ratings) {
     const email = getEmail(r.uid, userData, traffic);
     const role = userData.role || (isGuest(r.uid) ? 'GUEST' : 'GUEST');
     const stars = renderStars(r.rating || 0);
-    
+
     return `<tr>
       <td>${uCell(name, email, r.uid)}</td>
       <td><span class="badge ${role}">${role}</span></td>
@@ -2266,23 +2228,22 @@ function renderLatestRatings(ratings) {
   }).join('');
 }
 
-// ─── RENDER RATING DISTRIBUTION CHART ───
 function renderRatingDistChart(dist) {
   const canvas = document.getElementById('ratingDistChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  
+
   if (ratingDistChart) { ratingDistChart.destroy(); ratingDistChart = null; }
-  
+
   const labels = ['⭐ 1', '⭐ 2', '⭐ 3', '⭐ 4', '⭐ 5'];
   const data = [dist[1]||0, dist[2]||0, dist[3]||0, dist[4]||0, dist[5]||0];
   const colors = ['#ef4444', '#f59e0b', '#facc15', '#22c55e', '#22c55e'];
-  
+
   if (data.every(d => d === 0)) {
     canvas.parentElement.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada data rating</div>`;
     return;
   }
-  
+
   ratingDistChart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -2308,26 +2269,24 @@ function renderRatingDistChart(dist) {
   });
 }
 
-// ─── RENDER RATING TREND CHART ───
 function renderRatingTrendChart(ratings) {
   const canvas = document.getElementById('ratingTrendChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  
+
   if (ratingTrendChart) { ratingTrendChart.destroy(); ratingTrendChart = null; }
-  
-  // Group by day
+
   const dailyData = {};
   const now = new Date();
   now.setHours(0,0,0,0);
-  
+
   for(let i = 6; i >= 0; i--){
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0,10);
     dailyData[key] = { count: 0, sum: 0, avg: 0, label: d.toLocaleDateString('id-ID', {weekday:'short', day:'numeric'}) };
   }
-  
+
   ratings.forEach(r => {
     const d = new Date(r.timestamp);
     const key = d.toISOString().slice(0,10);
@@ -2336,22 +2295,22 @@ function renderRatingTrendChart(ratings) {
       dailyData[key].sum += r.rating || 0;
     }
   });
-  
+
   Object.keys(dailyData).forEach(key => {
     if (dailyData[key].count > 0) {
       dailyData[key].avg = dailyData[key].sum / dailyData[key].count;
     }
   });
-  
+
   const labels = Object.values(dailyData).map(d => d.label);
   const avgData = Object.values(dailyData).map(d => d.avg || 0);
   const countData = Object.values(dailyData).map(d => d.count || 0);
-  
+
   if (avgData.every(d => d === 0) && countData.every(d => d === 0)) {
     canvas.parentElement.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada data rating</div>`;
     return;
   }
-  
+
   ratingTrendChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -2411,35 +2370,31 @@ function renderRatingTrendChart(ratings) {
   });
 }
 
-// ─── RENDER RATING DETAIL TABLE ───
 function renderRatingDetail() {
   const tbody = document.getElementById('ratingTbl');
   if (!tbody) return;
-  
+
   const search = (document.getElementById('ratingSearch')?.value || '').toLowerCase();
   const starFilter = document.querySelector('#ratingStarFilter .active')?.dataset?.star || 'all';
   const userFilter = document.getElementById('ratingUserFilter')?.value || 'all';
-  
+
   let ratings = [];
   Object.entries(ratingData).forEach(([uid, userRatings]) => {
     if (Array.isArray(userRatings)) {
       userRatings.forEach(r => {
         const isGuestUser = isGuest(uid);
-        // Apply user filter
         if (userFilter === 'guest' && !isGuestUser) return;
         if (userFilter === 'user' && isGuestUser) return;
         ratings.push({...r, uid});
       });
     }
   });
-  
-  // Apply star filter
+
   if (starFilter !== 'all') {
     const starNum = parseInt(starFilter);
     ratings = ratings.filter(r => r.rating === starNum);
   }
-  
-  // Apply search
+
   if (search) {
     ratings = ratings.filter(r => {
       const userData = G.users[r.uid] || {};
@@ -2449,17 +2404,16 @@ function renderRatingDetail() {
       return name.includes(search) || email.includes(search) || (r.comment || '').toLowerCase().includes(search);
     });
   }
-  
-  // Sort by newest
+
   ratings.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-  
+
   document.getElementById('r-count').textContent = ratings.length + ' rating';
-  
+
   if (ratings.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="tbl-empty">Tidak ada rating yang cocok.</td></tr>';
     return;
   }
-  
+
   tbody.innerHTML = ratings.map(r => {
     const userData = G.users[r.uid] || {};
     const traffic = G.traffic[r.uid] || {};
@@ -2467,7 +2421,7 @@ function renderRatingDetail() {
     const email = getEmail(r.uid, userData, traffic);
     const role = userData.role || (isGuest(r.uid) ? 'GUEST' : 'GUEST');
     const stars = renderStars(r.rating || 0);
-    
+
     return `<tr>
       <td>${uCell(name, email, r.uid)}</td>
       <td><span class="badge ${role}">${role}</span></td>
@@ -2482,7 +2436,6 @@ function renderRatingDetail() {
   }).join('');
 }
 
-// ─── VIEW USER RATING DETAIL ───
 function viewUserRating(uid) {
   const userRatings = ratingData[uid] || [];
   const userData = G.users[uid] || {};
@@ -2490,20 +2443,20 @@ function viewUserRating(uid) {
   const name = getDisplayName(uid, userData, traffic);
   const email = getEmail(uid, userData, traffic);
   const role = userData.role || (isGuest(uid) ? 'GUEST' : 'GUEST');
-  
+
   document.getElementById('rm-ava').textContent = (name[0] || '?').toUpperCase();
   document.getElementById('rm-name').textContent = name;
   document.getElementById('rm-email').textContent = email;
   const rb = document.getElementById('rm-role');
   if (rb) { rb.className = 'badge ' + role; rb.textContent = role; }
-  
+
   const total = userRatings.length;
   const sum = userRatings.reduce((acc, r) => acc + (r.rating || 0), 0);
   const avg = total > 0 ? sum / total : 0;
-  
+
   document.getElementById('rm-total').textContent = total;
   document.getElementById('rm-avg').textContent = avg.toFixed(1);
-  
+
   const list = document.getElementById('rm-list');
   if (total === 0) {
     list.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted)">User ini belum memberi rating.</div>`;
@@ -2519,7 +2472,7 @@ function viewUserRating(uid) {
       </div>
     `).join('');
   }
-  
+
   document.getElementById('ratingModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2529,17 +2482,16 @@ function closeRatingModal() {
   document.body.style.overflow = '';
 }
 
-// ─── EXPORT RATING CSV ───
 function exportRatingCSV() {
   let rows = [['User', 'UID', 'Role', 'Rating', 'Komentar', 'Sesi', 'Tanggal']];
-  
+
   Object.entries(ratingData).forEach(([uid, userRatings]) => {
     if (!Array.isArray(userRatings)) return;
     const userData = G.users[uid] || {};
     const traffic = G.traffic[uid] || {};
     const name = getDisplayName(uid, userData, traffic);
     const role = userData.role || (isGuest(uid) ? 'GUEST' : 'GUEST');
-    
+
     userRatings.forEach(r => {
       rows.push([
         name,
@@ -2552,7 +2504,7 @@ function exportRatingCSV() {
       ]);
     });
   });
-  
+
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -2561,16 +2513,15 @@ function exportRatingCSV() {
   toast('Rating CSV berhasil di-export!', 'ok');
 }
 
-// ─── SAVE RATING SETTINGS ───
 async function saveRatingSettings() {
   const allowGuest = document.getElementById('tog-guest-rating')?.checked || false;
   const trigger = parseInt(document.getElementById('ratingTrigger')?.value) || 3;
-  
+
   if (trigger < 1 || trigger > 10) {
     toast('Trigger rating harus antara 1-10!', 'err');
     return;
   }
-  
+
   try {
     await db.ref('system_settings/rating').set({
       allow_guest_rating: allowGuest,
@@ -2590,7 +2541,6 @@ async function saveRatingSettings() {
   }
 }
 
-// ══ SAVE CHAT HISTORY LIMIT ══
 async function saveChatHistoryLimit(){
   const val = parseInt(document.getElementById("chatHistoryLimit")?.value) || 20;
   if(val < 5 || val > 200){ toast("Minimal 5, maksimal 200!","err"); return; }
@@ -2662,27 +2612,27 @@ function renderDailyUsage(){
   });
   rows.sort((a,b)=>b.chats-a.chats);
   setText("dailyCount",rows.length+" user aktif hari ini");
-  if(!rows.length){ 
-    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Belum ada aktivitas hari ini.</td></tr>`; 
-    return; 
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Belum ada aktivitas hari ini.</td></tr>`;
+    return;
   }
-  
+
   tbody.innerHTML=rows.map(r=>{
-    const maxC=G.users[r.uid]?.max_chat_limit || 
+    const maxC=G.users[r.uid]?.max_chat_limit ||
                (G.settings.role_limit?.[r.role]?.chat_limit ?? 50);
-    const maxP=G.users[r.uid]?.max_photo_limit || 
+    const maxP=G.users[r.uid]?.max_photo_limit ||
                (G.settings.role_limit?.[r.role]?.photo_limit ?? 5);
     const pct=maxC>0?Math.min((r.chats/maxC)*100,100):0;
     const barC=pct>=100?"var(--red)":pct>=80?"var(--gold)":"var(--accent)";
     const displayName = r.isGuest ? `🆔 ${r.name}` : r.name;
-    
+
     if(pct >= 80 && pct < 100){
       addNotif(`⚠️ ${r.name} approaching limit`, `Chat: ${r.chats}/${maxC} (${Math.round(pct)}%)`, "warn", 6000);
     }
     if(pct >= 100){
       addNotif(`🚫 ${r.name} limit habis`, `Chat: ${r.chats}/${maxC} — silakan reset kuota`, "danger", 6000);
     }
-    
+
     return `<tr>
       <td>${uCell(displayName, r.email, r.uid)}${r.isGuest ? ' <span style="font-size:9px;color:var(--text-muted)">(Guest)</span>' : ''}</td>
       <td><span class="badge ${r.role}">${r.role}</span></td>
@@ -2782,10 +2732,9 @@ function renderUsers(){
   setText("usrCount",rows.length+" user");
   const tbody=document.getElementById("usrTbl"); if(!tbody) return;
   if(!rows.length){ tbody.innerHTML=`<tr><td colspan="11" class="tbl-empty">Tidak ada user${q?" yang cocok":""} terdaftar.</td></tr>`; return; }
-  
+
   const globalLimits = G.settings.role_limit || {};
-  
-  // Get rating stats per user
+
   const userRatingStats = {};
   Object.entries(ratingData).forEach(([uid, userRatings]) => {
     if (Array.isArray(userRatings) && userRatings.length > 0) {
@@ -2796,7 +2745,7 @@ function renderUsers(){
       userRatingStats[uid] = { total, avg, last };
     }
   });
-  
+
   tbody.innerHTML=rows.map(u=>{
     const role=u.role||"GUEST", tr=G.traffic[u.uid]||{};
     const name=u.name||tr.name||"—", email=u.email||tr.email||"—";
@@ -2808,11 +2757,10 @@ function renderUsers(){
     const userPhoto = u.max_photo_limit ?? 0;
     const isOverridden = userChat !== globalChat || userPhoto !== globalPhoto;
     const joined = u.created_at || null;
-    
-    // Rating stats
+
     const ratingStat = userRatingStats[u.uid] || { total: 0, avg: 0, last: 0 };
     const ratingStars = ratingStat.total > 0 ? renderStars(ratingStat.avg) : '—';
-    
+
     return `<tr id="row-${u.uid}">
       <td>${uCell(name,email,u.uid)}</td>
       <td><select class="tbl-select" id="r-${u.uid}" onchange="onRoleChg('${u.uid}')">
@@ -2903,12 +2851,12 @@ function renderMonitorGuest(){
   if(q) rows=rows.filter(g=>(g.guest_id||g.id||"").toLowerCase().includes(q)||(g.ip_address||"").includes(q));
   rows.sort((a,b)=>(b.last_visit||0)-(a.last_visit||0));
   setText("mgCount",rows.length+" guest");
-  
+
   const cut24=Date.now()-86400000;
   let totalChat=0, todayCount=0;
   rows.forEach(g=>{ totalChat+=(g.total_chats_sent||0); if((g.last_visit||0)>=cut24) todayCount++; });
   setText("mgTotal",String(rows.length)); setText("mgChat",fmtN(totalChat)); setText("mgToday",String(todayCount));
-  
+
   const tbody=document.getElementById("mgTbl"); if(!tbody) return;
   if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" class="tbl-empty">Belum ada data guest.</td></tr>`; return; }
   tbody.innerHTML=rows.map(g=>{
@@ -2940,18 +2888,18 @@ function renderMonitorGuest(){
 async function renderSessions() {
   const tbody = document.getElementById("sesTbl");
   if (!tbody) return;
-  
+
   const search = (document.getElementById("sesSearch")?.value || "").toLowerCase();
   const dateFrom = document.getElementById("sesDateFrom")?.value;
   const dateTo = document.getElementById("sesDateTo")?.value;
   const sort = document.getElementById("sesSort")?.value || "desc";
-  
+
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px"><div class="spinner"></div><br><span style="color:var(--text-muted);font-size:12px">Memuat semua sesi...</span></td></tr>`;
-  
+
   try {
     const snap = await db.ref("user_sessions").once("value");
     const allSessions = [];
-    
+
     if (snap.exists()) {
       snap.forEach(userChild => {
         const uid = userChild.key;
@@ -2962,7 +2910,7 @@ async function renderSessions() {
         const email = getEmail(uid, userData, traffic);
         const role = userData.role || (isGuestUser ? "GUEST" : "GUEST");
         const ip = traffic.ip_address || "—";
-        
+
         userChild.forEach(sessionChild => {
           const val = sessionChild.val();
           const chats = val?.chats || {};
@@ -2970,7 +2918,7 @@ async function renderSessions() {
           const title = val?.meta?.title || 'Obrolan Tanpa Judul';
           const created = val?.meta?.created_at || 0;
           const last = val?.meta?.last_active || created;
-          
+
           let match = true;
           if (search) {
             const searchText = (title + " " + name + " " + email + " " + uid).toLowerCase();
@@ -2982,7 +2930,7 @@ async function renderSessions() {
               }
             }
           }
-          
+
           if (dateFrom) {
             const d = new Date(created);
             const dStr = d.toISOString().slice(0,10);
@@ -2993,13 +2941,13 @@ async function renderSessions() {
             const dStr = d.toISOString().slice(0,10);
             if (dStr > dateTo) match = false;
           }
-          
+
           if (match) {
             const chatList = Object.entries(chats)
               .map(([id, c]) => ({ id, ...c, ts: c.ts || c.timestamp || 0 }))
               .sort((a,b) => (a.ts||0) - (b.ts||0));
             const lastChat = chatList[chatList.length - 1];
-            
+
             allSessions.push({
               uid,
               sessionId: sessionChild.key,
@@ -3019,20 +2967,20 @@ async function renderSessions() {
         });
       });
     }
-    
+
     allSessions.sort((a,b) => sort === "desc" ? b.last - a.last : a.last - b.last);
     setText("sesCount", allSessions.length + " sesi");
-    
+
     if (allSessions.length === 0) {
       tbody.innerHTML = `<tr><td colspan="7" class="tbl-empty">Tidak ada sesi obrolan ditemukan.</td></tr>`;
       return;
     }
-    
+
     tbody.innerHTML = allSessions.map(s => {
       const roleBadge = `<span class="badge ${s.role}">${s.role}${s.isGuest ? ' 👤' : ''}</span>`;
       const nameDisplay = s.isGuest ? `🆔 ${s.name}` : s.name;
       const online = isOnline(s.last) ? '<span style="color:var(--green)">🟢 Online</span>' : '';
-      
+
       return `<tr>
         <td>
           <div style="font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(s.title)}">
@@ -3067,31 +3015,30 @@ async function renderSessions() {
         </td>
       </tr>`;
     }).join("");
-    
+
   } catch(e) {
     console.error("Gagal render sessions:", e);
     tbody.innerHTML = `<tr><td colspan="7" class="tbl-empty">❌ Gagal memuat sesi: ${esc(e.message)}</td></tr>`;
   }
 }
 
-// ─── BUKA DETAIL SESI DARI HALAMAN SESSIONS ───
 async function openSessionDetail(uid, sessionId) {
   try {
     const snap = await db.ref(`user_sessions/${uid}/${sessionId}`).once("value");
     const val = snap.val();
     if (!val) { toast("Sesi tidak ditemukan!","err"); return; }
-    
+
     const chats = val.chats || {};
     const title = val.meta?.title || 'Obrolan Tanpa Judul';
     const chatList = Object.entries(chats)
       .map(([id, chat]) => ({ id, ...chat, ts: chat.ts || chat.timestamp || Date.now() }))
       .sort((a, b) => (a.ts || 0) - (b.ts || 0));
-    
+
     const userData = G.users[uid] || {};
     const traffic = G.traffic[uid] || {};
     const name = getDisplayName(uid, userData, traffic);
     const role = userData.role || (isGuest(uid) ? "GUEST" : "GUEST");
-    
+
     setText("ud-ava", (name[0]||"?").toUpperCase());
     setText("ud-name", name + " — " + title);
     setText("ud-email", isGuest(uid) ? "👤 Guest" : (userData.email || traffic.email || "—"));
@@ -3099,7 +3046,7 @@ async function openSessionDetail(uid, sessionId) {
     if (rb) { rb.className = "badge " + role; rb.textContent = role; }
     setText("ud-uid", uid);
     setText("ud-ip", traffic.ip_address || "—");
-    
+
     let totalChat = 0, totalPhoto = 0;
     Object.values(chats).forEach(c => {
       totalChat++;
@@ -3110,26 +3057,26 @@ async function openSessionDetail(uid, sessionId) {
     setText("ud-since", fmtFull(val.meta?.created_at || Date.now()));
     setText("ud-last", fmtFull(val.meta?.last_active || Date.now()));
     setText("ud-clim", userData.max_chat_limit || "∞");
-    
+
     document.getElementById("sessionListContainer").style.display = "none";
     document.getElementById("chatDetailContainer").style.display = "block";
     document.getElementById("chatDetailTitle").textContent = `📁 ${title}`;
     document.getElementById("chatDetailMeta").textContent = `${chatList.length} pesan · ${fmtFull(val.meta?.created_at || Date.now())}`;
-    
+
     const listEl = document.getElementById("chatDetailList");
     if (chatList.length === 0) {
       listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Belum ada chat di sesi ini.</div>`;
     } else {
       const limit = chatHistoryLimit || 20;
       const showChats = chatList.slice(-limit);
-      
+
       listEl.innerHTML = showChats.map(c => {
         const isUser = c.role === 'user' || c.role === 'User' || c.role === 'USER';
         const isBot = c.role === 'bot' || c.role === 'Bot' || c.role === 'BOT' || c.role === 'assistant';
         const roleDisplay = isUser ? '👤 User' : (isBot ? '🤖 Bot' : `🔹 ${c.role || 'Unknown'}`);
         const cls = isUser ? 'user' : 'bot';
         const hasImage = c.image || c.img || c.photo;
-        
+
         return `<div class="chat-bubble ${cls}">
           <div class="chat-role">${roleDisplay}</div>
           ${hasImage ? `<img src="${c.image || c.img || c.photo}" class="chat-img" onclick="openImgModal(this.src)" style="max-height:150px;cursor:pointer;border-radius:8px">` : ''}
@@ -3138,16 +3085,15 @@ async function openSessionDetail(uid, sessionId) {
         </div>`;
       }).join('');
     }
-    
+
     document.getElementById("udModal").classList.add("open");
     document.body.style.overflow = "hidden";
-    
+
   } catch(e) {
     toast("Gagal buka sesi: " + e.message, "err");
   }
 }
 
-// ─── HAPUS SESI ───
 async function deleteSession(uid, sessionId, title) {
   const ok = await confirm2(`Hapus sesi "${esc(title)}"?`, "Chat akan dihapus permanen.","🗑️");
   if (!ok) return;
@@ -3158,7 +3104,6 @@ async function deleteSession(uid, sessionId, title) {
   } catch(e) { toast("Gagal hapus: " + e.message, "err"); }
 }
 
-// ─── HAPUS SEMUA SESI ───
 async function clearAllSessions() {
   const ok = await confirm2("Hapus SEMUA sesi obrolan?", "Semua chat dari semua user akan dihapus permanen!","🚨");
   if (!ok) return;
@@ -3173,17 +3118,17 @@ async function clearAllSessions() {
 async function renderArchive() {
   const tbody = document.getElementById("arcTbl");
   if (!tbody) return;
-  
+
   const search = (document.getElementById("arcSearch")?.value || "").toLowerCase();
   const month = document.getElementById("arcMonth")?.value || "";
-  
+
   tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px"><div class="spinner"></div><br><span style="color:var(--text-muted);font-size:12px">Memuat arsip...</span></td></tr>`;
-  
+
   try {
     const snap = await db.ref("archived_sessions").once("value");
     const archives = [];
     const months = new Set();
-    
+
     if (snap.exists()) {
       snap.forEach(monthChild => {
         const monthKey = monthChild.key;
@@ -3193,7 +3138,7 @@ async function renderArchive() {
           const traffic = G.traffic[uid] || {};
           const name = getDisplayName(uid, userData, traffic);
           const role = userData.role || (isGuest(uid) ? "GUEST" : "GUEST");
-          
+
           userChild.forEach(sessionChild => {
             const val = sessionChild.val();
             const sessionId = sessionChild.key;
@@ -3201,16 +3146,16 @@ async function renderArchive() {
             const chatCount = Object.keys(val?.chats || {}).length;
             const archivedAt = val?._archived_at || 0;
             const monthKey2 = val?._original_path?.split('/')?.[2] || 'unknown';
-            
+
             months.add(monthKey2);
-            
+
             let match = true;
             if (search) {
               const searchText = (name + " " + title + " " + uid).toLowerCase();
               match = searchText.includes(search);
             }
             if (month && monthKey2 !== month) match = false;
-            
+
             if (match) {
               archives.push({
                 uid,
@@ -3229,28 +3174,28 @@ async function renderArchive() {
         });
       });
     }
-    
+
     archives.sort((a,b) => b.archivedAt - a.archivedAt);
-    
+
     const monthSelect = document.getElementById("arcMonth");
     if (monthSelect) {
       const currentVal = monthSelect.value;
-      monthSelect.innerHTML = `<option value="">Semua Bulan</option>` + 
-        Array.from(months).sort().reverse().map(m => 
+      monthSelect.innerHTML = `<option value="">Semua Bulan</option>` +
+        Array.from(months).sort().reverse().map(m =>
           `<option value="${m}" ${m === currentVal ? 'selected' : ''}>${m}</option>`
         ).join('');
     }
-    
+
     setText("arc-total", archives.length);
     setText("arc-users", new Set(archives.map(a => a.uid)).size);
     setText("arc-months", months.size);
     setText("arcCount", archives.length + " arsip");
-    
+
     if (archives.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" class="tbl-empty">📦 Belum ada arsip.</td></tr>`;
       return;
     }
-    
+
     tbody.innerHTML = archives.map(a => `
       <tr>
         <td>
@@ -3279,22 +3224,21 @@ async function renderArchive() {
         </td>
       </tr>
     `).join("");
-    
+
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="6" class="tbl-empty">❌ Gagal memuat arsip: ${esc(e.message)}</td></tr>`;
   }
 }
 
-// ─── RESTORE SESI DARI ARSIP ───
 async function restoreSession(uid, sessionId) {
   const ok = await confirm2("Restore sesi?", "Sesi akan dikembalikan ke aktif.","↩️");
   if (!ok) return;
-  
+
   try {
     const snap = await db.ref("archived_sessions").once("value");
     let found = null;
     let path = null;
-    
+
     snap.forEach(monthChild => {
       monthChild.forEach(userChild => {
         if (userChild.key === uid) {
@@ -3307,13 +3251,13 @@ async function restoreSession(uid, sessionId) {
         }
       });
     });
-    
+
     if (!found) { toast("Sesi tidak ditemukan di arsip!","err"); return; }
-    
+
     const updates = {};
     updates[`user_sessions/${uid}/${sessionId}`] = found;
     updates[path] = null;
-    
+
     await db.ref().update(updates);
     toast("Sesi di-restore! ✅", "ok");
     renderArchive();
@@ -3323,11 +3267,10 @@ async function restoreSession(uid, sessionId) {
   }
 }
 
-// ─── DELETE ARCHIVE ───
 async function deleteArchive(uid, sessionId) {
   const ok = await confirm2("Hapus arsip?", "Data akan dihapus permanen!","🗑️");
   if (!ok) return;
-  
+
   try {
     const snap = await db.ref("archived_sessions").once("value");
     snap.forEach(monthChild => {
@@ -3341,7 +3284,7 @@ async function deleteArchive(uid, sessionId) {
         }
       });
     });
-    
+
     toast("Arsip dihapus!", "ok");
     renderArchive();
   } catch(e) {
@@ -3349,16 +3292,15 @@ async function deleteArchive(uid, sessionId) {
   }
 }
 
-// ─── RESTORE ALL ARCHIVE ───
 async function restoreAllArchive() {
   const ok = await confirm2("Restore SEMUA arsip?", "Semua sesi di arsip akan dikembalikan ke aktif.","↩️");
   if (!ok) return;
-  
+
   try {
     const snap = await db.ref("archived_sessions").once("value");
     const updates = {};
     let count = 0;
-    
+
     snap.forEach(monthChild => {
       monthChild.forEach(userChild => {
         const uid = userChild.key;
@@ -3370,7 +3312,7 @@ async function restoreAllArchive() {
         });
       });
     });
-    
+
     if (count > 0) {
       await db.ref().update(updates);
       toast(`${count} arsip di-restore! ✅`, "ok");
@@ -3384,11 +3326,10 @@ async function restoreAllArchive() {
   }
 }
 
-// ─── DELETE ALL ARCHIVE ───
 async function deleteAllArchive() {
   const ok = await confirm2("Hapus SEMUA arsip?", "Semua data arsip akan dihapus permanen!","🚨");
   if (!ok) return;
-  
+
   try {
     await db.ref("archived_sessions").remove();
     toast("Semua arsip dihapus!", "ok");
@@ -3398,7 +3339,6 @@ async function deleteAllArchive() {
   }
 }
 
-// ─── OPEN IMAGE MODAL ───
 function openImgModal(src) {
   const modal = document.createElement("div");
   modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer";
@@ -3407,9 +3347,7 @@ function openImgModal(src) {
   document.body.appendChild(modal);
 }
 
-// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
-// 🔥 PENGATURAN ARSIP & NOTIFIKASI
-// ══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══
+// ══ PENGATURAN ARSIP & NOTIFIKASI ══
 
 function loadArchiveSettings() {
   const config = G.settings.archive_config || {};
@@ -3430,7 +3368,7 @@ async function saveArchiveSettings() {
     notification_text: document.getElementById('notifText').value || '⚠️ Obrolan "{title}" sudah {days} hari tidak aktif. Masih mau disimpan?',
     updated_at: Date.now()
   };
-  
+
   try {
     await db.ref('system_settings/archive_config').set(config);
     toast('Pengaturan arsip tersimpan! ✅', 'ok');
@@ -3445,7 +3383,7 @@ async function saveArchiveSettings() {
 async function manualArchive() {
   const ok = await confirm2('Arsipkan Sekarang?', 'Semua sesi yang memenuhi aturan akan dipindahkan ke arsip.', '📦');
   if (!ok) return;
-  
+
   const result = await autoArchiveSessions();
   toast(`✅ ${result} sesi diarsipkan`, 'ok');
   addNotif('📦 Arsip Manual', `${result} sesi dipindahkan ke arsip`, 'info', 4000);
@@ -3453,35 +3391,34 @@ async function manualArchive() {
   renderArchive();
 }
 
-// ─── AUTO ARCHIVE SESSIONS ───
 async function autoArchiveSessions() {
   const config = G.settings.archive_config || {};
   const daysToArchive = config.days_to_archive || 7;
   const maxSessions = config.max_sessions_per_user || 0;
-  
+
   if (daysToArchive === 0 && maxSessions === 0) return 0;
   if (!config.auto_archive) return 0;
-  
+
   const now = Date.now();
   const cutOffArchive = daysToArchive > 0 ? daysToArchive * 86400000 : Infinity;
   let archived = 0;
   const updates = {};
-  
+
   try {
     const snap = await db.ref('user_sessions').once('value');
     if (!snap.exists()) return 0;
-    
+
     const userSessions = {};
     snap.forEach(userChild => {
       const uid = userChild.key;
       const isGuestUser = isGuest(uid);
       userSessions[uid] = { sessions: [], isGuest: isGuestUser };
-      
+
       userChild.forEach(sessionChild => {
         const val = sessionChild.val();
         const lastActive = val?.meta?.last_active || val?.meta?.created_at || 0;
         const chatCount = Object.keys(val?.chats || {}).length;
-        
+
         userSessions[uid].sessions.push({
           id: sessionChild.key,
           data: val,
@@ -3490,11 +3427,11 @@ async function autoArchiveSessions() {
         });
       });
     });
-    
+
     for (const [uid, data] of Object.entries(userSessions)) {
       const { sessions, isGuest } = data;
       sessions.sort((a, b) => a.lastActive - b.lastActive);
-      
+
       if (maxSessions > 0 && sessions.length > maxSessions) {
         const toArchive = sessions.slice(0, sessions.length - maxSessions);
         for (const ses of toArchive) {
@@ -3503,7 +3440,7 @@ async function autoArchiveSessions() {
           const sessionData = ses.data;
           sessionData._archived_at = now;
           sessionData._original_path = `user_sessions/${uid}/${ses.id}`;
-          
+
           updates[`archived_sessions/${prefix}/${uid}/${month}/${ses.id}`] = sessionData;
           updates[`user_sessions/${uid}/${ses.id}`] = null;
           archived++;
@@ -3511,7 +3448,7 @@ async function autoArchiveSessions() {
         const archivedIds = new Set(toArchive.map(s => s.id));
         data.sessions = sessions.filter(s => !archivedIds.has(s.id));
       }
-      
+
       if (daysToArchive > 0) {
         for (const ses of data.sessions) {
           const age = now - ses.lastActive;
@@ -3521,7 +3458,7 @@ async function autoArchiveSessions() {
             const sessionData = ses.data;
             sessionData._archived_at = now;
             sessionData._original_path = `user_sessions/${uid}/${ses.id}`;
-            
+
             updates[`archived_sessions/${prefix}/${uid}/${month}/${ses.id}`] = sessionData;
             updates[`user_sessions/${uid}/${ses.id}`] = null;
             archived++;
@@ -3529,12 +3466,12 @@ async function autoArchiveSessions() {
         }
       }
     }
-    
+
     if (archived > 0) {
       await db.ref().update(updates);
       console.log(`📦 ${archived} sesi diarsipkan`);
     }
-    
+
     return archived;
   } catch(e) {
     console.error("Gagal arsip:", e);
@@ -3542,28 +3479,27 @@ async function autoArchiveSessions() {
   }
 }
 
-// ─── CLEAN INACTIVE GUESTS ───
 async function cleanInactiveGuests() {
   const config = G.settings.archive_config || {};
   const guestCleanup = config.guest_cleanup_days || 30;
-  
+
   if (guestCleanup === 0) return 0;
-  
+
   const cutOff = guestCleanup * 86400000;
   const now = Date.now();
   let deleted = 0;
   const updates = {};
-  
+
   try {
     const snap = await db.ref("user_sessions").once("value");
     if (!snap.exists()) return 0;
-    
+
     snap.forEach(child => {
       const uid = child.key;
       if (isGuest(uid)) {
         const traffic = G.traffic[uid] || {};
         const lastActive = traffic.last_visit || 0;
-        
+
         if (now - lastActive > cutOff) {
           updates[`user_sessions/${uid}`] = null;
           updates[`archived_sessions/guests/${uid}`] = null;
@@ -3572,13 +3508,13 @@ async function cleanInactiveGuests() {
         }
       }
     });
-    
+
     if (deleted > 0) {
       await db.ref().update(updates);
       console.log(`🧹 ${deleted} guest dihapus (tidak aktif >${guestCleanup} hari)`);
       addNotif('🧹 Guest Cleanup', `${deleted} guest dihapus karena tidak aktif >${guestCleanup} hari`, 'info', 5000);
     }
-    
+
     return deleted;
   } catch(e) {
     console.error("Gagal bersihkan guest:", e);
@@ -3586,14 +3522,13 @@ async function cleanInactiveGuests() {
   }
 }
 
-// ─── UPDATE USER SELECT ───
 function updateUserSelect() {
   const select = document.getElementById('notifUserSelect');
   if (!select) return;
-  
+
   const currentVal = select.value;
   select.innerHTML = `<option value="">Pilih User...</option>`;
-  
+
   Object.entries(G.users).forEach(([uid, u]) => {
     if (!isGuest(uid)) {
       const name = u.name || u.email || uid.slice(0,12);
@@ -3606,19 +3541,18 @@ function updateUserSelect() {
   });
 }
 
-// ─── SEND MASS NOTIFICATION ───
 async function sendMassNotification() {
   const title = document.getElementById('notifTitleAll')?.value?.trim() || '📢 XREZZKY AI';
   const body = document.getElementById('notifBodyAll')?.value?.trim();
-  
+
   if (!body) { toast('Isi pesan notifikasi dulu!', 'err'); return; }
-  
+
   const ok = await confirm2(`Kirim notifikasi ke semua user?`, `"${title}" - "${body}"`, '📨');
   if (!ok) return;
-  
+
   let sent = 0;
   const users = Object.entries(G.users).filter(([uid]) => !isGuest(uid));
-  
+
   for (const [uid, u] of users) {
     await db.ref(`users_config/${uid}/notifications`).push({
       title: title,
@@ -3629,25 +3563,24 @@ async function sendMassNotification() {
     });
     sent++;
   }
-  
+
   toast(`Notifikasi dikirim ke ${sent} user ✅`, 'ok');
   addNotif('📨 Notifikasi Massal', `Dikirim ke ${sent} user`, 'success', 4000);
   document.getElementById('notifTitleAll').value = '';
   document.getElementById('notifBodyAll').value = '';
 }
 
-// ─── SEND USER NOTIFICATION ───
 async function sendUserNotification() {
   const uid = document.getElementById('notifUserSelect')?.value;
   const title = document.getElementById('notifTitleUser')?.value?.trim() || '📢 XREZZKY AI';
   const body = document.getElementById('notifBodyUser')?.value?.trim();
-  
+
   if (!uid) { toast('Pilih user dulu!', 'err'); return; }
   if (!body) { toast('Isi pesan notifikasi!', 'err'); return; }
-  
+
   const ok = await confirm2(`Kirim notifikasi ke user?`, `"${title}" - "${body}"`, '📨');
   if (!ok) return;
-  
+
   await db.ref(`users_config/${uid}/notifications`).push({
     title: title,
     body: body,
@@ -3655,7 +3588,7 @@ async function sendUserNotification() {
     read: false,
     created_at: Date.now()
   });
-  
+
   toast('Notifikasi terkirim ✅', 'ok');
   addNotif('📨 Notifikasi User', `Dikirim ke ${G.users[uid]?.name || uid}`, 'success', 4000);
   document.getElementById('notifTitleUser').value = '';
@@ -3761,7 +3694,11 @@ async function doCreateUser(){
     const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass,returnSecureToken:true})});
     const d=await r.json();
     if(d.error){ const em={"EMAIL_EXISTS":"Email sudah terdaftar.","INVALID_EMAIL":"Format email tidak valid.","WEAK_PASSWORD":"Password minimal 6 karakter."}; throw new Error(em[d.error.message]||d.error.message); }
-    const lim={OWNER:{c:99999,p:99999},ADMIN:{c:99999,p:99999},SELLER:{c:200,p:50},CS:{c:300,p:50},MEMBER:{c:50,p:5},GUEST:{c:10,p:0}}[role]||{c:50,p:5};
+    // FIX: limit default user baru sekarang mengikuti pengaturan "Batas Default per Role"
+    // di Settings (G.settings.role_limit), bukan angka hardcoded yang bisa basi.
+    const fallback={OWNER:{c:99999,p:99999},ADMIN:{c:99999,p:99999},SELLER:{c:200,p:50},CS:{c:300,p:50},MEMBER:{c:50,p:5},GUEST:{c:10,p:0}}[role]||{c:50,p:5};
+    const gLimit=(G.settings.role_limit||{})[role];
+    const lim=(role==="OWNER"||role==="ADMIN")?fallback:(gLimit?{c:gLimit.chat_limit??fallback.c,p:gLimit.photo_limit??fallback.p}:fallback);
     await db.ref(`users_config/${d.localId}`).set({uid:d.localId,name,email,role,max_chat_limit:lim.c,max_photo_limit:lim.p,status:"active",created_at:Date.now(),created_by:G.me?.uid||"admin",last_login:null});
     showCuMsg(`✅ Akun "${name}" (${role}) berhasil dibuat!`,true);
     toast(`${name} berhasil dibuat sebagai ${role}`,"ok");
@@ -3904,11 +3841,10 @@ async function openUD(uid){
   document.getElementById("udModal").classList.add("open"); document.body.style.overflow="hidden";
   await loadUserSessions(uid);
 }
-function closeUD(){ 
-  document.getElementById("udModal").classList.remove("open"); 
+function closeUD(){
+  document.getElementById("udModal").classList.remove("open");
   document.body.style.overflow="";
   currentUid = null;
-  currentSessionData = null;
 }
 async function loadUserSessions(uid){
   const container = document.getElementById("sessionList");
@@ -4191,9 +4127,37 @@ async function checkAllApiKeys() {
       ❌ Gagal load API Keys: ${esc(e.message)}
     </div>`;
   }
-  if (btn) { btn.disabled = false; btn.innerHTML = 
+  if (btn) { btn.disabled = false; btn.innerHTML =
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Cek Semua Key`; }
 }
+
+// FIX: export CSV untuk sesi sekarang benar-benar mengambil & menulis datanya
+// (sebelumnya cuma toast doang, file CSV-nya kosong).
+async function exportSessionsCSV(){
+  toast("Menyiapkan CSV sesi...","inf");
+  const rows=[["UID","User","Role","Judul Sesi","Jumlah Chat","Dibuat","Terakhir"]];
+  try{
+    const snap=await db.ref("user_sessions").once("value");
+    snap.forEach(userChild=>{
+      const uid=userChild.key;
+      const u=G.users[uid]||{}, t=G.traffic[uid]||{};
+      const name=getDisplayName(uid,u,t), role=u.role||(isGuest(uid)?"GUEST":"GUEST");
+      userChild.forEach(sessionChild=>{
+        const val=sessionChild.val();
+        const title=val?.meta?.title||"Obrolan Tanpa Judul";
+        const chatCount=Object.keys(val?.chats||{}).length;
+        rows.push([uid,name,role,title,chatCount,fmtFull(val?.meta?.created_at),fmtFull(val?.meta?.last_active||val?.meta?.created_at)]);
+      });
+    });
+  } catch(e){ toast("Gagal ambil data sesi: "+e.message,"err"); return; }
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=Object.assign(document.createElement("a"),{href:url,download:`xrezzky_all_sessions_${dateStr()}.csv`});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast(`${rows.length-1} sesi berhasil di-export!`,"ok");
+}
+
 function exportCSV(type){
   let rows,fname;
   if(type==="users"){
@@ -4209,9 +4173,9 @@ function exportCSV(type){
     Object.entries(G.guests).forEach(([id,g])=>{ rows.push([g.guest_id||id,g.ip_address||"—",g.total_chats_sent||0,g.total_photos_sent||0,fmtD(g.first_visit),fmtD(g.last_visit)]); });
     fname=`xrezzky_monitor_guest_${dateStr()}.csv`;
   } else if(type==="sessions"){
-    rows=[["UID","User","Role","Judul Sesi","Jumlah Chat","Dibuat","Terakhir"]];
-    fname=`xrezzky_all_sessions_${dateStr()}.csv`;
-    toast("Export sessions: ambil dari data yang tampil","inf");
+    // FIX: sebelumnya cuma toast tanpa isi data — sekarang delegasikan ke exportSessionsCSV()
+    exportSessionsCSV();
+    return;
   } else {
     rows=[["UID","Nama","Email","Total Chat","Total Foto","IP","Terakhir Kunjungan"]];
     Object.entries(G.traffic).forEach(([uid,t])=>{ const u=G.users[uid]||{}; rows.push([uid,getDisplayName(uid,u,t),getEmail(uid,u,t),t.total_chats_sent||0,t.total_photos_sent||0,t.ip_address||"—",fmtD(t.last_visit)]); });
@@ -4231,4 +4195,4 @@ function uCell(name,email,uid){
 }
 </script>
 </body>
-  </html>
+</html>
